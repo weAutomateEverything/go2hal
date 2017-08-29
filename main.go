@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"time"
 	"log"
+	"github.com/zamedic/go2hal/database"
 )
 
 func main() {
 	fmt.Println("HAL Starting, initialising DB")
-	StartDB()
+	database.StartDB()
 	fmt.Println("Loading rest")
 	StartRest()
 	fmt.Println("Loading telegram framework")

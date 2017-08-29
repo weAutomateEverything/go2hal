@@ -14,6 +14,7 @@ func (s *SetGroup) CommandDescription() string {
 
 func (s *SetGroup) execute(arguments string){
 
+
 }
 
 func inti(){

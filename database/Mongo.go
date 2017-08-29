@@ -1,4 +1,4 @@
-package main
+package database
 
 import (
 	"gopkg.in/mgo.v2"
