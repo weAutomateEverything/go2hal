@@ -2,10 +2,17 @@ package database
 
 import (
 	"gopkg.in/mgo.v2"
- )
+	"log"
+)
 
-func StartDB(){
-	mgo.Dial("localhost")
+var session *mgo.Session
+var database *mgo.Database
+
+func Start() {
+	log.Println("Starting Database")
+	session, err := mgo.Dial("localhost")
+	database = session.DB("hal")
+	if err != nil {
+		log.Panic(err)
+	}
 }
-
-

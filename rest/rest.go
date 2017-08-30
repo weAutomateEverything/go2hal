@@ -1,4 +1,4 @@
-package main
+package rest
 
 import(
 	"github.com/gorilla/mux"
@@ -6,7 +6,7 @@ import(
 	"log"
 )
 
-func StartRest(){
+func Start(){
 	r := mux.NewRouter()
 	r.HandleFunc("/alert",AlertHandler)
 	go func() {
