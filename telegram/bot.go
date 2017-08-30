@@ -61,8 +61,18 @@ func GetBot() *HalBot{
 	return hal
 }
 
-func SendMessage(chatId int64, message string, messageId int) {
+func SendMessage(chatId int64, message string, messageId int) (err error){
 	msg := tgbotapi.NewMessage(chatId, message)
-	msg.ReplyToMessageID = messageId
-	bot.Send(msg)
+	if messageId != 0 {
+		msg.ReplyToMessageID = messageId
+	}
+	result, err := bot.Send(msg)
+
+	if err != nil {
+		log.Panic(err)
+	}
+
+	log.Println(result)
+
+	return nil
 }

@@ -7,10 +7,14 @@ import(
 )
 
 func Start(){
+	go func() {
+		log.Fatal(http.ListenAndServe(":8000", getRouter()))
+	}()
+}
+
+func getRouter() *mux.Router {
 	r := mux.NewRouter()
 	r.HandleFunc("/alert",AlertHandler)
-	go func() {
-		log.Fatal(http.ListenAndServe(":8000", r))
-	}()
+	return r
 }
 
