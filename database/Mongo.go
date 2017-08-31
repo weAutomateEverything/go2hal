@@ -5,10 +5,9 @@ import (
 	"log"
 )
 
-var session *mgo.Session
 var database *mgo.Database
 
-func Start() {
+func init() {
 	log.Println("Starting Database")
 	session, err := mgo.Dial("localhost")
 	database = session.DB("hal")

@@ -6,7 +6,7 @@ import(
 	"log"
 )
 
-func Start(){
+func init(){
 	go func() {
 		log.Fatal(http.ListenAndServe(":8000", getRouter()))
 	}()
@@ -14,7 +14,7 @@ func Start(){
 
 func getRouter() *mux.Router {
 	r := mux.NewRouter()
-	r.HandleFunc("/alert",AlertHandler)
+	r.HandleFunc("/alert",alertHandler)
 	return r
 }
 

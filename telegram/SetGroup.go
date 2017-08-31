@@ -8,24 +8,24 @@ import (
 
 func init(){
 	log.Println("Initializing Set Group Command")
-	Register(func() Command {
-		return &SetGroup{}
+	register(func() Command {
+		return &setGroup{}
 	})
 }
 
-type SetGroup struct {
+type setGroup struct {
 
 }
 
-func (s *SetGroup) CommandIdentifier() string {
+func (s *setGroup) CommandIdentifier() string {
 	return "SetGroup"
 }
 
-func (s *SetGroup) CommandDescription() string {
+func (s *setGroup) CommandDescription() string {
 	return "Set Alert Group"
 }
 
-func (s *SetGroup) execute(update tgbotapi.Update){
+func (s *setGroup) execute(update tgbotapi.Update){
 	database.SetAlertGroup(update.Message.Chat.ID)
 	SendMessage(update.Message.Chat.ID,"group updated", update.Message.MessageID)
 }

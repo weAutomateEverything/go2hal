@@ -5,7 +5,9 @@ import (
 	"gopkg.in/telegram-bot-api.v4"
 )
 
-
+/**
+Structure to describe the state of the bot
+ */
 type HalBot struct {
 	Running bool
 	bot *tgbotapi.BotAPI
@@ -15,11 +17,7 @@ var hal *HalBot;
 var bot *tgbotapi.BotAPI
 var err error
 
-func init(){
-	log.Println("Hal Init")
-}
-
-func Start() {
+func init() {
 	bot, err = tgbotapi.NewBotAPI("303007671:AAHxx3PI9zU5q-4a43WmQXU3K-A6yGY1DAU")
 
 	if err != nil {
@@ -46,7 +44,7 @@ func Start() {
 				}
 
 				if update.Message.IsCommand(){
-					ExecuteCommand(update)
+					executeCommand(update)
 					continue
 				}
 
@@ -57,14 +55,20 @@ func Start() {
 	}()
 }
 
+/**
+Returns a handler back to the bot
+ */
 func GetBot() *HalBot{
 	return hal
 }
 
-func SendMessage(chatId int64, message string, messageId int) (err error){
-	msg := tgbotapi.NewMessage(chatId, message)
-	if messageId != 0 {
-		msg.ReplyToMessageID = messageId
+/**
+Sends a test message to the chat id.
+ */
+func SendMessage(chatID int64, message string, messageID int) (err error){
+	msg := tgbotapi.NewMessage(chatID, message)
+	if messageID != 0 {
+		msg.ReplyToMessageID = messageID
 	}
 	result, err := bot.Send(msg)
 

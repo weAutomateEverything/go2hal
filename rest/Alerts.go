@@ -8,7 +8,7 @@ import (
 	"io/ioutil"
 )
 
-func AlertHandler(w http.ResponseWriter, r *http.Request){
+func alertHandler(w http.ResponseWriter, r *http.Request){
 	alertGroup,err := database.AlertGroup()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)

@@ -8,25 +8,25 @@ import (
 
 func init() {
 	log.Println("Initialising Help Command")
-	Register(func() Command {
-		return &Help{}
+	register(func() Command {
+		return &help{}
 	})
 }
 
-type Help struct {
+type help struct {
 }
 
-func (s *Help) CommandIdentifier() string {
+func (s *help) CommandIdentifier() string {
 	return "help"
 }
 
-func (s *Help) CommandDescription() string {
+func (s *help) CommandDescription() string {
 	return "Gets list of commands"
 }
 
-func (s *Help) execute(update tgbotapi.Update) {
+func (s *help) execute(update tgbotapi.Update) {
 	var buffer bytes.Buffer
-	for _, x := range GetCommands(){
+	for _, x := range getCommands(){
 		buffer.WriteString(x.Name)
 		buffer.WriteString(" - ")
 		buffer.WriteString(x.Description)
