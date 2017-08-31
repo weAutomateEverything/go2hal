@@ -15,8 +15,4 @@ script:
  - go build
 
 after_success:
-   - if [ "$TRAVIS_BRANCH" == "master" ]; then
-      docker build -t zamedic/go2hal;
-      docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
-      docker push zamedic/go2hal;
-     fi
+  - bin/docker_push.sh
