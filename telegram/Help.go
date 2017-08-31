@@ -16,11 +16,11 @@ func init() {
 type help struct {
 }
 
-func (s *help) CommandIdentifier() string {
+func (s *help) commandIdentifier() string {
 	return "help"
 }
 
-func (s *help) CommandDescription() string {
+func (s *help) commandDescription() string {
 	return "Gets list of commands"
 }
 

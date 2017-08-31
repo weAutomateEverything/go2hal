@@ -17,11 +17,11 @@ type setGroup struct {
 
 }
 
-func (s *setGroup) CommandIdentifier() string {
+func (s *setGroup) commandIdentifier() string {
 	return "SetGroup"
 }
 
-func (s *setGroup) CommandDescription() string {
+func (s *setGroup) commandDescription() string {
 	return "Set Alert Group"
 }
 
