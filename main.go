@@ -1,23 +1,19 @@
 package main
 
 import (
-	"fmt"
 	"time"
 	"log"
-	"github.com/zamedic/go2hal/database"
+	"github.com/zamedic/go2hal/telegram"
 )
 
 func main() {
-	fmt.Println("HAL Starting, initialising DB")
-	database.StartDB()
-	fmt.Println("Loading rest")
-	StartRest()
-	fmt.Println("Loading telegram framework")
-	StartBot()
+	log.Println("Starting HAL")
+	log.Println("-------------")
+	log.Println("All systems GO!")
 
+	hal := telegram.GetBot()
 	for true{
 		time.Sleep(time.Second * 5)
-		log.Println("Heartbeat... ")
+		log.Printf("Heartbeat...  [%s]",hal.Running)
 	}
-
 }
