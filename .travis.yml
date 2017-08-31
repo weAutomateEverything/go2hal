@@ -1,17 +1,8 @@
 language: go
 go:
 - master
-
-deploy:
-  provider: s3
-  access_key_id: AKIAIYEJJERYAAPIK6WA
-  secret_access_key:
-    secure: f/1wJoA7NsCXs+rUnlOihq1wZtxcxZlfb/LQ6ACwEfxMmEirtFHHlJS881FVv6i+4JSa97pviB74X9paMk9OtkKOQCTwv085tKLMljnY4HzsGIttALhRz8XQdZcATZORwTIBXpdlSoHW0Rve0qamnnASIji4U7+Pr/9PrwSck1njlNKyWfEBU0rTSyuWTJoI1KIGyMzDp06jbvUeloC8FQ8RFqoLeghZsgiYm1wt2vBHqvgUW2gfX0X6wGl6/H7/HOH/U+v6GvjX7pDV5NnqpxbBIe3CsmmZnvehgvTU5iv8tgNwSPUZklKhyEtUuofPAvxpdXqqBnUW191fx0KOBCWspnqTFpTiuowJGEqduHeEnGQifuU5aM0C4FmkeQF2KGrMwHTWdjLoGziDOBVeZz1drX+pQAwC6ighWTCGWj9ohupRZMjL+er2EtpLkvEEVCRo/D19uDAJUGRSG9lGkAtHJP+k7WLxVg4fX52JmEHEvma+cOM03lrzmzj8gM8WzBkO+X3DDKzoRuAUvSNvH+u6lIvX5r/ywUShRbtVMwdF9ku23iVGnwpBEt7pok7EFVNOfp16gQxxvHYqcP7nUjZ97bpTei9k77MiytWa/Mda7cVtAUIV3lqYrAKTzSkjNnsJ7gOrzVilgTwulq/i1crHUlLLqx3DkFgAXRp/wdM=
-  bucket: go2hal
-  acl: public_read
-  on:
-    repo: zamedic/go2hal
-    branch: master
+addons:
+  artifacts: true
 
 script:
  - go test -v ./...
