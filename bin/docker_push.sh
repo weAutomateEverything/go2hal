@@ -14,6 +14,7 @@ if [ -z "$TRAVIS_PULL_REQUEST" ] || [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
     docker build -t $IMAGE_NAME .
     echo "Pushing $IMAGE_NAME:latest"
     docker tag $IMAGE_NAME:latest "$REMOTE_IMAGE_URL:latest"
+    docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
     docker push "$REMOTE_IMAGE_URL:latest"
     echo "Pushed $IMAGE_NAME:latest"
   else
