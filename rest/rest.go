@@ -15,6 +15,7 @@ func init(){
 func getRouter() *mux.Router {
 	r := mux.NewRouter()
 	r.HandleFunc("/alert",alertHandler)
+	r.HandleFunc("/status",status)
 	return r
 }
 
