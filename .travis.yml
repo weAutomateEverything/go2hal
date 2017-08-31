@@ -13,3 +13,8 @@ deploy:
   on:
     repo: zamedic/go2hal
     branch: BuildDeployDocker
+
+
+script:
+ - go test -v ./...
+ - go build
