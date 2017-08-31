@@ -9,9 +9,6 @@ import (
 func main() {
 	log.Println("Starting HAL")
 	log.Println("-------------")
-	log.Println("Starting Telegram Connection")
-	telegram.Start()
-	log.Println("-------------")
 	log.Println("All systems GO!")
 
 	hal := telegram.GetBot()
