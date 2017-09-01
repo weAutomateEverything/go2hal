@@ -43,7 +43,7 @@ func useBot(botkey string){
 	bot, err = tgbotapi.NewBotAPI(botkey)
 
 	if err != nil {
-		log.Panic(err)
+		log.Println(err)
 	}
 	hal.Running = true
 	hal.bot = bot
@@ -58,7 +58,7 @@ func useBot(botkey string){
 			updates, err := bot.GetUpdates(u)
 			if err != nil {
 				log.Println("Releasing bot ",bot.Self.UserName)
-				log.Panic(err)
+				log.Println(err)
 				hal.Running = false
 				hal.bot = nil
 				return
@@ -97,7 +97,7 @@ func SendMessage(chatID int64, message string, messageID int) (err error){
 	result, err := bot.Send(msg)
 
 	if err != nil {
-		log.Panic(err)
+		log.Println(err)
 	}
 
 	log.Println(result)
