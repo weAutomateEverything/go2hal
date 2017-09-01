@@ -3,6 +3,8 @@ package telegram
 import (
 	"log"
 	"gopkg.in/telegram-bot-api.v4"
+	"github.com/zamedic/go2hal/database"
+	"time"
 )
 
 /**
@@ -18,7 +20,26 @@ var bot *tgbotapi.BotAPI
 var err error
 
 func init() {
-	bot, err = tgbotapi.NewBotAPI("303007671:AAHxx3PI9zU5q-4a43WmQXU3K-A6yGY1DAU")
+	go func() {
+		findFreeBot()
+	}()
+}
+
+func findFreeBot(){
+	for true {
+		bots := database.ListBots()
+		if bots !=  nil{
+			for _, botkey := range bots {
+				useBot(botkey)
+			}
+		}
+		log.Println("Looped through all bots. Sleeping for 2 minutes.")
+		time.Sleep(time.Minute * 2)
+	}
+}
+
+func useBot(botkey string){
+	bot, err = tgbotapi.NewBotAPI(botkey)
 
 	if err != nil {
 		log.Panic(err)
@@ -30,12 +51,16 @@ func init() {
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60
 
-	go func() {
+
 		for true {
 			log.Println("Waiting for messages...")
 			updates, err := bot.GetUpdatesChan(u)
 			if err != nil {
+				log.Println("Releasing bot ",bot.Self.UserName)
 				log.Panic(err)
+				hal.Running = false
+				hal.bot = nil
+				return
 			}
 
 			for update := range updates {
@@ -52,7 +77,7 @@ func init() {
 				SendMessage(update.Message.Chat.ID, update.Message.Text, update.Message.MessageID)
 			}
 		}
-	}()
+
 }
 
 /**

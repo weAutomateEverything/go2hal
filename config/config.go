@@ -17,3 +17,4 @@ func init() {
 func MongoAddress() string {
 	return os.Getenv("MONGO")
 }
+

@@ -6,8 +6,16 @@ import(
 	"log"
 )
 
+type RouterObject struct {
+	Mux *mux.Router
+}
+
+var router *RouterObject
+
 func init(){
+	router = &RouterObject{}
 	go func() {
+		log.Println("Starting HTTP Server...")
 		log.Fatal(http.ListenAndServe(":8000", getRouter()))
 	}()
 }
@@ -16,6 +24,12 @@ func getRouter() *mux.Router {
 	r := mux.NewRouter()
 	r.HandleFunc("/alert",alertHandler)
 	r.HandleFunc("/status",status)
+	r.HandleFunc("/bot",addBot).Methods("POST")
+	router.Mux = r
 	return r
+}
+
+func Router() (*RouterObject) {
+	return router
 }
 
