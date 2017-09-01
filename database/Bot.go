@@ -63,7 +63,7 @@ func findBot(botToken string) bot {
 	result := bot{}
 	err := c.Find(bson.M{"token":botToken}).One(&result)
 	if err != nil {
-		log.Panic(err)
+		log.Println(err)
 	}
 	return result
 }
@@ -72,7 +72,7 @@ func updateBot(botItem bot){
 	c := database.C("bots")
 	err := c.UpdateId(botItem.ID,botItem)
 	if err != nil {
-		log.Panic(err)
+		log.Println(err)
 	}
 
 }
