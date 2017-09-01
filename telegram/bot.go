@@ -63,7 +63,7 @@ func useBot(botkey string){
 				hal.bot = nil
 				return
 			}
-
+			database.HeartbeatBot(botkey,bot.Self.UserName)
 			for update := range updates {
 				if update.Message == nil {
 					continue
@@ -73,7 +73,6 @@ func useBot(botkey string){
 					executeCommand(update)
 					continue
 				}
-
 				log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
 				SendMessage(update.Message.Chat.ID, update.Message.Text, update.Message.MessageID)
 			}

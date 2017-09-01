@@ -16,3 +16,9 @@ func addBot(w http.ResponseWriter, r *http.Request) {
 	database.AddBot(botObject.Token)
 	w.WriteHeader(http.StatusOK)
 }
+
+func botStatus(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	heartbeat := database.GetBotHeartbeat()
+	json.NewEncoder(w).Encode(&heartbeat)
+}
