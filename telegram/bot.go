@@ -55,7 +55,7 @@ func useBot(botkey string){
 	u.Timeout = 60
 		for true {
 			log.Println("Waiting for messages...")
-			updates, err := bot.GetUpdatesChan(u)
+			updates, err := bot.GetUpdates(u)
 			if err != nil {
 				log.Println("Releasing bot ",bot.Self.UserName)
 				log.Panic(err)
@@ -64,7 +64,7 @@ func useBot(botkey string){
 				return
 			}
 			database.HeartbeatBot(botkey,bot.Self.UserName)
-			for update := range updates {
+			for _, update := range updates {
 				if update.Message == nil {
 					continue
 				}
