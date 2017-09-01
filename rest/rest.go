@@ -25,6 +25,7 @@ func getRouter() *mux.Router {
 	r.HandleFunc("/alert",alertHandler)
 	r.HandleFunc("/status",status)
 	r.HandleFunc("/bot",addBot).Methods("POST")
+	r.HandleFunc("/bot",botStatus).Methods("GET")
 	router.Mux = r
 	return r
 }
