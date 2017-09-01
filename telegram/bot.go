@@ -20,6 +20,7 @@ var bot *tgbotapi.BotAPI
 var err error
 
 func init() {
+	hal = &HalBot{false, nil}
 	go func() {
 		findFreeBot()
 	}()
@@ -44,14 +45,14 @@ func useBot(botkey string){
 	if err != nil {
 		log.Panic(err)
 	}
-	hal = &HalBot{true, bot}
+	hal.Running = true
+	hal.bot = bot
+
 	bot.Debug = true
 	log.Printf("Authorized on account %s", bot.Self.UserName)
 
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60
-
-
 		for true {
 			log.Println("Waiting for messages...")
 			updates, err := bot.GetUpdatesChan(u)
@@ -77,7 +78,6 @@ func useBot(botkey string){
 				SendMessage(update.Message.Chat.ID, update.Message.Text, update.Message.MessageID)
 			}
 		}
-
 }
 
 /**
