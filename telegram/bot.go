@@ -5,7 +5,6 @@ import (
 	"gopkg.in/telegram-bot-api.v4"
 	"github.com/zamedic/go2hal/database"
 	"time"
-	"github.com/zamedic/go2hal/config"
 )
 
 /**
