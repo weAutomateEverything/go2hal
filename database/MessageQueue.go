@@ -10,7 +10,7 @@ type messageDB struct {
 }
 
 /**
-MessagesDTO stored waiting to be delivered.
+MessageDTO stored waiting to be delivered.
  */
 type MessageDTO struct {
 	Message   string
