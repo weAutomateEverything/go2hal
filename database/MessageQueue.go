@@ -2,36 +2,36 @@ package database
 
 import "gopkg.in/mgo.v2/bson"
 
-type message struct {
+type messageDB struct {
 	ID        bson.ObjectId `bson:"_id,omitempty"`
-	Message   string
+	MessageString   string
 	ChatID    int64
 	MessageID int
 }
 
-type Message struct {
+type MessageDTO struct {
 	Message   string
 	ChatID    int64
 	MessageID int
 }
 
 func AddMessageToQueue(message string, chatID int64, messageID int) {
-	msg := message{Message: message, MessageID: messageID, ChatID: chatID}
+	msg := messageDB{MessageString: message, MessageID: messageID, ChatID: chatID}
 	c := database.C("MessageQueue")
 	c.Insert(msg)
 }
 
-func GetMessages() []Message {
+func GetMessages() []MessageDTO {
 	c := database.C("MessageQueue")
-	var messages []message
+	var messages []messageDB
 	c.Find(nil).All(&messages)
 
-	result := make([]Message, len(messages))
+	result := make([]MessageDTO, len(messages))
 
 	for i, x := range messages {
 		result[i].MessageID = x.MessageID
 		result[i].ChatID = x.ChatID
-		result[i].Message = x.Message
+		result[i].Message = x.MessageString
 		c.RemoveId(x.ID)
 	}
 
