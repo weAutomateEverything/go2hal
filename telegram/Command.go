@@ -40,8 +40,13 @@ func findCommand(command string) (a Command) {
 	return nil
 }
 
-func executeCommand(update tgbotapi.Update) {
-	findCommand(update.Message.Command()).execute(update)
+func executeCommand(update tgbotapi.Update) bool {
+	command := findCommand(update.Message.Command())
+	if command != nil {
+		command.execute(update)
+		return true
+	}
+	return false
 }
 
 func getCommands()  []CommandDescription{
