@@ -5,6 +5,7 @@ import (
 	"gopkg.in/telegram-bot-api.v4"
 	"github.com/zamedic/go2hal/database"
 	"time"
+	"github.com/zamedic/go2hal/config"
 )
 
 /**
@@ -12,10 +13,11 @@ Structure to describe the state of the bot
  */
 type HalBot struct {
 	Running bool
-	bot *tgbotapi.BotAPI
+	bot     *tgbotapi.BotAPI
 }
 
 var hal *HalBot;
+
 var bot *tgbotapi.BotAPI
 var err error
 
@@ -29,20 +31,19 @@ func init() {
 	}()
 }
 
-
 /**
 Returns a handler back to the bot
  */
-func GetBot() *HalBot{
+func GetBot() *HalBot {
 	return hal
 }
 
 /**
 Sends a test message to the chat id.
  */
-func SendMessage(chatID int64, message string, messageID int) (err error){
-	if(!hal.Running){
-		database.AddMessageToQueue(message,chatID,messageID)
+func SendMessage(chatID int64, message string, messageID int) (err error) {
+	if (!hal.Running) {
+		database.AddMessageToQueue(message, chatID, messageID)
 	}
 	msg := tgbotapi.NewMessage(chatID, message)
 	if messageID != 0 {
@@ -59,10 +60,10 @@ func SendMessage(chatID int64, message string, messageID int) (err error){
 	return nil
 }
 
-func findFreeBot(){
+func findFreeBot() {
 	for true {
 		bots := database.ListBots()
-		if bots !=  nil{
+		if bots != nil {
 			for _, botkey := range bots {
 				useBot(botkey)
 			}
@@ -72,7 +73,7 @@ func findFreeBot(){
 	}
 }
 
-func useBot(botkey string){
+func useBot(botkey string) {
 	bot, err = tgbotapi.NewBotAPI(botkey)
 
 	if err != nil {
@@ -90,20 +91,24 @@ func useBot(botkey string){
 		log.Println("Waiting for messages...")
 		updates, err := bot.GetUpdates(u)
 		if err != nil {
-			log.Println("Releasing bot ",bot.Self.UserName)
+			log.Println("Releasing bot ", bot.Self.UserName)
 			log.Println(err)
 			hal.Running = false
 			hal.bot = nil
 			return
 		}
-		database.HeartbeatBot(botkey,bot.Self.UserName)
+		database.HeartbeatBot(botkey, bot.Self.UserName)
 		for _, update := range updates {
+			if update.UpdateID >= u.Offset {
+				u.Offset = update.UpdateID + 1
+			}
+
 			if update.Message == nil {
 				continue
 			}
 
-			if update.Message.IsCommand(){
-				if (executeCommand(update)) {
+			if update.Message.IsCommand() {
+				if executeCommand(update) {
 					continue
 				}
 			}
@@ -113,9 +118,9 @@ func useBot(botkey string){
 	}
 }
 
-func pollForMessages(){
+func pollForMessages() {
 	for true {
-		if(hal.Running) {
+		if (hal.Running) {
 			messages := database.GetMessages()
 			for _, x := range messages {
 				SendMessage(x.ChatID, x.Message, x.MessageID)
