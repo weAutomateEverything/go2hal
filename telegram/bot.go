@@ -41,6 +41,7 @@ func GetBot() *HalBot {
 Sends a test message to the chat id.
  */
 func SendMessage(chatID int64, message string, messageID int) (err error) {
+	log.Printf("Sending Message %s",message)
 	if (!hal.Running) {
 		database.AddMessageToQueue(message, chatID, messageID)
 	}
@@ -48,14 +49,12 @@ func SendMessage(chatID int64, message string, messageID int) (err error) {
 	if messageID != 0 {
 		msg.ReplyToMessageID = messageID
 	}
-	result, err := bot.Send(msg)
-
+	_, err = bot.Send(msg)
 	if err != nil {
 		log.Println(err)
+	} else {
+		database.SendMessage()
 	}
-
-	log.Println(result)
-
 	return nil
 }
 

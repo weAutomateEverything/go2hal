@@ -1,7 +1,26 @@
 package rest
 
-import "net/http"
+import (
+	"net/http"
+	"github.com/zamedic/go2hal/database"
+	"encoding/json"
+)
 
-func status(w http.ResponseWriter, r *http.Request){
+type response struct {
+	Bots              [] database.HeartBeat
+	MessagesSent      int64
+	MessagesReceived  int64
+	MessageQueueDepth int
+}
+
+func status(w http.ResponseWriter, r *http.Request) {
+
+	res := response{}
+	res.Bots = database.GetBotHeartbeat()
+	res.MessagesSent, res.MessagesReceived = database.GetStats()
+	res.MessageQueueDepth = database.QueueDepth()
+
 	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(&res)
+
 }

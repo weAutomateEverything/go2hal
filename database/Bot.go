@@ -7,7 +7,7 @@ import (
 )
 
 type bot struct {
-	ID      bson.ObjectId `bson:"_id,omitempty"`
+	ID bson.ObjectId `bson:"_id,omitempty"`
 	Token string
 	Taken time.Time
 	LastUpdate time.Time
