@@ -48,14 +48,12 @@ func SendMessage(chatID int64, message string, messageID int) (err error) {
 	if messageID != 0 {
 		msg.ReplyToMessageID = messageID
 	}
-	result, err := bot.Send(msg)
-
+	_, err = bot.Send(msg)
 	if err != nil {
 		log.Println(err)
+	} else {
+		database.SendMessage()
 	}
-
-	log.Println(result)
-
 	return nil
 }
 

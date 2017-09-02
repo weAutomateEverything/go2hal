@@ -18,5 +18,6 @@ func alertHandler(w http.ResponseWriter, r *http.Request){
 
 	body, err := ioutil.ReadAll(r.Body)
 	telegram.SendMessage(alertGroup,string(body),0)
+	database.ReceiveAlert()
 	w.WriteHeader(http.StatusOK)
 }
