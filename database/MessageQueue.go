@@ -10,7 +10,7 @@ type messageDB struct {
 }
 
 /**
-Messages stored waiting to be delivered.
+MessagesDTO stored waiting to be delivered.
  */
 type MessageDTO struct {
 	Message   string
@@ -28,7 +28,7 @@ func AddMessageToQueue(message string, chatID int64, messageID int) {
 }
 
 /**
-Get all messages to be delivered. Deleted them from the queue. 
+Get all messages to be delivered. Deleted them from the queue.
  */
 func GetMessages() []MessageDTO {
 	c := database.C("MessageQueue")
