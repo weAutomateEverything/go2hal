@@ -16,18 +16,15 @@ type MessageDTO struct {
 	MessageID int
 }
 
-/**
-Save a message to be delivered later
- */
+
+//AddMessageToQueue saves a message to be delivered later
 func AddMessageToQueue(message string, chatID int64, messageID int) {
 	msg := messageDB{MessageString: message, MessageID: messageID, ChatID: chatID}
 	c := database.C("MessageQueue")
 	c.Insert(msg)
 }
 
-/**
-Get all messages to be delivered. Deleted them from the queue.
- */
+//GetMessages returns all messages to be delivered. Deleted them from the queue.
 func GetMessages() []MessageDTO {
 	c := database.C("MessageQueue")
 	var messages []messageDB
