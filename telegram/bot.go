@@ -103,8 +103,9 @@ func useBot(botkey string){
 			}
 
 			if update.Message.IsCommand(){
-				executeCommand(update)
-				continue
+				if (executeCommand(update)) {
+					continue
+				}
 			}
 			log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
 			SendMessage(update.Message.Chat.ID, update.Message.Text, update.Message.MessageID)
