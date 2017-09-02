@@ -9,9 +9,7 @@ type messageDB struct {
 	MessageID int
 }
 
-/**
-MessageDTO stored waiting to be delivered.
- */
+//MessageDTO stored waiting to be delivered.
 type MessageDTO struct {
 	Message   string
 	ChatID    int64
