@@ -42,4 +42,5 @@ func handleEc2ContainerAlert(w http.ResponseWriter, r *http.Request) {
 		service := detail["group"].(string)
 		sendAlert("*"+event+"*\n"+"Desired State: "+desired+"\nLast State: "+last+"\nservice: "+service)
 	}
+	w.WriteHeader(http.StatusOK)
 }

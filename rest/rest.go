@@ -24,6 +24,7 @@ func getRouter() *mux.Router {
 	r := mux.NewRouter()
 	r.HandleFunc("/alert",alertHandler)
 	r.HandleFunc("/alert/aws/container",handleEc2ContainerAlert)
+	r.HandleFunc("/github",handleGithubMessage)
 	r.HandleFunc("/status",status)
 	r.HandleFunc("/bot",addBot).Methods("POST")
 	r.HandleFunc("/bot",botStatus).Methods("GET")
