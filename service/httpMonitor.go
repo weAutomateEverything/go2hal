@@ -9,14 +9,14 @@ import (
 )
 
 //HttpMonitor is the current status of the monitor
-type HttpMonitor struct {
+type HTTPMonitor struct {
 	running bool
 }
 
-var h *HttpMonitor
+var h *HTTPMonitor
 
 func init(){
-	h = &HttpMonitor{}
+	h = &HTTPMonitor{}
 	go func() {
 		monitorEndpoints()
 	}()
@@ -26,7 +26,7 @@ func monitorEndpoints(){
 	log.Println("Starting HTTP Endpoint monitor")
 	h.running = true
 	for true {
-		endpoints := database.GetHtmlEndpoints()
+		endpoints := database.GetHTMLEndpoints()
 		if endpoints != nil {
 			for _, endpoint := range endpoints {
 				response, err := http.Get(endpoint.Endpoint)

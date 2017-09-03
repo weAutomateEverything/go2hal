@@ -5,6 +5,7 @@ import (
 	"github.com/zamedic/go2hal/telegram"
 )
 
+//SendAlert will send the alert message as defined in the alert group
 func SendAlert(message string) error {
 	alertGroup, err := database.AlertGroup()
 	if err != nil{

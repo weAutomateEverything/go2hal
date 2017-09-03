@@ -8,24 +8,27 @@ import (
 
 type htmlEndpoint struct {
 	ID bson.ObjectId `bson:"_id,omitempty"`
-	HtmlEndpoint
+	HTMLEndpoint
 }
 
-type HtmlEndpoint struct {
+//HTMLEndpoint reprisents a HTTP Endpoint that the system will monitor
+type HTMLEndpoint struct {
 	Name string
 	Endpoint string
 	lastChecked time.Time
 	lastSuccess time.Time
 }
 
-func AddHtmlEndpoint(name, endpoint string){
-	e := HtmlEndpoint{Name:name,Endpoint:endpoint}
-	r := htmlEndpoint{HtmlEndpoint: e }
+//AddHTMLEndpoint allows for a new endpoint to be added
+func AddHTMLEndpoint(name, endpoint string){
+	e := HTMLEndpoint{Name:name,Endpoint:endpoint}
+	r := htmlEndpoint{HTMLEndpoint: e }
 	c := database.C("MonitorHtmlEndpoints")
 	c.Insert(r)
 }
 
-func GetHtmlEndpoints() []HtmlEndpoint{
+//GetHTMLEndpoints returns a list of HTML Endpoints
+func GetHTMLEndpoints() []HTMLEndpoint{
 	c := database.C("MonitorHtmlEndpoints")
 	q := c.Find(nil)
 	 i,err := q.Count()
@@ -40,13 +43,11 @@ func GetHtmlEndpoints() []HtmlEndpoint{
 		return nil
 	}
 
-	result := make([]HtmlEndpoint,i)
+	result := make([]HTMLEndpoint,i)
 	for line,x := range r {
-		result[line] = x.HtmlEndpoint
+		result[line] = x.HTMLEndpoint
 	}
-
 	return result
-
 }
 
 
