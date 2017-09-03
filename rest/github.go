@@ -7,11 +7,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/zamedic/go2hal/service"
+	"github.com/zamedic/go2hal/database"
 )
 
 func handleGithubMessage(w http.ResponseWriter, r *http.Request) {
 	var f interface{}
 	body, err := ioutil.ReadAll(r.Body)
+	database.SaveAudit("GITHUB",string(body))
 	if err != nil {
 		log.Println(err)
 		return
