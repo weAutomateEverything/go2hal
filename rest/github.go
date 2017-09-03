@@ -6,6 +6,7 @@ import (
 	"log"
 	"encoding/json"
 	"fmt"
+	"github.com/zamedic/go2hal/service"
 )
 
 func handleGithubMessage(w http.ResponseWriter, r *http.Request) {
@@ -25,7 +26,7 @@ func handleGithubMessage(w http.ResponseWriter, r *http.Request) {
 	description := m["description"].(string)
 
 	result := fmt.Sprintf("*GITHUB*\n %s - %s",status,description)
-	sendAlert(result)
+	service.SendAlert(result)
 	w.WriteHeader(http.StatusOK)
 
 }
