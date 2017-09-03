@@ -8,7 +8,7 @@ import (
 	"log"
 )
 
-//HttpMonitor is the current status of the monitor
+//HTTPMonitor is the current status of the monitor
 type HTTPMonitor struct {
 	running bool
 }
