@@ -6,11 +6,13 @@ import (
 	"io/ioutil"
 	"log"
 	"github.com/zamedic/go2hal/service"
+	"github.com/zamedic/go2hal/database"
 )
 
 func handleEc2ContainerAlert(w http.ResponseWriter, r *http.Request) {
 	var f interface{}
 	body, err := ioutil.ReadAll(r.Body)
+	database.SaveAudit("AWS-CONTAINER",string(body))
 	if err != nil {
 		log.Println(err)
 		return
