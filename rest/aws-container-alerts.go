@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
+	"github.com/zamedic/go2hal/service"
 )
 
 func handleEc2ContainerAlert(w http.ResponseWriter, r *http.Request) {
@@ -21,26 +22,25 @@ func handleEc2ContainerAlert(w http.ResponseWriter, r *http.Request) {
 	}
 	m := f.(map[string]interface{})
 	subscribeUrl := m["SubscribeURL"]
-
 	if subscribeUrl != nil {
-		sendAlert("Received AWS subscription url:" + subscribeUrl.(string))
+		service.SendAlert("Received AWS subscription url:" + subscribeUrl.(string))
 	}
 
-	stringMsgString :=m["Message"].(string)
+	stringMsgString := m["Message"].(string)
 	var g interface{}
-	err = json.Unmarshal([]byte(stringMsgString),&g)
+	err = json.Unmarshal([]byte(stringMsgString), &g)
 	if err != nil {
 		log.Println(err)
 		return
 	}
-	msgObj :=  g.(map[string]interface{})
+	msgObj := g.(map[string]interface{})
 	event := msgObj["detail-type"].(string)
-	if event == "ECS Task State Change"{
+	if event == "ECS Task State Change" {
 		detail := msgObj["detail"].(map[string]interface{})
 		desired := detail["desiredStatus"].(string)
 		last := detail["lastStatus"].(string)
-		service := detail["group"].(string)
-		sendAlert("*"+event+"*\n"+"Desired State: "+desired+"\nLast State: "+last+"\nservice: "+service)
+		serviceName := detail["group"].(string)
+		service.SendAlert("*" + event + "*\n" + "Desired State: " + desired + "\nLast State: " + last + "\nservice: " + serviceName)
 	}
 	w.WriteHeader(http.StatusOK)
 }

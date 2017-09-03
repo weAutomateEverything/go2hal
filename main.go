@@ -14,6 +14,7 @@ func main() {
 
 	hal := telegram.GetBot()
 	router := rest.Router()
+
 	for true{
 		time.Sleep(time.Minute * 5)
 		log.Printf("Heartbeat...  Bot: [%v], router: [%v]",hal.Running,router.Mux)
