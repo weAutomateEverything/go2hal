@@ -7,9 +7,8 @@ import (
 	"time"
 )
 
-/**
-Structure to describe the state of the bot
- */
+
+//HalBot Structure to describe the state of the bot
 type HalBot struct {
 	Running bool
 	bot     *tgbotapi.BotAPI
@@ -46,6 +45,7 @@ func SendMessage(chatID int64, message string, messageID int) (err error) {
 		database.AddMessageToQueue(message, chatID, messageID)
 	}
 	msg := tgbotapi.NewMessage(chatID, message)
+	msg.ParseMode = tgbotapi.ModeMarkdown
 	if messageID != 0 {
 		msg.ReplyToMessageID = messageID
 	}
