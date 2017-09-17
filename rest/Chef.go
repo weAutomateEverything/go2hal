@@ -7,7 +7,7 @@ import (
 )
 
 type chefClient struct{
-	Name, Key, Url string
+	Name, Key, URL string
 }
 
 func addChefClient(w http.ResponseWriter, r *http.Request) {
@@ -18,7 +18,7 @@ func addChefClient(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(err.Error()))
 		return
 	}
-	err = service.AddChefClient(chef.Name,chef.Key,chef.Url)
+	err = service.AddChefClient(chef.Name,chef.Key,chef.URL)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))

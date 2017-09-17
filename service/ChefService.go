@@ -5,6 +5,7 @@ import (
 	"github.com/zamedic/go2hal/database"
 )
 
+//Add a chef client.
 func AddChefClient(name,key,url string) error{
 	//Check if the details work
 	_,err := conect(name,key,url)

@@ -1,6 +1,6 @@
-FROM golang:1.8
+FROM golang:alpine
 WORKDIR /go/src/app
-RUN git clone https://github.com/zamedic/go2hal.git .
+COPY . .
 RUN go-wrapper download
 RUN go-wrapper install
 ENTRYPOINT ["/go/bin/app"]
