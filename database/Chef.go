@@ -7,7 +7,7 @@ type chefClient struct {
 	Name,URL,Key string
 }
 
-//Adds a Chef Client to the database.
+//AddChefClient Adds a Chef Client to the database.
 func AddChefClient(name,url,key string){
 	c := database.C("bots")
 	chef := chefClient{Key:key,Name:name,URL:url}
