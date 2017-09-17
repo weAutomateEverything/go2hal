@@ -29,20 +29,24 @@ func monitorEndpoints(){
 		endpoints := database.GetHTMLEndpoints()
 		if endpoints != nil {
 			for _, endpoint := range endpoints {
-				response, err := http.Get(endpoint.Endpoint)
-				if err != nil {
-					SendAlert(fmt.Sprintf("*HTTP Alert*\nName: %s \nEndpoint: %s \nError: %s",endpoint.Name,
-						endpoint.Endpoint,err.Error()))
-					continue
-				}
-				if response.StatusCode != 200 {
-					SendAlert(fmt.Sprintf("*HTTP Alert*\nName: %s \nEndpoint: %s \nDid not receive a 200 success " +
-						"response code. Recieved %d response code.",endpoint.Name,endpoint.Endpoint,
-						response.StatusCode))
-					continue
-				}
+				checkHTTP(endpoint)
 			}
 		}
 		time.Sleep(time.Minute * 2)
+	}
+}
+
+func checkHTTP(endpoint database.HTMLEndpoint){
+	response, err := http.Get(endpoint.Endpoint)
+	if err != nil {
+		SendAlert(fmt.Sprintf("*HTTP Alert*\nName: %s \nEndpoint: %s \nError: %s",endpoint.Name,
+			endpoint.Endpoint,err.Error()))
+		return
+	}
+	defer response.Body.Close()
+	if response.StatusCode != 200 {
+		SendAlert(fmt.Sprintf("*HTTP Alert*\nName: %s \nEndpoint: %s \nDid not receive a 200 success " +
+			"response code. Recieved %d response code.",endpoint.Name,endpoint.Endpoint,
+			response.StatusCode))
 	}
 }
