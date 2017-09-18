@@ -2,8 +2,6 @@ language: go
 go:
 - master
 
-sudo: required
-
 addons:
   artifacts: true
 
