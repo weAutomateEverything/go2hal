@@ -4,7 +4,7 @@ go:
 
 addons:
   artifacts: true
-
+sudo: false
 services:
  - docker
 
