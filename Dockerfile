@@ -1,5 +1,5 @@
-FROM alpine
+FROM alpine:latest
 WORKDIR /app
 # Now just add the binary
-ADD /home/travis/gopath/bin/go2hal /app/
+COPY /home/travis/gopath/bin/go2hal /app/
 ENTRYPOINT ["./go2hal"]
