@@ -1,7 +1,5 @@
-FROM golang:alpine
-WORKDIR /go/src/app
-RUN git clone https://github.com/zamedic/go2hal.git .
-RUN go-wrapper download
-RUN go-wrapper install
-ENTRYPOINT ["/go/bin/app"]
-EXPOSE 8000
+FROM alpine
+WORKDIR /app
+# Now just add the binary
+ADD /home/travis/gopath/bin/go2hal /app/
+ENTRYPOINT ["./go2hal"]
