@@ -3,6 +3,5 @@ WORKDIR /app
 # Now just add the binary
 COPY go2hal /app/
 RUN chmod +x /app/go2hal
-RUN ls -al
-ENTRYPOINT /app/go2hal
+CMD /app/go2hal
 EXPOSE 8000
