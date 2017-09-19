@@ -2,11 +2,9 @@ language: go
 go:
 - master
 
-sudo: required
-
 addons:
   artifacts: true
-
+sudo: false
 services:
  - docker
 
