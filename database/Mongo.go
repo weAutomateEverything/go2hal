@@ -17,9 +17,8 @@ var database *mgo.Database
 
 func init() {
 	log.Println("Starting Database")
-
+	log.Println("Connecting to:  "+config.MongoAddress())
 	dialinfo, err := parseMongoURL(config.MongoAddress())
-	log.Println("Connecting to:  "+dialinfo.Database)
 	if err != nil {
 		log.Panic(err)
 	}
