@@ -19,6 +19,7 @@ func init() {
 	log.Println("Starting Database")
 
 	dialinfo, err := parseMongoURL(config.MongoAddress())
+	log.Println("Connecting to:  "+dialinfo.Database)
 	if err != nil {
 		log.Panic(err)
 	}
