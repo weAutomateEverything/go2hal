@@ -10,30 +10,35 @@ type stats struct {
 	ChefDeliveryReceived int64
 }
 
+//SendMessage increases the counter on the stats db for the messages sent
 func SendMessage() {
 	stat := getRecord()
 	stat.MessagesSent = stat.MessagesSent + 1
 	saveRecord(stat)
 }
 
+//ReceiveAlert increases the counter on the stats db for the alerts received
 func ReceiveAlert() {
 	stat := getRecord()
 	stat.AlertsReceived = stat.AlertsReceived + 1
 	saveRecord(stat)
 }
 
+//ReceiveAppynamicsMessage increases the counter on the status db for Appdynamics messages
 func ReceiveAppynamicsMessage(){
 	stat := getRecord()
 	stat.AppDynamicReceived = stat.AppDynamicReceived + 1
 	saveRecord(stat)
 }
 
+//ReceiveChefDeliveryMessage increases the counter on the stats db for Delivery messages
 func ReceiveChefDeliveryMessage(){
 	stat := getRecord()
 	stat.ChefDeliveryReceived = stat.AppDynamicReceived + 1
 	saveRecord(stat)
 }
 
+//GetStats Returns the current counter as per the stats DB
 func GetStats() (send, alerts,appdynamics, chefDelivery int64) {
 	r := getRecord()
 	return r.MessagesSent, r.AlertsReceived, r.AppDynamicReceived,r.ChefDeliveryReceived
