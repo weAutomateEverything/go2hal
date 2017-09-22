@@ -16,5 +16,6 @@ func receiveAppDynamicsAlert(w http.ResponseWriter, r *http.Request) {
 	}
 
 	database.SaveAudit("APPDYNAMICS",string(body))
+	database.ReceiveAppynamicsMessage()
 
 }
