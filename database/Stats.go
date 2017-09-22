@@ -6,6 +6,8 @@ type stats struct {
 	ID             bson.ObjectId `bson:"_id,omitempty"`
 	MessagesSent   int64
 	AlertsReceived int64
+	AppDynamicReceived int64
+	ChefDeliveryReceived int64
 }
 
 func SendMessage() {
@@ -20,9 +22,21 @@ func ReceiveAlert() {
 	saveRecord(stat)
 }
 
-func GetStats() (send, alerts int64) {
+func ReceiveAppynamicsMessage(){
+	stat := getRecord()
+	stat.AppDynamicReceived = stat.AppDynamicReceived + 1
+	saveRecord(stat)
+}
+
+func ReceiveChefDeliveryMessage(){
+	stat := getRecord()
+	stat.ChefDeliveryReceived = stat.AppDynamicReceived + 1
+	saveRecord(stat)
+}
+
+func GetStats() (send, alerts,appdynamics, chefDelivery int64) {
 	r := getRecord()
-	return r.MessagesSent, r.AlertsReceived
+	return r.MessagesSent, r.AlertsReceived, r.AppDynamicReceived,r.ChefDeliveryReceived
 }
 
 func getRecord() stats {

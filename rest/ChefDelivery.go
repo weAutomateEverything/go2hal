@@ -15,4 +15,5 @@ func receiveDeliveryNotification(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	database.SaveAudit("APPDYNAMICS",string(body))
+	database.ReceiveChefDeliveryMessage()
 }
