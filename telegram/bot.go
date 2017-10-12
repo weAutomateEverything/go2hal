@@ -40,6 +40,10 @@ func GetBot() *HalBot {
 Sends a test message to the chat id.
  */
 func SendMessage(chatID int64, message string, messageID int) (err error) {
+	if !hal.Running {
+		log.Println("Unable to send message as no bot is connected. ")
+		return nil
+	}
 	log.Printf("Sending Message %s",message)
 	if (!hal.Running) {
 		database.AddMessageToQueue(message, chatID, messageID)

@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 	"github.com/zamedic/go2hal/database"
+	"github.com/zamedic/go2hal/service"
 )
 
 func receiveDeliveryNotification(w http.ResponseWriter, r *http.Request) {
@@ -16,4 +17,5 @@ func receiveDeliveryNotification(w http.ResponseWriter, r *http.Request) {
 	}
 	database.SaveAudit("DELIVERY",string(body))
 	database.ReceiveChefDeliveryMessage()
+	service.SendDeliveryAlert(string(body))
 }
