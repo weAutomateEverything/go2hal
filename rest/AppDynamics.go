@@ -5,6 +5,7 @@ import (
 	"github.com/zamedic/go2hal/database"
 	"io/ioutil"
 	"log"
+	"github.com/zamedic/go2hal/service"
 )
 
 func receiveAppDynamicsAlert(w http.ResponseWriter, r *http.Request) {
@@ -17,5 +18,6 @@ func receiveAppDynamicsAlert(w http.ResponseWriter, r *http.Request) {
 
 	database.SaveAudit("APPDYNAMICS",string(body))
 	database.ReceiveAppynamicsMessage()
+	service.SendAppdynamicsAlert(string(body))
 
 }

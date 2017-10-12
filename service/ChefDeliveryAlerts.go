@@ -17,6 +17,7 @@ func SendDeliveryAlert(message string) {
 
 	if err := json2.Unmarshal([]byte(message), &dat); err != nil {
 		log.Printf("Error unmarshalling: %s", message)
+		return
 	}
 
 	attachments := dat["attachments"].([]interface{})
