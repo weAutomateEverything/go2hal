@@ -5,6 +5,9 @@ import (
 	"log"
 )
 
+/*
+SendAppdynamicsAlert will send an alert message from the data contained in the even message field
+ */
 func SendAppdynamicsAlert(message string) {
 	var dat map[string]interface{}
 	if err := json2.Unmarshal([]byte(message), &dat); err != nil {
