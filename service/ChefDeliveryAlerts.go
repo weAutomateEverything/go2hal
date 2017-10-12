@@ -41,10 +41,19 @@ func SendDeliveryAlert(message string) {
 
 	body := dat["text"].(string)
 	bodies := strings.Split(body,"\n");
+
+	url := bodies[0]
+	url = strings.Replace(url,"<","",-1)
+	url = strings.Replace(url,">","",-1)
+
+	parts := strings.Split(url,"|")
+
 	buffer.WriteString("[")
+	buffer.WriteString(parts[1])
+	buffer.WriteString(" - ")
 	buffer.WriteString(bodies[1])
 	buffer.WriteString("](")
-	buffer.WriteString(bodies[0])
+	buffer.WriteString(parts[0])
 	buffer.WriteString(")")
 
 	SendAlert(buffer.String())
