@@ -25,7 +25,7 @@ func init() {
 
 
 	session, err := mgo.DialWithInfo(dialinfo)
-	database = session.DB("hal")
+	database = session.DB(dialinfo.Database)
 	if err != nil {
 		log.Panic(err)
 	}
