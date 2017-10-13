@@ -3,6 +3,7 @@ package service
 import (
 	json2 "encoding/json"
 	"log"
+	"strings"
 )
 
 /*
@@ -18,7 +19,14 @@ func SendAppdynamicsAlert(message string) {
 	events := dat["events"].([]interface{})
 	for _, event := range events{
 		event := event.(map[string]interface{})
-		log.Printf("Sending Alert %s",event["eventMessage"].(string))
-		SendAlert(event["eventMessage"].(string))
+
+		message := event["eventMessage"].(string)
+		message = strings.Replace(message,"<b>","*",-1)
+		message = strings.Replace(message,"</b>","*",-1)
+
+		message = strings.Replace(message,"<br>","\n",-1)
+
+		log.Printf("Sending Alert %s",message)
+		SendAlert(message)
 	}
 }

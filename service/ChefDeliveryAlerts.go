@@ -33,7 +33,7 @@ func SendDeliveryAlert(message string) {
 			field_i := field.(map[string]interface{})
 			buffer.WriteString("*")
 			buffer.WriteString(field_i["title"].(string))
-			buffer.WriteString("*")
+			buffer.WriteString("* ")
 			buffer.WriteString(field_i["value"].(string))
 			buffer.WriteString("\n")
 		}
