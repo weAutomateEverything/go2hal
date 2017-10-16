@@ -24,30 +24,15 @@ func SendDeliveryAlert(message string) {
 	//Loop though the attachmanets, there should be only 1
 	var buffer bytes.Buffer
 	buffer.WriteString("*Chef Delivery*\n")
-	for _, attachment := range attachments {
-		attachment_i := attachment.(map[string]interface{})
-		fields := attachment_i["fields"].([]interface{})
-
-		//Loop through the fields
-		for _, field := range fields {
-			field_i := field.(map[string]interface{})
-			buffer.WriteString("*")
-			buffer.WriteString(field_i["title"].(string))
-			buffer.WriteString("* ")
-			buffer.WriteString(field_i["value"].(string))
-			buffer.WriteString("\n")
-		}
-	}
-	log.Printf("Sending Alert: %s",buffer.String())
+	getfield(attachments, &buffer)
 
 	body := dat["text"].(string)
-	bodies := strings.Split(body,"\n");
-
+	bodies := strings.Split(body, "\n");
 	url := bodies[0]
-	url = strings.Replace(url,"<","",-1)
-	url = strings.Replace(url,">","",-1)
+	url = strings.Replace(url, "<", "", -1)
+	url = strings.Replace(url, ">", "", -1)
 
-	parts := strings.Split(url,"|")
+	parts := strings.Split(url, "|")
 
 	buffer.WriteString("[")
 	buffer.WriteString(parts[1])
@@ -57,6 +42,24 @@ func SendDeliveryAlert(message string) {
 	buffer.WriteString(parts[0])
 	buffer.WriteString(")")
 
+	log.Printf("Sending Alert: %s", buffer.String())
+
 	SendAlert(buffer.String())
 
+}
+func getfield(attachments []interface{}, buffer *bytes.Buffer) {
+	for _, attachment := range attachments {
+		attachmentI := attachment.(map[string]interface{})
+		fields := attachmentI["fields"].([]interface{})
+
+		//Loop through the fields
+		for _, field := range fields {
+			fieldI := field.(map[string]interface{})
+			buffer.WriteString("*")
+			buffer.WriteString(fieldI["title"].(string))
+			buffer.WriteString("* ")
+			buffer.WriteString(fieldI["value"].(string))
+			buffer.WriteString("\n")
+		}
+	}
 }
