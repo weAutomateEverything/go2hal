@@ -1,6 +1,6 @@
 package rest
 
-import(
+import (
 	"github.com/gorilla/mux"
 	"net/http"
 	"log"
@@ -12,7 +12,7 @@ type RouterObject struct {
 
 var router *RouterObject
 
-func init(){
+func init() {
 	router = &RouterObject{}
 	go func() {
 		log.Println("Starting HTTP Server...")
@@ -22,15 +22,18 @@ func init(){
 
 func getRouter() *mux.Router {
 	r := mux.NewRouter()
-	r.HandleFunc("/alert",alertHandler)
-	r.HandleFunc("/alert/aws/container",handleEc2ContainerAlert)
-	r.HandleFunc("/github",handleGithubMessage)
-	r.HandleFunc("/status",status)
-	r.HandleFunc("/bot",addBot).Methods("POST")
-	r.HandleFunc("/bot",botStatus).Methods("GET")
-	r.HandleFunc("/httpEndpoint",addHTTPEndpoint).Methods("POST")
-	r.HandleFunc("/appdynamics",receiveAppDynamicsAlert).Methods("POST")
-	r.HandleFunc("/delivery",receiveDeliveryNotification).Methods("POST")
+	r.HandleFunc("/alert", alertHandler)
+	r.HandleFunc("/alert/aws/container", handleEc2ContainerAlert)
+	r.HandleFunc("/github", handleGithubMessage)
+	r.HandleFunc("/status", status)
+	r.HandleFunc("/bot", addBot).Methods("POST")
+	r.HandleFunc("/bot", botStatus).Methods("GET")
+	r.HandleFunc("/httpEndpoint", addHTTPEndpoint).Methods("POST")
+	r.HandleFunc("/appdynamics", receiveAppDynamicsAlert).Methods("POST")
+	r.HandleFunc("/delivery", receiveDeliveryNotification).Methods("POST")
+	r.HandleFunc("/recipe", addRecipe).Methods("POST")
+	r.HandleFunc("/environment", addChefEnvironment).Methods("POST")
+	r.HandleFunc("/chefAudit", sendAnalyticsMessage).Methods("POST")
 
 	router.Mux = r
 	return r
@@ -39,4 +42,3 @@ func getRouter() *mux.Router {
 func Router() (*RouterObject) {
 	return router
 }
-

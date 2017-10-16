@@ -24,6 +24,30 @@ func SendDeliveryAlert(message string) {
 	//Loop though the attachmanets, there should be only 1
 	var buffer bytes.Buffer
 	buffer.WriteString("*Chef Delivery*\n")
+	getfield(attachments, &buffer)
+
+	body := dat["text"].(string)
+	bodies := strings.Split(body, "\n");
+	url := bodies[0]
+	url = strings.Replace(url, "<", "", -1)
+	url = strings.Replace(url, ">", "", -1)
+
+	parts := strings.Split(url, "|")
+
+	buffer.WriteString("[")
+	buffer.WriteString(parts[1])
+	buffer.WriteString(" - ")
+	buffer.WriteString(bodies[1])
+	buffer.WriteString("](")
+	buffer.WriteString(parts[0])
+	buffer.WriteString(")")
+
+	log.Printf("Sending Alert: %s", buffer.String())
+
+	SendAlert(buffer.String())
+
+}
+func getfield(attachments []interface{}, buffer *bytes.Buffer) {
 	for _, attachment := range attachments {
 		attachment_i := attachment.(map[string]interface{})
 		fields := attachment_i["fields"].([]interface{})
@@ -38,25 +62,4 @@ func SendDeliveryAlert(message string) {
 			buffer.WriteString("\n")
 		}
 	}
-	log.Printf("Sending Alert: %s",buffer.String())
-
-	body := dat["text"].(string)
-	bodies := strings.Split(body,"\n");
-
-	url := bodies[0]
-	url = strings.Replace(url,"<","",-1)
-	url = strings.Replace(url,">","",-1)
-
-	parts := strings.Split(url,"|")
-
-	buffer.WriteString("[")
-	buffer.WriteString(parts[1])
-	buffer.WriteString(" - ")
-	buffer.WriteString(bodies[1])
-	buffer.WriteString("](")
-	buffer.WriteString(parts[0])
-	buffer.WriteString(")")
-
-	SendAlert(buffer.String())
-
 }

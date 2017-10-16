@@ -3,11 +3,12 @@ package database
 import "gopkg.in/mgo.v2/bson"
 
 type stats struct {
-	ID             bson.ObjectId `bson:"_id,omitempty"`
-	MessagesSent   int64
-	AlertsReceived int64
-	AppDynamicReceived int64
-	ChefDeliveryReceived int64
+	ID                       bson.ObjectId `bson:"_id,omitempty"`
+	MessagesSent             int64
+	AlertsReceived           int64
+	AppDynamicReceived       int64
+	ChefDeliveryReceived     int64
+	ChefAuditMessageReceived int64
 }
 
 //SendMessage increases the counter on the stats db for the messages sent
@@ -25,23 +26,29 @@ func ReceiveAlert() {
 }
 
 //ReceiveAppynamicsMessage increases the counter on the status db for Appdynamics messages
-func ReceiveAppynamicsMessage(){
+func ReceiveAppynamicsMessage() {
 	stat := getRecord()
 	stat.AppDynamicReceived = stat.AppDynamicReceived + 1
 	saveRecord(stat)
 }
 
 //ReceiveChefDeliveryMessage increases the counter on the stats db for Delivery messages
-func ReceiveChefDeliveryMessage(){
+func ReceiveChefDeliveryMessage() {
 	stat := getRecord()
 	stat.ChefDeliveryReceived = stat.AppDynamicReceived + 1
 	saveRecord(stat)
 }
 
+func ReceiveChefAuditMessage(){
+	stat := getRecord()
+	stat.ChefAuditMessageReceived = stat.ChefAuditMessageReceived + 1
+	saveRecord(stat)
+}
+
 //GetStats Returns the current counter as per the stats DB
-func GetStats() (send, alerts,appdynamics, chefDelivery int64) {
+func GetStats() (send, alerts, appdynamics, chefDelivery int64) {
 	r := getRecord()
-	return r.MessagesSent, r.AlertsReceived, r.AppDynamicReceived,r.ChefDeliveryReceived
+	return r.MessagesSent, r.AlertsReceived, r.AppDynamicReceived, r.ChefDeliveryReceived
 }
 
 func getRecord() stats {
