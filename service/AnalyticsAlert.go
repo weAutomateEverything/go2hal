@@ -7,7 +7,9 @@ import (
 	"github.com/zamedic/go2hal/database"
 	"strings"
 )
-
+/*
+SendAnalyticsAlert will check if we have a chef recipe configured for the alert. If we do, it will send an alert.
+ */
 func SendAnalyticsAlert(message string) {
 	if(!checkSend(message)){
 		log.Println("Ignoreing message: "+message)

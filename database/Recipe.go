@@ -10,7 +10,7 @@ type recipe struct {
 	Recipe string
 }
 
-/**
+/*
 AddRecipe will add a recipe to the watch list for the bot
  */
 func AddRecipe(recipeName string) {
@@ -19,7 +19,7 @@ func AddRecipe(recipeName string) {
 	c.Insert(recipeItem)
 }
 
-/**
+/*
 GetRecipes returns all the configured chef recipes. 0 length if none exists or there is an error.
  */
 func GetRecipes() ([]string) {

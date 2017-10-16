@@ -49,16 +49,16 @@ func SendDeliveryAlert(message string) {
 }
 func getfield(attachments []interface{}, buffer *bytes.Buffer) {
 	for _, attachment := range attachments {
-		attachment_i := attachment.(map[string]interface{})
-		fields := attachment_i["fields"].([]interface{})
+		attachmentI := attachment.(map[string]interface{})
+		fields := attachmentI["fields"].([]interface{})
 
 		//Loop through the fields
 		for _, field := range fields {
-			field_i := field.(map[string]interface{})
+			fieldI := field.(map[string]interface{})
 			buffer.WriteString("*")
-			buffer.WriteString(field_i["title"].(string))
+			buffer.WriteString(fieldI["title"].(string))
 			buffer.WriteString("* ")
-			buffer.WriteString(field_i["value"].(string))
+			buffer.WriteString(fieldI["value"].(string))
 			buffer.WriteString("\n")
 		}
 	}

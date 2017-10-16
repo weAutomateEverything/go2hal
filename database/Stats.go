@@ -39,6 +39,7 @@ func ReceiveChefDeliveryMessage() {
 	saveRecord(stat)
 }
 
+//ReceiveChefAuditMessage increased the counter on the status db for Audit messages
 func ReceiveChefAuditMessage(){
 	stat := getRecord()
 	stat.ChefAuditMessageReceived = stat.ChefAuditMessageReceived + 1
