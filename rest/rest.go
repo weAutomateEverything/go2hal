@@ -6,14 +6,17 @@ import (
 	"log"
 )
 
-type routerObject struct {
+/*
+RouterObject provides a pointer to the underlying mux object for status checks
+ */
+type RouterObject struct {
 	Mux *mux.Router
 }
 
-var router *routerObject
+var router *RouterObject
 
 func init() {
-	router = &routerObject{}
+	router = &RouterObject{}
 	go func() {
 		log.Println("Starting HTTP Server...")
 		log.Fatal(http.ListenAndServe(":8000", getRouter()))
@@ -42,7 +45,6 @@ func getRouter() *mux.Router {
 /*
 Router starts the router service
  */
-func Router()  {
-	
-
+func Router() (*RouterObject) {
+	return router
 }
