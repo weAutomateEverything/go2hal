@@ -42,6 +42,7 @@ func getRouter() *mux.Router {
 /*
 Router starts the router service
  */
-func Router() (*routerObject) {
-	return router
+func Router()  {
+	
+
 }
