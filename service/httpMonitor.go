@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"fmt"
 	"log"
-	"crypto/tls"
 )
 
 //HTTPMonitor is the current status of the monitor
@@ -38,12 +37,7 @@ func monitorEndpoints(){
 }
 
 func checkHTTP(endpoint database.HTMLEndpoint){
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify : true},
-	}
-	client := &http.Client{Transport: tr}
-
-	response, err := client.Get(endpoint.Endpoint)
+	response, err := http.Get(endpoint.Endpoint)
 	if err != nil {
 		SendAlert(fmt.Sprintf("*HTTP Alert*\nName: %s \nEndpoint: %s \nError: %s",endpoint.Name,
 			endpoint.Endpoint,err.Error()))
