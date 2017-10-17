@@ -8,13 +8,12 @@ import (
 	"github.com/zamedic/go2hal/service"
 )
 
-func receiveDeliveryNotification(w http.ResponseWriter, r *http.Request) {
-
+func sendSkynetAlert(w http.ResponseWriter, r *http.Request){
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		log.Println(err)
 		return
 	}
-	database.ReceiveChefDeliveryMessage()
-	service.SendDeliveryAlert(string(body))
+	database.ReceiveSkynetMessage()
+	service.SendSkynetAlert(string(body))
 }

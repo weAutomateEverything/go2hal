@@ -37,6 +37,8 @@ func getRouter() *mux.Router {
 	r.HandleFunc("/recipe", addRecipe).Methods("POST")
 	r.HandleFunc("/environment", addChefEnvironment).Methods("POST")
 	r.HandleFunc("/chefAudit", sendAnalyticsMessage).Methods("POST")
+	r.HandleFunc("/skynet", sendSkynetAlert).Methods("POST")
+
 
 	router.Mux = r
 	return r
