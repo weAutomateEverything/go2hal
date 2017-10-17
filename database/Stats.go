@@ -9,6 +9,7 @@ type stats struct {
 	AppDynamicReceived       int64
 	ChefDeliveryReceived     int64
 	ChefAuditMessageReceived int64
+	SkynetMessageReceived    int64
 }
 
 //SendMessage increases the counter on the stats db for the messages sent
@@ -40,9 +41,15 @@ func ReceiveChefDeliveryMessage() {
 }
 
 //ReceiveChefAuditMessage increased the counter on the status db for Audit messages
-func ReceiveChefAuditMessage(){
+func ReceiveChefAuditMessage() {
 	stat := getRecord()
 	stat.ChefAuditMessageReceived = stat.ChefAuditMessageReceived + 1
+	saveRecord(stat)
+}
+
+func ReceiveSkynetMessage() {
+	stat := getRecord()
+	stat.SkynetMessageReceived = stat.SkynetMessageReceived + 1
 	saveRecord(stat)
 }
 
