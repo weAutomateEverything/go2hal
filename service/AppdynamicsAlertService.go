@@ -4,6 +4,7 @@ import (
 	json2 "encoding/json"
 	"log"
 	"strings"
+	"gopkg.in/kyokomi/emoji.v1"
 )
 
 /*
@@ -25,6 +26,8 @@ func SendAppdynamicsAlert(message string) {
 		message = strings.Replace(message,"</b>","*",-1)
 
 		message = strings.Replace(message,"<br>","\n",-1)
+
+		message = emoji.Sprintf(":red_circle:") +" " + message
 
 		log.Printf("Sending Alert %s",message)
 		SendAlert(message)

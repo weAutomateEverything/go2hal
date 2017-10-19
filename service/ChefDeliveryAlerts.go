@@ -5,6 +5,7 @@ import (
 	"strings"
 	"log"
 	"bytes"
+	"gopkg.in/kyokomi/emoji.v1"
 )
 
 /*
@@ -21,10 +22,6 @@ func SendDeliveryAlert(message string) {
 	}
 
 	attachments := dat["attachments"].([]interface{})
-	//Loop though the attachmanets, there should be only 1
-	var buffer bytes.Buffer
-	buffer.WriteString("*Chef Delivery*\n")
-	getfield(attachments, &buffer)
 
 	body := dat["text"].(string)
 	bodies := strings.Split(body, "\n");
@@ -34,10 +31,43 @@ func SendDeliveryAlert(message string) {
 
 	parts := strings.Split(url, "|")
 
+	//Loop though the attachmanets, there should be only 1
+	var buffer bytes.Buffer
+	buffer.WriteString(emoji.Sprint(":truck:"))
+	buffer.WriteString(" ")
+	buffer.WriteString("*Chef Delivery*\n")
+
+	if (strings.Contains(bodies[1], "failed")) {
+		buffer.WriteString(emoji.Sprint(":interrobang:"))
+
+	} else {
+		switch bodies[1] {
+		case "Delivered stage has completed for this change.":
+			buffer.WriteString(emoji.Sprint(":+1:"))
+
+		case "Change Delivered!":
+			buffer.WriteString(emoji.Sprint(":white_check_mark:"))
+
+		case "Acceptance Passed. Change is ready for delivery.":
+			buffer.WriteString(emoji.Sprint(":ok_hand:"))
+
+		case "Change Approved!":
+			buffer.WriteString(emoji.Sprint(":white_check_mark:"))
+
+		case "Verify Passed. Change is ready for review.":
+			buffer.WriteString(emoji.Sprint(":mag_right:"))
+		}
+	}
+	buffer.WriteString(" ")
+
+	buffer.WriteString(bodies[1])
+	buffer.WriteString("\n")
+
+	getfield(attachments, &buffer)
+
 	buffer.WriteString("[")
 	buffer.WriteString(parts[1])
-	buffer.WriteString(" - ")
-	buffer.WriteString(bodies[1])
+
 	buffer.WriteString("](")
 	buffer.WriteString(parts[0])
 	buffer.WriteString(")")

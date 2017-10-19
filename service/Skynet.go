@@ -5,6 +5,7 @@ import (
 	"log"
 	"bytes"
 	"strings"
+	"gopkg.in/kyokomi/emoji.v1"
 )
 
 /*
@@ -23,6 +24,8 @@ func SendSkynetAlert(message string){
 	}
 
 	var buffer bytes.Buffer
+	buffer.WriteString(emoji.Sprintf(":computer:"))
+	buffer.WriteString(" ")
 	buffer.WriteString("*Skynet Alert*\n")
 	buffer.WriteString(dat["message"].(string))
 	buffer.WriteString("\n")
