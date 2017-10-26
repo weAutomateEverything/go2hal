@@ -18,6 +18,9 @@ func init() {
 	}()
 }
 
+/*
+AddAppDynamicsQueue validated that the input data is valid, then persists the data to the mongo database.
+ */
 func AddAppDynamicsQueue(name, endpoint, metricPath string) error {
 	endpointObject := database.MqEndpoint{MetricPath: metricPath, Endpoint: endpoint, Name: name};
 	err := checkQueues(endpointObject);
@@ -84,7 +87,7 @@ func checkQueue(endpoint database.MqEndpoint, name string) error {
 		return err;
 	}
 
-	log.Printf("Queue: %s, Current Depth: %d, Max Depth: %d", name, currDepth, maxDepth)
+	log.Printf("Queue: %s, Current Depth: %.0f, Max Depth: %.0f", name, currDepth, maxDepth)
 	if maxDepth == 0 {
 		return nil
 	}
@@ -125,7 +128,7 @@ func getCurrentQueueDepthValue(path string) (float64, error) {
 	}
 
 	if len(dat) == 0 {
-		return 0, errors.New(fmt.Sprintf("No data found for %s", path))
+		return 0, fmt.Errorf("No data found for %s", path)
 	}
 
 	record := dat[0].(map[string]interface{})
