@@ -33,11 +33,13 @@ func getRouter() *mux.Router {
 	r.HandleFunc("/bot", botStatus).Methods("GET")
 	r.HandleFunc("/httpEndpoint", addHTTPEndpoint).Methods("POST")
 	r.HandleFunc("/appdynamics", receiveAppDynamicsAlert).Methods("POST")
+	r.HandleFunc("/appdynamics/queue", addAppdynamicsQueueEndpoint).Methods("POST")
 	r.HandleFunc("/delivery", receiveDeliveryNotification).Methods("POST")
 	r.HandleFunc("/recipe", addRecipe).Methods("POST")
 	r.HandleFunc("/environment", addChefEnvironment).Methods("POST")
 	r.HandleFunc("/chefAudit", sendAnalyticsMessage).Methods("POST")
 	r.HandleFunc("/skynet", sendSkynetAlert).Methods("POST")
+
 
 
 	router.Mux = r
