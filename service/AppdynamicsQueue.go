@@ -9,7 +9,6 @@ import (
 	"io/ioutil"
 	"bytes"
 	json2 "encoding/json"
-	"errors"
 )
 
 func init() {
