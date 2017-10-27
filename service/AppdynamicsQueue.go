@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"bytes"
 	json2 "encoding/json"
+	"gopkg.in/kyokomi/emoji.v1"
 )
 
 func init() {
@@ -92,17 +93,17 @@ func checkQueue(endpoint database.MqEndpoint, name string) error {
 	}
 	full := currDepth / maxDepth * 100;
 	if full > 90 {
-		SendAlert(fmt.Sprintf("%s - Queue %s, is more than 90 percent full. Current Depth %.0f, Max Depth %.0f",endpoint.Name, name,
-			currDepth, maxDepth))
-		return nil;
+		SendAlert(emoji.Sprintf(":baggage_claim: :interrobang: %s - Queue %s, is more than 90 percent full. "+
+			"Current Depth %.0f, Max Depth %.0f", endpoint.Name, name, currDepth, maxDepth))
+		return nil
 	}
 
 	if full > 75 {
-		SendAlert(fmt.Sprintf("%s - Queue %s, is more than 75 percent full. Current Depth %.0f, Max Depth %.0f",endpoint.Name, name,
-			currDepth, maxDepth))
-		return nil;
+		SendAlert(emoji.Sprintf(":baggage_claim: :warning: %s - Queue %s, is more than 75 percent full. Current "+
+			"Depth %.0f, Max Depth %.0f", endpoint.Name, name, currDepth, maxDepth))
+		return nil
 	}
-	return nil;
+	return nil
 }
 
 func getCurrentQueueDepthValue(path string) (float64, error) {
