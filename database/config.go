@@ -3,6 +3,8 @@ package database
 import (
 	"os"
 	"strings"
+	"strconv"
+	"log"
 )
 
 func mongoServers() []string {
@@ -30,6 +32,16 @@ func mongoReplicaSet() string {
 
 func mongoAuthSource() string {
 	return os.Getenv("MONGO_AUTH_SOURCE")
+}
+
+func mongoSSL() bool {
+	sslStr:= os.Getenv("MONGO_SSL")
+	ssl, err := strconv.ParseBool(sslStr)
+	if err != nil {
+		log.Println("Invalid boolean value for MONGO_SSL environment variable. Setting false")
+		return false
+	}
+	return ssl
 }
 
 
