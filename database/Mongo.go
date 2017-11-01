@@ -22,20 +22,7 @@ func init() {
 	var dialinfo *mgo.DialInfo
 
 	if (mongo == "") {
-		dialinfo.Addrs = mongoServers()
-		dialinfo.Database = mongoDB()
-		dialinfo.Password = mongoPassword()
-		dialinfo.Username = mongoUser()
-		dialinfo.ReplicaSetName = mongoReplicaSet()
-		dialinfo.Source = mongoAuthSource()
-
-		ssl := mongoSSL()
-
-		if ssl {
-			dialinfo.DialServer = func(addr *mgo.ServerAddr) (net.Conn, error) {
-				return tls.Dial("tcp", addr.String(), &tls.Config{})
-			}
-		}
+		dialinfo = getDialInfoParameters()
 	} else {
 		var err error
 		dialinfo, err = parseMongoURL(mongo)
@@ -49,6 +36,25 @@ func init() {
 	if err != nil {
 		log.Panic(err)
 	}
+}
+
+func getDialInfoParameters() *mgo.DialInfo{
+	dialinfo := mgo.DialInfo{}
+	dialinfo.Addrs = mongoServers()
+	dialinfo.Database = mongoDB()
+	dialinfo.Password = mongoPassword()
+	dialinfo.Username = mongoUser()
+	dialinfo.ReplicaSetName = mongoReplicaSet()
+	dialinfo.Source = mongoAuthSource()
+
+	ssl := mongoSSL()
+
+	if ssl {
+		dialinfo.DialServer = func(addr *mgo.ServerAddr) (net.Conn, error) {
+			return tls.Dial("tcp", addr.String(), &tls.Config{})
+		}
+	}
+	return &dialinfo
 }
 
 func parseMongoURL(rawURL string) (*mgo.DialInfo, error) {
