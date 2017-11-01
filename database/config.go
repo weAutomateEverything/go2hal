@@ -44,6 +44,10 @@ func mongoSSL() bool {
 	return ssl
 }
 
+func mongoConnectionString() string {
+	return os.Getenv("MONGO")
+}
+
 
 
 
