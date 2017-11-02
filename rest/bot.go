@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"encoding/json"
 	"github.com/zamedic/go2hal/database"
+	"github.com/zamedic/go2hal/telegram"
 )
 
 type bot struct {
@@ -13,6 +14,18 @@ type bot struct {
 func addBot(w http.ResponseWriter, r *http.Request) {
 	var botObject bot
 	_ = json.NewDecoder(r.Body).Decode(&botObject)
+	if botObject.Token == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("Bot Token cannot be enmpty"))
+		return
+	}
+
+	err := telegram.TestBot(botObject.Token)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(err.Error()))
+		return
+	}
 	database.AddBot(botObject.Token)
 	w.WriteHeader(http.StatusOK)
 }
