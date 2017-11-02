@@ -62,6 +62,14 @@ func SendMessage(chatID int64, message string, messageID int) (err error) {
 	return nil
 }
 
+/*
+TestBot checks if the token is for a valid bot.
+ */
+func TestBot(token string) error {
+	_, err = tgbotapi.NewBotAPI(token)
+	return err
+}
+
 func findFreeBot() {
 	for true {
 		bots := database.ListBots()
