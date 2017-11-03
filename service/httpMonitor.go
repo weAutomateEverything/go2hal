@@ -41,7 +41,7 @@ func checkHTTP(endpoint database.HTMLEndpoint){
 	if err != nil {
 		SendAlert(fmt.Sprintf("*HTTP Alert*\nName: %s \nEndpoint: %s \nError: %s",endpoint.Name,
 			endpoint.Endpoint,err.Error()))
-			database.FailedEndpointTest(endpoint.IdString)
+			database.FailedEndpointTest(endpoint.IdString, err.Error())
 		return
 	}
 	defer response.Body.Close()
@@ -49,6 +49,6 @@ func checkHTTP(endpoint database.HTMLEndpoint){
 		SendAlert(fmt.Sprintf("*HTTP Alert*\nName: %s \nEndpoint: %s \nDid not receive a 200 success " +
 			"response code. Recieved %d response code.",endpoint.Name,endpoint.Endpoint,
 			response.StatusCode))
-		database.FailedEndpointTest(endpoint.IdString)
+		database.FailedEndpointTest(endpoint.IdString,err.Error())
 	}
 }
