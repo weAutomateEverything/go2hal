@@ -26,7 +26,12 @@ func addBot(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(err.Error()))
 		return
 	}
-	database.AddBot(botObject.Token)
+	err = database.AddBot(botObject.Token)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(err.Error()))
+		return
+	}
 	w.WriteHeader(http.StatusOK)
 }
 

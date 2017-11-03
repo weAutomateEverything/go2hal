@@ -19,11 +19,16 @@ type HeartBeat struct {
 	LastUpdate time.Time `json:"last_updated,omitempty"`
 }
 
-func AddBot(botKey string){
+func AddBot(botKey string) error{
 	c := database.C("bots")
 	botItem := bot{}
 	botItem.Token = botKey
-	c.Insert(botItem)
+	err := c.Insert(botItem)
+	if err != nil {
+		log.Printf("error saving bot: %s",err.Error())
+		return err
+	}
+	return nil
 }
 
 func ListBots() []string {
