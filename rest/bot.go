@@ -16,7 +16,7 @@ func addBot(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewDecoder(r.Body).Decode(&botObject)
 	if botObject.Token == "" {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Bot Token cannot be enmpty"))
+		w.Write([]byte("Bot Token cannot be empty"))
 		return
 	}
 
