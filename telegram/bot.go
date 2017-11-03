@@ -87,7 +87,9 @@ func useBot(botkey string) {
 	bot, err = tgbotapi.NewBotAPI(botkey)
 
 	if err != nil {
-		log.Println(err)
+		hal.Running = false
+		log.Printf("Error getting bot token: %s",err.Error())
+		return
 	}
 	hal.Running = true
 	hal.bot = bot
@@ -102,7 +104,7 @@ func useBot(botkey string) {
 		updates, err := bot.GetUpdates(u)
 		if err != nil {
 			log.Println("Releasing bot ", bot.Self.UserName)
-			log.Println(err)
+			log.Println(err.Error())
 			hal.Running = false
 			hal.bot = nil
 			return
