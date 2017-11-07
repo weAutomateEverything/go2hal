@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"encoding/json"
 	"github.com/zamedic/go2hal/database"
-	"github.com/zamedic/go2hal/telegram"
+	"github.com/zamedic/go2hal/service"
 )
 
 type bot struct {
@@ -20,7 +20,7 @@ func addBot(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := telegram.TestBot(botObject.Token)
+	err := service.TestBot(botObject.Token)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))

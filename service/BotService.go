@@ -1,4 +1,4 @@
-package telegram
+package service
 
 import (
 	"log"
@@ -13,6 +13,22 @@ type HalBot struct {
 	Running bool
 	bot     *tgbotapi.BotAPI
 }
+
+type command interface {
+	commandIdentifier() string
+	commandDescription() string
+	execute(update tgbotapi.Update)
+}
+
+/**
+Basic information about a command
+ */
+type commandDescription struct {
+	Name, Description string
+}
+type commandCtor func() command
+
+var commandList = []commandCtor{}
 
 var hal *HalBot;
 
@@ -140,4 +156,35 @@ func pollForMessages() {
 		}
 		time.Sleep(time.Second * 5)
 	}
+}
+
+func register(newfunc commandCtor) {
+	commandList = append(commandList, newfunc)
+}
+
+func findCommand(command string) (a command) {
+	for _, item := range commandList {
+		a = item()
+		if a.commandIdentifier() == command {
+			return a
+		}
+	};
+	return nil
+}
+
+func executeCommand(update tgbotapi.Update) bool {
+	command := findCommand(update.Message.Command())
+	if command != nil {
+		command.execute(update)
+		return true
+	}
+	return false
+}
+
+func getCommands()  []commandDescription{
+	result := make([]commandDescription,len(commandList))
+	for i,x := range commandList {
+		result[i] = commandDescription{x().commandIdentifier(), x().commandDescription()}
+	}
+	return result
 }
