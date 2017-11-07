@@ -49,7 +49,8 @@ func checkQueues(endpoint database.MqEndpoint) error {
 
 	response, err := http.Get(buildQueryString(endpoint))
 	if err != nil {
-		SendAlert(fmt.Sprintf("We are unable to query App Dynamics to monitor Queue depths. %s", err))
+		log.Printf("Unable to query appdynamics: %s",err.Error())
+		SendAlert("We are unable to query App Dynamics to monitor Queue depths")
 		return err;
 	}
 	defer response.Body.Close()
