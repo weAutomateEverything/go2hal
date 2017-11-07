@@ -46,7 +46,7 @@ func init() {
 }
 
 /*
-Returns a handler back to the bot
+GetBot Returns a handler back to the bot
  */
 func GetBot() *HalBot {
 	return hal

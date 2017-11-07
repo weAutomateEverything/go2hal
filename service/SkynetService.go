@@ -195,11 +195,11 @@ func poll(expectedState, nodeName string, skynet database.Skynet, ignoreFailed b
 		}
 		if (!ignoreFailed && strings.ToUpper(state) == "FAILED") {
 			SendAlert(fmt.Sprintf("%s has entered a Failed State.", nodeName))
-			return fmt.Errorf("%s has entered a Failed State.", nodeName)
+			return fmt.Errorf("%s has entered a Failed State", nodeName)
 		}
 		i++
 		if i%30 == 0 {
-			SendAlert(fmt.Sprintf("Still waiting for node %s to reach state %s. Curent state is %s", nodeName,expectedState, state))
+			SendAlert(fmt.Sprintf("still waiting for node %s to reach state %s. Curent state is %s", nodeName,expectedState, state))
 		}
 		time.Sleep(time.Second)
 	}
