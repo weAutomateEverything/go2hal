@@ -1,4 +1,4 @@
-package telegram
+package service
 
 import (
 	"gopkg.in/telegram-bot-api.v4"
@@ -8,7 +8,7 @@ import (
 
 func init() {
 	log.Println("Initialising Help Command")
-	register(func() Command {
+	register(func() command {
 		return &help{}
 	})
 }

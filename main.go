@@ -3,8 +3,8 @@ package main
 import (
 	"time"
 	"log"
-	"github.com/zamedic/go2hal/telegram"
 	"github.com/zamedic/go2hal/rest"
+	"github.com/zamedic/go2hal/service"
 )
 
 func main() {
@@ -12,7 +12,7 @@ func main() {
 	log.Println("-------------")
 	log.Println("All systems GO!")
 
-	hal := telegram.GetBot()
+	hal := service.GetBot()
 	router := rest.Router()
 
 	for true{
