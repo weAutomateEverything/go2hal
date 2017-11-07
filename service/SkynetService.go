@@ -8,7 +8,6 @@ import (
 	"io/ioutil"
 	"strings"
 	json2 "encoding/json"
-	"errors"
 	"time"
 	"gopkg.in/kyokomi/emoji.v1"
 	"bytes"
