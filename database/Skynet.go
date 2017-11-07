@@ -47,6 +47,9 @@ func AddSkynetEndpoint(url, username, password string) error {
 	return nil
 }
 
+/*
+GetSkynetRecord will return the skynet record in the mongo DB, else throw an error if one doesnt exist.
+ */
 func GetSkynetRecord() (Skynet, error) {
 	c := database.C("skynet")
 	var s Skynet

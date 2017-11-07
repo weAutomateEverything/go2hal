@@ -45,14 +45,14 @@ func init() {
 	}()
 }
 
-/**
+/*
 Returns a handler back to the bot
  */
 func GetBot() *HalBot {
 	return hal
 }
 
-/**
+/*
 Sends a test message to the chat id.
  */
 func SendMessage(chatID int64, message string, messageID int) (err error) {

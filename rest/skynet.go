@@ -13,7 +13,7 @@ type skynet struct {
 	URL,Username,Password  string
 }
 
-type skynet_rebuild struct {
+type skynetRebuild struct {
 	NodeName, User  string
 }
 
@@ -40,7 +40,7 @@ func addSkynetEndpoint(w http.ResponseWriter, r *http.Request)  {
 }
 
 func rebuildNode(w http.ResponseWriter, r *http.Request){
-	var rebuild skynet_rebuild
+	var rebuild skynetRebuild
 	err := json.NewDecoder(r.Body).Decode(&rebuild)
 	if err != nil {
 		str,_  := ioutil.ReadAll(r.Body)
