@@ -46,9 +46,10 @@ func checkHTTP(endpoint database.HTMLEndpoint){
 	}
 	defer response.Body.Close()
 	if response.StatusCode != 200 {
-		SendAlert(fmt.Sprintf("*HTTP Alert*\nName: %s \nEndpoint: %s \nDid not receive a 200 success " +
+		error := fmt.Sprintf("*HTTP Alert*\nName: %s \nEndpoint: %s \nDid not receive a 200 success " +
 			"response code. Recieved %d response code.",endpoint.Name,endpoint.Endpoint,
-			response.StatusCode))
-		database.FailedEndpointTest(endpoint.IdString,err.Error())
+			response.StatusCode)
+		SendAlert(error)
+		database.FailedEndpointTest(endpoint.IdString,error)
 	}
 }
