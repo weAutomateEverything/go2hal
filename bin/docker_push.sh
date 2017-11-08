@@ -11,7 +11,7 @@ if [ -z "$TRAVIS_PULL_REQUEST" ] || [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
     eval $(aws ecr get-login --region $AWS_DEFAULT_REGION)
 
     # Build and push
-    docker build -t $IMAGE_NAME .
+    docker build -t $IMAGE_NAME:1.$TRAVIS_JOB_NUMBER .
     echo "Pushing $IMAGE_NAME:1.$TRAVIS_JOB_NUMBER"
     docker tag $IMAGE_NAME:1.$TRAVIS_JOB_NUMBER "$REMOTE_IMAGE_URL:1.$TRAVIS_JOB_NUMBER"
     docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
