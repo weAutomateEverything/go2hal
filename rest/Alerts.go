@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"github.com/zamedic/go2hal/database"
 	"io/ioutil"
-	"log"
 	"github.com/zamedic/go2hal/service"
 )
 
@@ -26,5 +25,5 @@ func alertHandler(w http.ResponseWriter, r *http.Request) {
 
 func handleError(err error,w http.ResponseWriter){
 	w.WriteHeader(http.StatusInternalServerError)
-	log.Println(err)
+	service.SendError(err)
 }

@@ -30,11 +30,11 @@ type commandDescription struct {
 type commandCtor func() command
 
 type setHeartbeatGroup struct {
-
 }
 
 var commandList = []commandCtor{}
 var hal *HalBot;
+
 var bot *tgbotapi.BotAPI
 var err error
 
@@ -65,16 +65,23 @@ func GetBot() *HalBot {
 SendMessage sends a test message to the chat id.
  */
 func SendMessage(chatID int64, message string, messageID int) (err error) {
+	return sendMessage(chatID,message,messageID,true)
+}
+
+
+func sendMessage(chatID int64, message string, messageID int, markup bool) (err error) {
 	if !hal.Running {
 		log.Println("Unable to send message as no bot is connected. ")
 		return nil
 	}
-	log.Printf("Sending Message %s",message)
+	log.Printf("Sending Message %s", message)
 	if (!hal.Running) {
 		database.AddMessageToQueue(message, chatID, messageID)
 	}
 	msg := tgbotapi.NewMessage(chatID, message)
-	msg.ParseMode = tgbotapi.ModeMarkdown
+	if (markup) {
+		msg.ParseMode = tgbotapi.ModeMarkdown
+	}
 	if messageID != 0 {
 		msg.ReplyToMessageID = messageID
 	}
@@ -85,6 +92,19 @@ func SendMessage(chatID int64, message string, messageID int) (err error) {
 		database.SendMessage()
 	}
 	return nil
+}
+
+func SendError(err error) {
+	sendToHeartbeatGroup(emoji.Sprintf(":poop: %s %s", bot.Self.UserName, err.Error()))
+}
+
+func sendToHeartbeatGroup(message string) {
+	chatId, err := database.HeartbeatGroup()
+	if err == nil && chatId != 0 {
+		sendMessage(chatId, message, 0,false)
+	} else {
+		log.Printf("Could not send %s to heartbeat group", message)
+	}
 }
 
 /*
@@ -111,7 +131,7 @@ func useBot(botkey string) {
 	bot, err = tgbotapi.NewBotAPI(botkey)
 	if err != nil {
 		hal.Running = false
-		log.Printf("Error getting bot token: %s",err.Error())
+		log.Printf("Error getting bot token: %s", err.Error())
 		return
 	}
 	hal.Running = true
@@ -119,10 +139,8 @@ func useBot(botkey string) {
 
 	bot.Debug = true
 	log.Printf("Authorized on account %s", bot.Self.UserName)
-	chatID, err := database.HeartbeatGroup()
-	if err == nil && chatID != 0 {
-		SendMessage(chatID,fmt.Sprintf("%s back online",bot.Self.UserName),0)
-	}
+
+	sendToHeartbeatGroup(fmt.Sprintf("%s back online", bot.Self.UserName))
 
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60
@@ -192,9 +210,9 @@ func executeCommand(update tgbotapi.Update) bool {
 	return false
 }
 
-func getCommands()  []commandDescription{
-	result := make([]commandDescription,len(commandList))
-	for i,x := range commandList {
+func getCommands() []commandDescription {
+	result := make([]commandDescription, len(commandList))
+	for i, x := range commandList {
 		result[i] = commandDescription{x().commandIdentifier(), x().commandDescription()}
 	}
 	return result
@@ -203,12 +221,7 @@ func getCommands()  []commandDescription{
 func heartbeat() {
 	time.Sleep(time.Second * 30)
 	for true {
-		chatId, err := database.HeartbeatGroup()
-		if err != nil {
-			log.Printf("Cannot send heartbear: %s",err.Error())
-		} else if chatId != 0 {
-			SendMessage(chatId,emoji.Sprintf("%s :heart:",bot.Self.UserName),0)
-		}
+		sendToHeartbeatGroup(emoji.Sprintf("%s :heart:", bot.Self.UserName))
 		time.Sleep(time.Hour)
 	}
 }
@@ -221,7 +234,7 @@ func (s *setHeartbeatGroup) commandDescription() string {
 	return "Set Heartbeat Group"
 }
 
-func (s *setHeartbeatGroup) execute(update tgbotapi.Update){
+func (s *setHeartbeatGroup) execute(update tgbotapi.Update) {
 	database.SetHeartbeatGroup(update.Message.Chat.ID)
-	SendMessage(update.Message.Chat.ID,"heartbeat group updated", update.Message.MessageID)
+	SendMessage(update.Message.Chat.ID, "heartbeat group updated", update.Message.MessageID)
 }

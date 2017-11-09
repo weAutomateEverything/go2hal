@@ -6,6 +6,7 @@ import (
 	"strings"
 	"gopkg.in/kyokomi/emoji.v1"
 	"bytes"
+	"fmt"
 )
 
 /*
@@ -14,7 +15,7 @@ SendAppdynamicsAlert will send an alert message from the data contained in the e
 func SendAppdynamicsAlert(message string) {
 	var dat map[string]interface{}
 	if err := json2.Unmarshal([]byte(message), &dat); err != nil {
-		log.Printf("Error unmarshalling: %s", message)
+		SendError(fmt.Errorf("Error unmarshalling App Dynamics Message: %s", message))
 		return
 	}
 
