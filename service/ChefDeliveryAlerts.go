@@ -6,6 +6,7 @@ import (
 	"log"
 	"bytes"
 	"gopkg.in/kyokomi/emoji.v1"
+	"fmt"
 )
 
 /*
@@ -17,7 +18,7 @@ func SendDeliveryAlert(message string) {
 	message = strings.Replace(message, "\n", "\\n", -1)
 
 	if err := json2.Unmarshal([]byte(message), &dat); err != nil {
-		log.Printf("Error unmarshalling: %s", message)
+		SendError(fmt.Errorf("delivery - error unmarshalling: %s", message))
 		return
 	}
 

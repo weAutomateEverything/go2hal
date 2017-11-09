@@ -51,6 +51,7 @@ func checkQueues(endpoint database.MqEndpoint) error {
 	if err != nil {
 		log.Printf("Unable to query appdynamics: %s",err.Error())
 		SendAlert("We are unable to query App Dynamics to monitor Queue depths")
+		SendError(err)
 		return err;
 	}
 	defer response.Body.Close()
@@ -59,13 +60,13 @@ func checkQueues(endpoint database.MqEndpoint) error {
 	log.Printf("Received: %s", body)
 
 	if err != nil {
-		log.Printf("Error parsing body %s", err)
+		SendError(fmt.Errorf("queue - error parsing body %s", err))
 		return err
 	}
 
 	var dat []interface{}
 	if err := json2.Unmarshal([]byte(body), &dat); err != nil {
-		log.Printf("Error unmarshalling: %s", err)
+		SendError(fmt.Errorf("Error unmarshalling: %s", err))
 		return err
 	}
 

@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"github.com/zamedic/go2hal/database"
 	"strings"
+	"fmt"
 )
 /*
 SendAnalyticsAlert will check if we have a chef recipe configured for the alert. If we do, it will send an alert.
@@ -17,7 +18,7 @@ func SendAnalyticsAlert(message string) {
 	}
 	var dat map[string]interface{}
 	if err := json2.Unmarshal([]byte(message), &dat); err != nil {
-		log.Printf("Error unmarshalling: %s", message)
+		SendError(fmt.Errorf("Error unmarshalling: %s", message))
 		return
 	}
 

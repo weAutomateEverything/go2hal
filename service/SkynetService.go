@@ -32,7 +32,7 @@ func SendSkynetAlert(message string){
 
 	var dat map[string]interface{}
 	if err := json2.Unmarshal([]byte(message), &dat); err != nil {
-		log.Printf("Error unmarshalling: %s", message)
+		SendError(fmt.Errorf("skynet alert - rrror unmarshalling: %s", message))
 		return
 	}
 
