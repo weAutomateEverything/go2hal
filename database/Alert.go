@@ -46,13 +46,13 @@ func HeartbeatGroup() (groupID int64, err error){
 /*
 SetAlertGroup Sets the alert group. Overrides existing group if one already exists.
  */
-func SetAlertGroup(AlertDB int64){
+func SetAlertGroup(AlertGroupID int64){
 	c := database.C("Alert")
 	count, _ := c.Count()
 
 	if count == 0 {
 		result := AlertDB{}
-		result.GroupID = AlertDB
+		result.GroupID = AlertGroupID
 		err := c.Insert(result)
 		if err != nil {
 			log.Panic(err)
@@ -60,7 +60,7 @@ func SetAlertGroup(AlertDB int64){
 	} else {
 		result := AlertDB{}
 		c.Find(nil).One(&result)
-		result.GroupID = AlertDB
+		result.GroupID = AlertGroupID
 		err := c.UpdateId(result.ID,result)
 		if err != nil {
 			log.Panic(err)
