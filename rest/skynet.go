@@ -41,9 +41,11 @@ func addSkynetEndpoint(w http.ResponseWriter, r *http.Request)  {
 
 func rebuildNode(w http.ResponseWriter, r *http.Request){
 	var rebuild skynetRebuild
+	str,_  := ioutil.ReadAll(r.Body)
+	log.Printf("Received rebuild node request %s",str)
 	err := json.NewDecoder(r.Body).Decode(&rebuild)
 	if err != nil {
-		str,_  := ioutil.ReadAll(r.Body)
+
 		log.Printf("Error decoding rebuild request. %s",str)
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
