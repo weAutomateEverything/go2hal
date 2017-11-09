@@ -129,7 +129,7 @@ func getCurrentQueueDepthValue(path string) (float64, error) {
 	}
 
 	if len(dat) == 0 {
-		return 0, fmt.Errorf("No data found for %s", path)
+		return 0, fmt.Errorf("no data found for %s", path)
 	}
 
 	record := dat[0].(map[string]interface{})
@@ -149,7 +149,6 @@ func buildQueryString(endpoint database.MqEndpoint) string {
 	buffer.WriteString("/metrics?metric-path=")
 	buffer.WriteString(endpoint.MetricPath)
 	buffer.WriteString("&time-range-type=BEFORE_NOW&duration-in-mins=15&output=JSON")
-	log.Printf("Calling %s", buffer.String())
 	return buffer.String()
 }
 
@@ -163,7 +162,6 @@ func buildQueryStringQueueDepth(endpoint database.MqEndpoint, queue string) stri
 	buffer.WriteString("%7CCurrent%20Queue%20Depth")
 
 	buffer.WriteString("&time-range-type=BEFORE_NOW&duration-in-mins=15&output=JSON")
-	log.Printf("Calling %s", buffer.String())
 	return buffer.String()
 }
 
