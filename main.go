@@ -12,11 +12,10 @@ func main() {
 	log.Println("-------------")
 	log.Println("All systems GO!")
 
-	hal := service.GetBot()
-	router := rest.Router()
+	service.GetBot()
+	rest.Router()
 
 	for true{
 		time.Sleep(time.Minute * 5)
-		log.Printf("Heartbeat...  Bot: [%v], router: [%v]",hal.Running,router.Mux)
 	}
 }
