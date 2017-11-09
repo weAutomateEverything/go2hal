@@ -119,9 +119,9 @@ func useBot(botkey string) {
 
 	bot.Debug = true
 	log.Printf("Authorized on account %s", bot.Self.UserName)
-	chatId, err := database.HeartbeatGroup()
-	if err == nil && chatId != 0 {
-		SendMessage(chatId,fmt.Sprintf("%s back online",bot.Self.UserName),0)
+	chatID, err := database.HeartbeatGroup()
+	if err == nil && chatID != 0 {
+		SendMessage(chatID,fmt.Sprintf("%s back online",bot.Self.UserName),0)
 	}
 
 	u := tgbotapi.NewUpdate(0)
