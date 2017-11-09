@@ -6,15 +6,19 @@ import (
 	"log"
 )
 
-/**
-Mongo Object that stores the group to send alert messages too.
+/*
+AlertDB Object that stores the group to send alert messages too.
  */
 type AlertDB struct {
 	ID      bson.ObjectId `bson:"_id,omitempty"`
 	GroupID int64
+	HeartbeatGroupID int64
 }
 
-func AlertGroup() (groupId int64, err error) {
+/*
+AlertGroup returns the alert group
+ */
+func AlertGroup() (groupID int64, err error) {
 	c := database.C("Alert")
 	count, _ := c.Count()
 	if count == 0 {
@@ -25,16 +29,30 @@ func AlertGroup() (groupId int64, err error) {
 	return result.GroupID, nil
 }
 
-/**
-Sets the alert group. Overrides existing group if one already exists.
+/*
+HeartbeatGroup Returns the heartbeat group.
  */
-func SetAlertGroup(groupId int64){
+func HeartbeatGroup() (groupID int64, err error){
+	c := database.C("Alert")
+	count, _ := c.Count()
+	if count == 0 {
+		return 0, fmt.Errorf("no heartbeat group has been set")
+	}
+	result := AlertDB{}
+	c.Find(nil).One(&result)
+	return result.HeartbeatGroupID, nil
+}
+
+/*
+SetAlertGroup Sets the alert group. Overrides existing group if one already exists.
+ */
+func SetAlertGroup(AlertGroupID int64){
 	c := database.C("Alert")
 	count, _ := c.Count()
 
 	if count == 0 {
 		result := AlertDB{}
-		result.GroupID = groupId
+		result.GroupID = AlertGroupID
 		err := c.Insert(result)
 		if err != nil {
 			log.Panic(err)
@@ -42,9 +60,34 @@ func SetAlertGroup(groupId int64){
 	} else {
 		result := AlertDB{}
 		c.Find(nil).One(&result)
-		result.GroupID = groupId
+		result.GroupID = AlertGroupID
 		err := c.UpdateId(result.ID,result)
-		if (err != nil){
+		if err != nil {
+			log.Panic(err)
+		}
+	}
+}
+
+/*
+SetHeartbeatGroup Sets the alert group. Overrides existing group if one already exists.
+ */
+func SetHeartbeatGroup(groupID int64){
+	c := database.C("Alert")
+	count, _ := c.Count()
+
+	if count == 0 {
+		result := AlertDB{}
+		result.HeartbeatGroupID = groupID
+		err := c.Insert(result)
+		if err != nil {
+			log.Panic(err)
+		}
+	} else {
+		result := AlertDB{}
+		c.Find(nil).One(&result)
+		result.HeartbeatGroupID = groupID
+		err := c.UpdateId(result.ID,result)
+		if err != nil {
 			log.Panic(err)
 		}
 	}
