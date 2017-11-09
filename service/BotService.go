@@ -95,6 +95,7 @@ func sendMessage(chatID int64, message string, messageID int, markup bool) (err 
 }
 
 func SendError(err error) {
+	log.Println(err.Error())
 	sendToHeartbeatGroup(emoji.Sprintf(":poop: %s %s", bot.Self.UserName, err.Error()))
 }
 
