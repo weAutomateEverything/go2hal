@@ -115,7 +115,6 @@ func getCurrentQueueDepthValue(path string) (float64, error) {
 	}
 	defer response.Body.Close()
 	body, err := ioutil.ReadAll(response.Body)
-	log.Printf("Received: %s", body)
 
 	if err != nil {
 		log.Printf("Error reading body %s", err)
