@@ -94,15 +94,18 @@ func sendMessage(chatID int64, message string, messageID int, markup bool) (err 
 	return nil
 }
 
+/*
+SendError will log the error to the console and attempt to send it to the heartbeat group.
+ */
 func SendError(err error) {
 	log.Println(err.Error())
 	sendToHeartbeatGroup(emoji.Sprintf(":poop: %s %s", bot.Self.UserName, err.Error()))
 }
 
 func sendToHeartbeatGroup(message string) {
-	chatId, err := database.HeartbeatGroup()
-	if err == nil && chatId != 0 {
-		sendMessage(chatId, message, 0,false)
+	chatID, err := database.HeartbeatGroup()
+	if err == nil && chatID != 0 {
+		sendMessage(chatID, message, 0,false)
 	} else {
 		log.Printf("Could not send %s to heartbeat group", message)
 	}
