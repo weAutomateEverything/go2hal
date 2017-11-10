@@ -39,7 +39,7 @@ func monitorEndpoints(){
 func checkHTTP(endpoint database.HTMLEndpoint){
 	response, err := http.Get(endpoint.Endpoint)
 	if err != nil {
-		SendAlert(fmt.Sprintf("*HTTP Alert*\nName: %s \nEndpoint: %s \nError: %s",endpoint.Name,
+		SendError(fmt.Errorf("*HTTP Alert*\nName: %s \nEndpoint: %s \nError: %s",endpoint.Name,
 			endpoint.Endpoint,err.Error()))
 			database.FailedEndpointTest(endpoint.IdString, err.Error())
 		return
