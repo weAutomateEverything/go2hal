@@ -14,11 +14,17 @@ type bot struct {
 	Name string
 }
 
+/*
+HeartBeat provides high level information on the bots
+ */
 type HeartBeat struct {
 	Name string `json:"name,omitempty"`
 	LastUpdate time.Time `json:"last_updated,omitempty"`
 }
 
+/*
+AddBot will add a bot to the database
+ */
 func AddBot(botKey string) error{
 	c := database.C("bots")
 	botItem := bot{}
@@ -31,6 +37,9 @@ func AddBot(botKey string) error{
 	return nil
 }
 
+/*
+ListBots will return a list of bot tokens
+ */
 func ListBots() []string {
 	bots,_ := getBots()
 	result := make([]string,len(bots))
@@ -40,13 +49,9 @@ func ListBots() []string {
 	return result
 }
 
-
-func TakeBot(botKey string){
-	botItem := findBot(botKey)
-	botItem.Taken = time.Now()
-	updateBot(botItem)
-}
-
+/*
+HeartbeatBot will update the mongo database with heartbeat information
+ */
 func HeartbeatBot(botKey, name string){
 	botItem := findBot(botKey)
 	botItem.LastUpdate = time.Now()
@@ -54,6 +59,9 @@ func HeartbeatBot(botKey, name string){
 	updateBot(botItem)
 }
 
+/*
+GetBotHeartbeat returns a list of heart beats
+ */
 func GetBotHeartbeat() []HeartBeat {
 	bots,_ := getBots()
 	result := make ([]HeartBeat,len(bots))

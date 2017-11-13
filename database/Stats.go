@@ -47,6 +47,9 @@ func ReceiveChefAuditMessage() {
 	saveRecord(stat)
 }
 
+/*
+ReceiveSkynetMessage updates skynet count
+ */
 func ReceiveSkynetMessage() {
 	stat := getRecord()
 	stat.SkynetMessageReceived = stat.SkynetMessageReceived + 1

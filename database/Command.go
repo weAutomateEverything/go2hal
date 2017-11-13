@@ -11,6 +11,9 @@ type command struct {
 	Name, Command string
 }
 
+/*
+Key ssh
+ */
 type Key struct {
 	ID            bson.ObjectId `bson:"_id,omitempty"`
 	Username, Key string
@@ -39,6 +42,9 @@ func FindCommand(name string) (string, error) {
 	return result.Command, nil
 }
 
+/*
+AddKey adds a key to the DB if it doesnt exist. Else updates.
+ */
 func AddKey(username, key string) error {
 	c := database.C("keys")
 	q := c.Find(nil)
@@ -49,18 +55,21 @@ func AddKey(username, key string) error {
 	if count == 0 {
 		r := Key{Username: username, Key: key}
 		return c.Insert(r)
-	} else {
-		r := Key{}
-		err = q.One(&r)
-		if err != nil {
-			return err
-		}
-		r.Key = key
-		r.Username = username
-		return c.UpdateId(r.ID, r)
 	}
+	r := Key{}
+	err = q.One(&r)
+	if err != nil {
+		return err
+	}
+	r.Key = key
+	r.Username = username
+	return c.UpdateId(r.ID, r)
+
 }
 
+/*
+GetKey returns a ssh key
+ */
 func GetKey() (*Key, error) {
 	c := database.C("keys")
 	q := c.Find(nil)
@@ -75,7 +84,7 @@ func GetKey() (*Key, error) {
 	r := Key{}
 	err = q.One(&r)
 	if err != nil {
-		return &r,nil
+		return &r, nil
 	}
 	return &r, nil
 

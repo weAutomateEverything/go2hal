@@ -11,7 +11,7 @@ import (
 )
 
 /*
-ExecuteCommand will run the command against the supplied address
+ExecuteRemoteCommand will run the command against the supplied address
  */
 func ExecuteRemoteCommand(commandName, address string) error {
 	command, err := database.FindCommand(commandName)

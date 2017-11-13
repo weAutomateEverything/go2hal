@@ -13,7 +13,7 @@ type htmlEndpoint struct {
 
 //HTMLEndpoint reprisents a HTTP Endpoint that the system will monitor
 type HTMLEndpoint struct {
-	IdString    string `bson:"-"`
+	IDString    string `bson:"-"`
 	Name        string
 	Endpoint    string
 	lastChecked time.Time
@@ -49,7 +49,7 @@ func GetHTMLEndpoints() []HTMLEndpoint {
 	result := make([]HTMLEndpoint, i)
 	for line, x := range r {
 		result[line] = x.HTMLEndpoint
-		result[line].IdString = x.ID.String()
+		result[line].IDString = x.ID.String()
 	}
 	return result
 }

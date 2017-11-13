@@ -96,8 +96,8 @@ func AddAppDynamicsQueue(name, application, metricPath string) error {
 /*
 ExecuteCommandFromAppd will search for the nodes IP Address, then execute the command on the node
 */
-func ExecuteCommandFromAppd(commandName, applicationId, nodeId string) error {
-	ipaddress, err := getIpAddressForNode(applicationId, nodeId)
+func ExecuteCommandFromAppd(commandName, applicationID, nodeId string) error {
+	ipaddress, err := getIPAddressForNode(applicationID, nodeId)
 	if err != nil {
 		SendError(err)
 		return err
@@ -268,7 +268,7 @@ func doGet(uri string) (string, error) {
 	return s, nil
 }
 
-func getIpAddressForNode(application, node string) (string, error) {
+func getIPAddressForNode(application, node string) (string, error) {
 	uri := fmt.Sprintf("/controller/rest/applications/%s/nodes/%s?output=json", application, node)
 	response, err := doGet(uri)
 	log.Println(response)
@@ -285,8 +285,8 @@ func getIpAddressForNode(application, node string) (string, error) {
 	}
 	v := dat[0].(map[string]interface{})
 	ipaddresses := v["ipAddresses"].(map[string]interface{})
-	arrayIp := ipaddresses["ipAddresses"].([]interface{})
-	for _,ipo := range arrayIp {
+	arrayIP := ipaddresses["ipAddresses"].([]interface{})
+	for _,ipo := range arrayIP {
 		ip := ipo.(string)
 		if (strings.Index(ip,".") > 0){
 			return ip,nil
