@@ -161,7 +161,7 @@ func checkQueue(endpoint database.MqEndpoint, name string) error {
 
 	log.Printf("Queue: %s, Current Depth: %.0f, Max Depth: %.0f", name, currDepth, maxDepth)
 	if maxDepth == 0 {
-		return fmt.Errorf("max depth for queue %s is 0.",name)
+		return fmt.Errorf("max depth for queue %s is 0",name)
 	}
 	full := currDepth / maxDepth * 100;
 	if full > 90 {

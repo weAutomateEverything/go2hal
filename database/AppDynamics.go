@@ -5,7 +5,7 @@ import (
 	"errors"
 )
 
-type appDynamics struct {
+type AppDynamics struct {
 	ID          bson.ObjectId `bson:"_id,omitempty"`
 	Endpoint    string
 	MqEndpoints []MqEndpoint
@@ -26,7 +26,7 @@ AddAppDynamicsEndpoint will add a app dynamics endpoint to the mongo DB if it do
 update it.
 */
 func AddAppDynamicsEndpoint(endpoint string) error{
-	a := appDynamics{Endpoint: endpoint}
+	a := AppDynamics{Endpoint: endpoint}
 	b, err := GetAppDynamics()
 	c := database.C("appDynamics")
 
@@ -67,13 +67,13 @@ func AddMqEndpoint(name, application string, metricPath string) error {
 /*
 GetAppDynamics wll return the app dynamics object in the ob, Else, error if nothing exists.
  */
-func GetAppDynamics() (appDynamics, error) {
+func GetAppDynamics() (AppDynamics, error) {
 	c := database.C("appDynamics")
 	i, err := c.Count()
 	if err != nil || i == 0 {
-		return appDynamics{}, errors.New("no app dynamics config set")
+		return AppDynamics{}, errors.New("no app dynamics config set")
 	}
-	a := appDynamics{}
+	a := AppDynamics{}
 	err = c.Find(nil).One(&a)
 	return a,err
 }
