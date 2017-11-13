@@ -41,7 +41,7 @@ func checkHTTP(endpoint database.HTMLEndpoint){
 	if err != nil {
 		SendError(fmt.Errorf("*HTTP Alert*\nName: %s \nEndpoint: %s \nError: %s",endpoint.Name,
 			endpoint.Endpoint,err.Error()))
-			database.FailedEndpointTest(endpoint.IdString, err.Error())
+			database.FailedEndpointTest(endpoint.IDString, err.Error())
 		return
 	}
 	defer response.Body.Close()
@@ -50,6 +50,6 @@ func checkHTTP(endpoint database.HTMLEndpoint){
 			"response code. Recieved %d response code.",endpoint.Name,endpoint.Endpoint,
 			response.StatusCode)
 		SendAlert(error)
-		database.FailedEndpointTest(endpoint.IdString,error)
+		database.FailedEndpointTest(endpoint.IDString,error)
 	}
 }
