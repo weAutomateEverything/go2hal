@@ -2,11 +2,12 @@ package database
 
 import (
 	"gopkg.in/mgo.v2/bson"
-	"log"
+	"errors"
 )
 
-type appDynamics struct {
+type AppDynamics struct {
 	ID          bson.ObjectId `bson:"_id,omitempty"`
+	Endpoint    string
 	MqEndpoints []MqEndpoint
 }
 
@@ -16,41 +17,63 @@ MqEndpoint Object
 type MqEndpoint struct {
 	ID         bson.ObjectId `bson:"_id,omitempty"`
 	Name       string
-	Endpoint   string
+	Application   string
 	MetricPath string
 }
 
 /*
-AddMqEndpoint will add an MQ endpoint to be monitored
- */
-func AddMqEndpoint(name, endpoint string, metricPath string) {
-	var mq = MqEndpoint{Endpoint: endpoint, MetricPath: metricPath, Name: name}
-	appd := getAppDynamics()
-	appd.MqEndpoints = append(appd.MqEndpoints, mq)
+AddAppDynamicsEndpoint will add a app dynamics endpoint to the mongo DB if it doesnt exist. If it exists,. it will
+update it.
+*/
+func AddAppDynamicsEndpoint(endpoint string) error{
+	a := AppDynamics{Endpoint: endpoint}
+	b, err := GetAppDynamics()
 	c := database.C("appDynamics")
-	err := c.UpdateId(appd.ID, appd)
-	if err != nil {
-		log.Printf("Error saving to db %s", err)
+
+	if err == nil {
+		a.ID = b.ID
+		a.MqEndpoints = b.MqEndpoints
+		err = c.UpdateId(a.ID,a)
+		if err != nil {
+			return err
+		}
+	} else {
+		c.Insert(a)
 	}
+	return nil
 }
+
 
 /*
-GetMQEndponts will return a list of MQ endpoints configured
+AddMqEndpoint will add an MQ endpoint to be monitored
  */
-func GetMQEndponts() []MqEndpoint {
-	appd := getAppDynamics()
-	return appd.MqEndpoints
+func AddMqEndpoint(name, application string, metricPath string) error {
+	var mq = MqEndpoint{Application: application, MetricPath: metricPath, Name: name}
+	appd,err := GetAppDynamics()
+	if err != nil {
+		return err
+	}
+
+	appd.MqEndpoints = append(appd.MqEndpoints, mq)
+	c := database.C("appDynamics")
+	err = c.UpdateId(appd.ID, appd)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
-func getAppDynamics() appDynamics {
+
+/*
+GetAppDynamics wll return the app dynamics object in the ob, Else, error if nothing exists.
+ */
+func GetAppDynamics() (AppDynamics, error) {
 	c := database.C("appDynamics")
 	i, err := c.Count()
 	if err != nil || i == 0 {
-		appd := appDynamics{}
-		c.Insert(appd)
-		return appd
+		return AppDynamics{}, errors.New("no app dynamics config set")
 	}
-	var appd []appDynamics
-	c.Find(nil).All(&appd)
-	return appd[0]
+	a := AppDynamics{}
+	err = c.Find(nil).One(&a)
+	return a,err
 }
