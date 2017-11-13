@@ -93,6 +93,18 @@ func AddAppDynamicsQueue(name, application, metricPath string) error {
 	return nil;
 }
 
+/*
+ExecuteCommandFromAppd will search for the nodes IP Address, then execute the command on the node
+*/
+func ExecuteCommandFromAppd(commandName, applicationId, nodeId string) error {
+	ipaddress, err := getIpAddressForNode(applicationId, nodeId)
+	if err != nil {
+		SendError(err)
+		return err
+	}
+	return ExecuteRemoteCommand(commandName,ipaddress)
+}
+
 func monitorAppdynamicsQueue() {
 	log.Println("Starting App Dynamics Queue Service")
 	for true {
@@ -161,7 +173,7 @@ func checkQueue(endpoint database.MqEndpoint, name string) error {
 
 	log.Printf("Queue: %s, Current Depth: %.0f, Max Depth: %.0f", name, currDepth, maxDepth)
 	if maxDepth == 0 {
-		return fmt.Errorf("max depth for queue %s is 0",name)
+		return fmt.Errorf("max depth for queue %s is 0", name)
 	}
 	full := currDepth / maxDepth * 100;
 	if full > 90 {
@@ -232,6 +244,7 @@ func doGet(uri string) (string, error) {
 
 	client := &http.Client{}
 	url := a.Endpoint + uri
+	log.Println(url)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		SendError(err)
@@ -253,4 +266,31 @@ func doGet(uri string) (string, error) {
 	}
 	s := string(bodyText)
 	return s, nil
+}
+
+func getIpAddressForNode(application, node string) (string, error) {
+	uri := fmt.Sprintf("/controller/rest/applications/%s/nodes/%s?output=json", application, node)
+	response, err := doGet(uri)
+	log.Println(response)
+	if err != nil {
+		SendError(err)
+		return "", err
+	}
+
+	var dat []interface{}
+	err = json2.Unmarshal([]byte(response), &dat)
+	if err != nil {
+		SendError(err)
+		return "",err
+	}
+	v := dat[0].(map[string]interface{})
+	ipaddresses := v["ipAddresses"].(map[string]interface{})
+	arrayIp := ipaddresses["ipAddresses"].([]interface{})
+	for _,ipo := range arrayIp {
+		ip := ipo.(string)
+		if (strings.Index(ip,".") > 0){
+			return ip,nil
+		}
+	}
+	return "", errors.New("no up address found")
 }

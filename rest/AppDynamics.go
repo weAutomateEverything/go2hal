@@ -7,6 +7,7 @@ import (
 	"github.com/zamedic/go2hal/service"
 	"encoding/json"
 	"log"
+	"fmt"
 )
 
 type appdynamicsQueueEndpoint struct {
@@ -17,6 +18,10 @@ type appdynamicsQueueEndpoint struct {
 
 type appdynamicsEndpoint struct {
 	Endpoint string
+}
+
+type executeAppDynamicsCommand struct {
+	CommandName, NodeID, ApplicationID string
 }
 
 func receiveAppDynamicsAlert(w http.ResponseWriter, r *http.Request) {
@@ -68,5 +73,25 @@ func addAppdynamicsQueueEndpoint(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.WriteHeader(http.StatusOK)
+}
+
+func executeCommandFromAppdynamics(w http.ResponseWriter, r *http.Request) {
+	c := executeAppDynamicsCommand{}
+	err := json.NewDecoder(r.Body).Decode(&c)
+	if err != nil {
+		s, _ := ioutil.ReadAll(r.Body)
+		service.SendError(fmt.Errorf("received a bad request to execute a command. %s", s))
+		service.SendError(err)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(err.Error()))
+		return
+	}
+	err = service.ExecuteCommandFromAppd(c.CommandName,c.ApplicationID,c.NodeID)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(err.Error()))
+		return
+	}
 	w.WriteHeader(http.StatusOK)
 }
