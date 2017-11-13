@@ -42,6 +42,9 @@ func GetMessages() []MessageDTO {
 	return result
 }
 
+/*
+QueueDepth returns the current depth of pending messages
+ */
 func QueueDepth() int {
 	c := database.C("MessageQueue")
 	i,_ := c.Find(nil).Count()

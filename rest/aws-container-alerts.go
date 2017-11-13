@@ -23,9 +23,9 @@ func handleEc2ContainerAlert(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	m := f.(map[string]interface{})
-	subscribeUrl := m["SubscribeURL"]
-	if subscribeUrl != nil {
-		service.SendAlert("Received AWS subscription url:" + subscribeUrl.(string))
+	subscribeURL := m["SubscribeURL"]
+	if subscribeURL != nil {
+		service.SendAlert("Received AWS subscription url:" + subscribeURL.(string))
 	}
 
 	stringMsgString := m["Message"].(string)
