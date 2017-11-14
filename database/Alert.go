@@ -10,9 +10,10 @@ import (
 AlertDB Object that stores the group to send alert messages too.
  */
 type AlertDB struct {
-	ID      bson.ObjectId `bson:"_id,omitempty"`
-	GroupID int64
-	HeartbeatGroupID int64
+	ID                bson.ObjectId `bson:"_id,omitempty"`
+	GroupID           int64
+	HeartbeatGroupID  int64
+	NonTechnicalGroup int64
 }
 
 /*
@@ -32,7 +33,7 @@ func AlertGroup() (groupID int64, err error) {
 /*
 HeartbeatGroup Returns the heartbeat group.
  */
-func HeartbeatGroup() (groupID int64, err error){
+func HeartbeatGroup() (groupID int64, err error) {
 	c := database.C("Alert")
 	count, _ := c.Count()
 	if count == 0 {
@@ -44,9 +45,23 @@ func HeartbeatGroup() (groupID int64, err error){
 }
 
 /*
+NonTechnicalGroup Returns the heartbeat group.
+ */
+func NonTechnicalGroup() (groupID int64, err error) {
+	c := database.C("Alert")
+	count, _ := c.Count()
+	if count == 0 {
+		return 0, fmt.Errorf("no non technical group has been set")
+	}
+	result := AlertDB{}
+	c.Find(nil).One(&result)
+	return result.NonTechnicalGroup, nil
+}
+
+/*
 SetAlertGroup Sets the alert group. Overrides existing group if one already exists.
  */
-func SetAlertGroup(AlertGroupID int64){
+func SetAlertGroup(AlertGroupID int64) {
 	c := database.C("Alert")
 	count, _ := c.Count()
 
@@ -61,7 +76,7 @@ func SetAlertGroup(AlertGroupID int64){
 		result := AlertDB{}
 		c.Find(nil).One(&result)
 		result.GroupID = AlertGroupID
-		err := c.UpdateId(result.ID,result)
+		err := c.UpdateId(result.ID, result)
 		if err != nil {
 			log.Panic(err)
 		}
@@ -71,7 +86,7 @@ func SetAlertGroup(AlertGroupID int64){
 /*
 SetHeartbeatGroup Sets the alert group. Overrides existing group if one already exists.
  */
-func SetHeartbeatGroup(groupID int64){
+func SetHeartbeatGroup(groupID int64) {
 	c := database.C("Alert")
 	count, _ := c.Count()
 
@@ -86,7 +101,32 @@ func SetHeartbeatGroup(groupID int64){
 		result := AlertDB{}
 		c.Find(nil).One(&result)
 		result.HeartbeatGroupID = groupID
-		err := c.UpdateId(result.ID,result)
+		err := c.UpdateId(result.ID, result)
+		if err != nil {
+			log.Panic(err)
+		}
+	}
+}
+
+/*
+SetNonTechnicalGroup Sets the alert group. Overrides existing group if one already exists.
+ */
+func SetNonTechnicalGroup(groupID int64) {
+	c := database.C("Alert")
+	count, _ := c.Count()
+
+	if count == 0 {
+		result := AlertDB{}
+		result.NonTechnicalGroup = groupID
+		err := c.Insert(result)
+		if err != nil {
+			log.Panic(err)
+		}
+	} else {
+		result := AlertDB{}
+		c.Find(nil).One(&result)
+		result.NonTechnicalGroup = groupID
+		err := c.UpdateId(result.ID, result)
 		if err != nil {
 			log.Panic(err)
 		}
