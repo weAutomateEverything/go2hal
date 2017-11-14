@@ -21,7 +21,7 @@ func init() {
 
 	var dialinfo *mgo.DialInfo
 
-	if (mongo == "") {
+	if mongo == "" {
 		dialinfo = getDialInfoParameters()
 	} else {
 		var err error
@@ -30,8 +30,9 @@ func init() {
 			log.Fatal(err)
 		}
 	}
-
 	session, err := mgo.DialWithInfo(dialinfo)
+	session.SetMode(mgo.Monotonic, true)
+
 	database = session.DB(dialinfo.Database)
 	if err != nil {
 		log.Panic(err)

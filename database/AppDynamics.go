@@ -67,13 +67,16 @@ func AddMqEndpoint(name, application string, metricPath string) error {
 /*
 GetAppDynamics wll return the app dynamics object in the ob, Else, error if nothing exists.
  */
-func GetAppDynamics() (AppDynamics, error) {
+func GetAppDynamics() (*AppDynamics, error) {
 	c := database.C("appDynamics")
 	i, err := c.Count()
-	if err != nil || i == 0 {
-		return AppDynamics{}, errors.New("no app dynamics config set")
+	if err != nil {
+		return nil, err
+	}
+	if  i == 0 {
+		return nil, errors.New("no app dynamics config set")
 	}
 	a := AppDynamics{}
 	err = c.Find(nil).One(&a)
-	return a,err
+	return &a,err
 }
