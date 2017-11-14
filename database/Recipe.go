@@ -13,27 +13,28 @@ type recipe struct {
 /*
 AddRecipe will add a recipe to the watch list for the bot
  */
-func AddRecipe(recipeName string) {
+func AddRecipe(recipeName string) error {
 	c := database.C("recipes")
 	recipeItem := recipe{Recipe: recipeName}
-	c.Insert(recipeItem)
+	return c.Insert(recipeItem)
+
 }
 
 /*
 GetRecipes returns all the configured chef recipes. 0 length if none exists or there is an error.
  */
-func GetRecipes() ([]string) {
+func GetRecipes() ([]string , error) {
 	c := database.C("recipes")
 	q := c.Find(nil)
 	var recipes []recipe
 	err := q.All(&recipes)
 	if err != nil {
 		log.Println(err)
-		return make([]string, 0)
+		return nil, err
 	}
 	results := make([]string,len(recipes))
 	for i, recipe := range recipes {
 		results[i] = recipe.Recipe
 	}
-	return results
+	return results, nil
 }

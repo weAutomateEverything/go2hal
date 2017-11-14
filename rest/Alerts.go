@@ -21,6 +21,16 @@ func alertHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+func sendBusinessAlert(w http.ResponseWriter, r *http.Request) {
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		handleError(err,w)
+		return
+	}
+	err = service.SendNonTechnicalAlert(string(body))
+
+}
+
 
 
 func handleError(err error,w http.ResponseWriter){

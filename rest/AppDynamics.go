@@ -24,6 +24,11 @@ type executeAppDynamicsCommand struct {
 	CommandName, NodeID, ApplicationID string
 }
 
+
+type businessAlert struct {
+	Severity, Type, DisplayName, SummaryMessage string
+}
+
 func receiveAppDynamicsAlert(w http.ResponseWriter, r *http.Request) {
 
 	body, err := ioutil.ReadAll(r.Body)
@@ -93,5 +98,20 @@ func executeCommandFromAppdynamics(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(err.Error()))
 		return
 	}
+	w.WriteHeader(http.StatusOK)
+}
+
+func businessAppDynamicsAlert(w http.ResponseWriter, r *http.Request) {
+	c := businessAlert{}
+	err := json.NewDecoder(r.Body).Decode(&c)
+	if err != nil {
+		s, _ := ioutil.ReadAll(r.Body)
+		service.SendError(fmt.Errorf("received a bad request to busines alert service. %s", s))
+		service.SendError(err)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(err.Error()))
+		return
+	}
+	service.SendError(fmt.Errorf("business alert. Servity: %s - type: %s - Display Name: %s - Summary Message %s", c.Severity, c.Type, c.DisplayName, c.SummaryMessage))
 	w.WriteHeader(http.StatusOK)
 }
