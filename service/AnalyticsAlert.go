@@ -12,7 +12,7 @@ import (
 SendAnalyticsAlert will check if we have a chef recipe configured for the alert. If we do, it will send an alert.
  */
 func SendAnalyticsAlert(message string) {
-	if(!checkSend(message)){
+	if !checkSend(message) {
 		log.Println("Ignoreing message: "+message)
 		return
 	}
@@ -38,7 +38,11 @@ func SendAnalyticsAlert(message string) {
 func checkSend(message string) bool {
 	message = strings.ToUpper(message)
 	log.Printf("Checking if we should send: %s",message)
-	recipes := database.GetRecipes()
+	recipes, err := database.GetRecipes()
+	if err != nil {
+		SendError(err)
+		return false
+	}
 	for _, recipe := range recipes {
 		check := "RECIPE["+strings.ToUpper(recipe)+"]"
 		log.Printf("Comparing %s",check)
