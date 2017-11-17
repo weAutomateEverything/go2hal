@@ -38,7 +38,7 @@ func CheckEndpoint(endpoint database.HTTPEndpoint) error {
 		return err
 	}
 	if response.StatusCode != 200 {
-		return fmt.Errorf("response code recevied %s", response.StatusCode)
+		return fmt.Errorf("response code recevied %d", response.StatusCode)
 	}
 	return nil
 }
