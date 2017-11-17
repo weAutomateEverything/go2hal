@@ -6,32 +6,31 @@ import (
 	"log"
 )
 
-type htmlEndpoint struct {
-	ID bson.ObjectId `bson:"_id,omitempty"`
-	HTMLEndpoint
-}
+type HTTPEndpoint struct {
+	ID         bson.ObjectId `bson:"_id,omitempty"`
+	Name       string
+	Endpoint   string
+	Method     string
+	Parameters []Parameters
 
-//HTMLEndpoint reprisents a HTTP Endpoint that the system will monitor
-type HTMLEndpoint struct {
-	IDString    string `bson:"-"`
-	Name        string
-	Endpoint    string
 	lastChecked time.Time
 	lastSuccess time.Time
 	Passing     bool
 	Error       string
 }
 
+type Parameters struct {
+	Name, Value string
+}
+
 //AddHTMLEndpoint allows for a new endpoint to be added
-func AddHTMLEndpoint(name, endpoint string) {
-	e := HTMLEndpoint{Name: name, Endpoint: endpoint}
-	r := htmlEndpoint{HTMLEndpoint: e}
+func AddHTMLEndpoint(endpoint HTTPEndpoint) {
 	c := database.C("MonitorHtmlEndpoints")
-	c.Insert(r)
+	c.Insert(endpoint)
 }
 
 //GetHTMLEndpoints returns a list of HTML Endpoints
-func GetHTMLEndpoints() []HTMLEndpoint {
+func GetHTMLEndpoints() []HTTPEndpoint {
 	c := database.C("MonitorHtmlEndpoints")
 	q := c.Find(nil)
 	i, err := q.Count()
@@ -39,19 +38,13 @@ func GetHTMLEndpoints() []HTMLEndpoint {
 		log.Println(err)
 		return nil
 	}
-	r := make([]htmlEndpoint, i)
+	r := make([]HTTPEndpoint, i)
 	err = q.All(&r)
 	if err != nil {
 		log.Println(err)
 		return nil
 	}
-
-	result := make([]HTMLEndpoint, i)
-	for line, x := range r {
-		result[line] = x.HTMLEndpoint
-		result[line].IDString = x.ID.String()
-	}
-	return result
+	return r
 }
 
 /*
@@ -59,7 +52,7 @@ SuccessfulEndpointTest will update the mongo element with the ID with the latest
  */
 func SuccessfulEndpointTest(id string) {
 	c := database.C("MonitorHtmlEndpoints")
-	result := htmlEndpoint{}
+	result := HTTPEndpoint{}
 	err := c.FindId(id).One(&result);
 	if err != nil {
 		log.Printf("Error retreiving endpoint with success details: %s", err.Error())
@@ -80,10 +73,10 @@ func SuccessfulEndpointTest(id string) {
 /*
 FailedEndpointTest will update the mongo element with the failed details
  */
-func FailedEndpointTest(id,errorMessage string ) {
+func FailedEndpointTest(endpoint HTTPEndpoint, errorMessage string) {
 	c := database.C("MonitorHtmlEndpoints")
-	result := htmlEndpoint{}
-	err := c.FindId(id).One(&result);
+	result := HTTPEndpoint{}
+	err := c.FindId(endpoint.ID).One(&result);
 	if err != nil {
 		log.Printf("Error retreiving endpoint with success details: %s", err.Error())
 		return
@@ -93,9 +86,8 @@ func FailedEndpointTest(id,errorMessage string ) {
 	result.Passing = false
 	result.Error = errorMessage
 
-	err = c.UpdateId(id, result)
+	err = c.UpdateId(endpoint.ID, result)
 	if err != nil {
 		log.Printf("Error saving endpoint with success details: %s", err.Error())
 	}
-
 }
