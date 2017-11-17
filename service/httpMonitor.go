@@ -30,7 +30,7 @@ func init() {
 CheckEndpoint checks the http endpoint to ensure it passes
  */
 func CheckEndpoint(endpoint database.HTTPEndpoint) error {
-	response, err := doHttp(endpoint)
+	response, err := doHTTPEndpoint(endpoint)
 	if response != nil {
 		defer response.Body.Close()
 	}
@@ -58,7 +58,7 @@ func monitorEndpoints() {
 }
 
 func checkHTTP(endpoint database.HTTPEndpoint) {
-	response, err := doHttp(endpoint)
+	response, err := doHTTPEndpoint(endpoint)
 	if err != nil {
 		SendError(fmt.Errorf("*HTTP Alert*\nName: %s \nEndpoint: %s \nError: %s", endpoint.Name,
 			endpoint.Endpoint, err.Error()))
@@ -75,7 +75,7 @@ func checkHTTP(endpoint database.HTTPEndpoint) {
 	}
 }
 
-func doHttp(endpoint database.HTTPEndpoint) (*http.Response, error) {
+func doHTTPEndpoint(endpoint database.HTTPEndpoint) (*http.Response, error) {
 	switch method := strings.ToUpper(endpoint.Method); method {
 	case "POST":
 		if len(endpoint.Parameters) > 1 {
