@@ -57,11 +57,11 @@ type setNonTechnicalGroup struct {
 }
 
 func (s *setNonTechnicalGroup) commandIdentifier() string {
-	return "SetGroup"
+	return "SetNonTechGroup"
 }
 
 func (s *setNonTechnicalGroup) commandDescription() string {
-	return "Set Alert Group"
+	return "Set Non Technical Alert Group"
 }
 
 func (s *setNonTechnicalGroup) execute(update tgbotapi.Update){
