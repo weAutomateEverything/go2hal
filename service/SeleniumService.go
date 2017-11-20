@@ -56,7 +56,7 @@ func doSelenium(item database.Selenium) error {
 	}
 	defer webDriver.Quit()
 
-	err = webDriver.Get(item.InitialUrl)
+	err = webDriver.Get(item.InitialURL)
 	if err != nil {
 		fmt.Printf("Failed to open initial page %s\n", err)
 		return err

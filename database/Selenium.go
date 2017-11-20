@@ -9,7 +9,7 @@ type Selenium struct {
 	ID             bson.ObjectId `bson:"_id,omitempty" json:"omitempty"`
 	SeleniumServer string
 	Name           string
-	InitialUrl     string
+	InitialURL     string
 	Pages          []Page
 }
 
