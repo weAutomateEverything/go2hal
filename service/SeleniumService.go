@@ -3,76 +3,17 @@ package service
 import (
 	"fmt"
 	"github.com/tebeka/selenium"
-	"log"
 	"time"
 	"github.com/zamedic/go2hal/database"
 )
 
-func TestSelenium2() {
-	var webDriver selenium.WebDriver
-	var err error
-	caps := selenium.Capabilities(map[string]interface{}{"browserName": "chrome"})
-	caps["chrome.switches"] = []string{"--ignore-certificate-errors"}
-
-	if webDriver, err = selenium.NewRemote(caps, "http://card-selenium-chrome-dev.chop.standardbank.co.za/wd/hub"); err != nil {
-		fmt.Printf("Failed to open session: %s\n", err)
-		return
-	}
-	defer webDriver.Quit()
-
-	err = webDriver.Get("https://dinerspbweb-dev.standardbank.co.za/")
-	elem, err := webDriver.FindElement(selenium.ByName, "username")
-	if err != nil {
-		log.Println(err.Error())
-		return
-	}
-	err = elem.SendKeys("c1592023")
-	if err != nil {
-		log.Println(err.Error())
-		return
-	}
-	elem, err = webDriver.FindElement(selenium.ByName, "password")
-	if err != nil {
-		log.Println(err.Error())
-		return
-	}
-	err = elem.SendKeys("trendweb")
-	if err != nil {
-		log.Println(err.Error())
-		return
-	}
-
-	elem, err = webDriver.FindElement(selenium.ByCSSSelector, ".md-primary")
-	if err != nil {
-		log.Println(err.Error())
-		return
-	}
-
-	elem.Click()
-	loginSuccess := func(wb selenium.WebDriver) (bool, error) {
-		elem, err := wb.FindElement(selenium.ByName, "contactPerson")
-		if err != nil {
-			return false, nil
-		}
-		return elem.IsDisplayed()
-	}
-
-	err = webDriver.WaitWithTimeout(loginSuccess, 10*time.Second)
-	if err != nil {
-		log.Println(err.Error())
-		return
-	}
-
-	elem, err = webDriver.FindElement(selenium.ByTagName, "h2")
-	if err != nil {
-		log.Println(err.Error())
-		return
-	}
-
-	log.Println(elem.Text())
-
+func init(){
+	go func() {runTests()}()
 }
 
+/*
+TestSelenium tests a selenium endpoint and adds it to the database.
+ */
 func TestSelenium(item database.Selenium) error {
 	err := doSelenium(item)
 	if err != nil {
@@ -84,6 +25,23 @@ func TestSelenium(item database.Selenium) error {
 		return err
 	}
 	return nil
+}
+
+func runTests() {
+	for true {
+		tests, err := database.GetAllSeleniumTests()
+		if err != nil {
+			SendError(err)
+		} else {
+			for _, test := range tests {
+				err = doSelenium(test)
+				if err != nil {
+					SendAlert(fmt.Sprintf("Error executing selenium test for %s. error: %s", test.Name, err.Error()))
+				}
+			}
+		}
+		time.Sleep(10 * time.Minute)
+	}
 }
 
 func doSelenium(item database.Selenium) error {
@@ -128,14 +86,12 @@ func doSelenium(item database.Selenium) error {
 			}
 
 		}
-
 		if page.PostCheck.Selector != "" {
 			err := doCheck(page.PostCheck, webDriver)
 			if err != nil {
 				return err
 			}
 		}
-
 	}
 	return nil
 }
@@ -165,7 +121,5 @@ func doCheck(check database.Check, driver selenium.WebDriver) error {
 		}
 		return false, nil
 	}
-
-	return driver.WaitWithTimeout(waitfor,10*time.Second)
-
+	return driver.WaitWithTimeout(waitfor, 10*time.Second)
 }
