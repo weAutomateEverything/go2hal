@@ -51,6 +51,8 @@ func getRouter() *mux.Router {
 	r.HandleFunc("/command",addCommand).Methods("POST")
 	r.HandleFunc("/command/key",addKey).Methods("POST")
 
+	r.HandleFunc("/selenium",addSeleniumCheck).Methods("POST")
+
 	router.Mux = r
 	return r
 }
