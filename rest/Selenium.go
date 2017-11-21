@@ -12,6 +12,7 @@ func addSeleniumCheck(w http.ResponseWriter, r *http.Request) {
 
 	var selenium database.Selenium
 	err := json.NewDecoder(r.Body).Decode(&selenium)
+	log.Println(selenium)
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusBadRequest)

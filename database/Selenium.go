@@ -17,48 +17,110 @@ type Selenium struct {
 Page object
  */
 type Page struct {
-	PreCheck  Check
-	Actions   []Action
-	PostCheck Check
+	PreCheck  *Check   `json:"precheck,omitempty"`
+	Actions   []Action `json:"actions"`
+	PostCheck *Check   `json:"postcheck,omitempty"`
 }
 
 /*
 Action object
  */
 type Action struct {
-	Selector    string
-	InputData   InputData
-	ClickButton ClickButton
-	ClickLink   ClickLink
+	SearchOption `json:"searchOption"`
+	*InputData   `json:"inputdata,omitempty"`
+	*ClickButton `json:"clickbutton,omitempty"`
+	*ClickLink   `json:"clicklink,omitempty"`
+}
+
+/*
+SearchOption allows you to specify how you would like to search
+ */
+type SearchOption struct {
+	Multiple      bool     `json:"multiple"`
+	SearchPattern string   `json:"searchPattern"`
+	*CSSSelector           `json:"CSSSelector,omitempty"`
+	*NameSelector          `json:"nameSelector,omitempty"`
+	*TagNameSelector       `json:"tagNameSelector,omitempty"`
+	*ClassNameSelector     `json:"classNameSelector,omitempty"`
+	*IDSelector            `json:"IDSelector,omitempty"`
+	*LinkTextSelector      `json:"linkTextSelector,omitempty"`
+	*PartialLinkTextSelect `json:"partialLinkTextSelect,omitempty"`
+	*XPathSelector         `json:"XPathSelector,omitempty"`
 }
 
 /*
 InputData Object
  */
 type InputData struct {
-	Value string
+	Value string `json:"value"`
 }
 
 /*
 ClickButton object
  */
 type ClickButton struct {
-	Value string
 }
 
 /*
 ClickLink object
  */
 type ClickLink struct {
-	Value string
 }
 
 /*
 Check object
  */
 type Check struct {
-	Selector string
-	Value    string
+	SearchOption  `json:"searchOption"`
+	Value *string `json:"value,omitempty"`
+}
+
+/*
+CSSSelector Search by CSS
+ */
+type CSSSelector struct {
+}
+
+/*
+NameSelector Search by name
+ */
+type NameSelector struct {
+}
+
+/*
+TagNameSelector search by tag
+ */
+type TagNameSelector struct {
+}
+
+/*
+ClassNameSelector Search by class
+ */
+type ClassNameSelector struct {
+}
+
+/*
+IDSelector Search by ID
+ */
+type IDSelector struct {
+}
+
+/*
+LinkTextSelector search by link text
+ */
+type LinkTextSelector struct {
+}
+
+/*
+PartialLinkTextSelect search by partial link text
+ */
+type PartialLinkTextSelect struct {
+}
+
+/*
+XPathSelector search by xpath
+ */
+type XPathSelector struct {
 }
 
 /*
