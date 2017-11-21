@@ -7,6 +7,7 @@ import (
 	"time"
 	"gopkg.in/kyokomi/emoji.v1"
 	"fmt"
+
 )
 
 //HalBot Structure to describe the state of the bot
@@ -242,3 +243,5 @@ func (s *setHeartbeatGroup) execute(update tgbotapi.Update) {
 	database.SetHeartbeatGroup(update.Message.Chat.ID)
 	SendMessage(update.Message.Chat.ID, "heartbeat group updated", update.Message.MessageID)
 }
+
+
