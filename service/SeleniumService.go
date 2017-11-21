@@ -59,20 +59,20 @@ func doSelenium(item database.Selenium) error {
 
 	err = webDriver.Get(item.InitialURL)
 	if err != nil {
-		return handleSeleniumError(err, webDriver)
+		return handleSeleniumError(item.Name,err, webDriver)
 	}
 
 	for _, page := range item.Pages {
 		if page.PreCheck != nil {
 			err = doCheck(page.PreCheck, webDriver)
 			if err != nil {
-				return handleSeleniumError(err, webDriver)
+				return handleSeleniumError(item.Name,err, webDriver)
 			}
 		}
 		for _, action := range page.Actions {
 			elems, err := findElement(action.SearchOption, webDriver)
 			if err != nil {
-				return handleSeleniumError(err, webDriver)
+				return handleSeleniumError(item.Name,err, webDriver)
 			}
 			elem := elems[0]
 			if action.ClickLink != nil {
@@ -89,7 +89,7 @@ func doSelenium(item database.Selenium) error {
 		if page.PostCheck != nil {
 			err := doCheck(page.PostCheck, webDriver)
 			if err != nil {
-				return handleSeleniumError(err, webDriver)
+				return handleSeleniumError(item.Name,err, webDriver)
 			}
 		}
 	}
@@ -125,8 +125,8 @@ func doCheck(check *database.Check, driver selenium.WebDriver) error {
 	return driver.WaitWithTimeout(waitfor, 10*time.Second)
 }
 
-func handleSeleniumError(err error, driver selenium.WebDriver) error {
-	SendAlert(fmt.Sprintf("Selenium Error: %s", err.Error()))
+func handleSeleniumError(name string, err error, driver selenium.WebDriver) error {
+	SendAlert(fmt.Sprintf("%s Selenium Error: %s",name, err.Error()))
 	bytes, error := driver.Screenshot()
 	if error != nil {
 		SendError(error)
@@ -167,5 +167,5 @@ func findElement(action database.SearchOption, driver selenium.WebDriver) ([]sel
 	}
 	elem, err := driver.FindElement(selector, action.SearchPattern)
 	return []selenium.WebElement{elem}, err
-	
+
 }
