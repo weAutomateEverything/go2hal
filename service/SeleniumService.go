@@ -7,8 +7,8 @@ import (
 	"github.com/zamedic/go2hal/database"
 )
 
-func init(){
-	go func() {runTests()}()
+func init() {
+	go func() { runTests() }()
 }
 
 /*
@@ -54,48 +54,50 @@ func doSelenium(item database.Selenium) error {
 		fmt.Printf("Failed to open session: %s\n", err)
 		return err
 	}
+
 	defer webDriver.Quit()
 
 	err = webDriver.Get(item.InitialURL)
 	if err != nil {
-		return handleSeleniumError(err,webDriver)
+		return handleSeleniumError(err, webDriver)
 	}
 
 	for _, page := range item.Pages {
-		if page.PreCheck.Selector != "" {
+		if page.PreCheck != nil {
 			err = doCheck(page.PreCheck, webDriver)
 			if err != nil {
-				return handleSeleniumError(err,webDriver)
+				return handleSeleniumError(err, webDriver)
 			}
 		}
 		for _, action := range page.Actions {
 			elem, err := webDriver.FindElement(selenium.ByCSSSelector, action.Selector)
 			if err != nil {
-				return handleSeleniumError(err,webDriver)
+				return handleSeleniumError(err, webDriver)
 			}
-			if action.ClickLink.Value != "" {
+			if action.ClickLink != nil {
 				elem.Click()
 			}
-			if action.ClickButton.Value != "" {
+			if action.ClickButton != nil {
 				elem.Click()
 			}
-			if action.InputData.Value != "" {
+			if action.InputData != nil {
 				elem.SendKeys(action.InputData.Value)
 			}
 
 		}
-		if page.PostCheck.Selector != "" {
+		if page.PostCheck != nil {
 			err := doCheck(page.PostCheck, webDriver)
 			if err != nil {
-				return handleSeleniumError(err,webDriver)
+				return handleSeleniumError(err, webDriver)
 			}
 		}
 	}
 	return nil
 }
 
-func doCheck(check database.Check, driver selenium.WebDriver) error {
+func doCheck(check *database.Check, driver selenium.WebDriver) error {
 	waitfor := func(wb selenium.WebDriver) (bool, error) {
+
 		elems, err := wb.FindElements(selenium.ByCSSSelector, check.Selector)
 		if err != nil {
 			return false, nil
@@ -106,13 +108,13 @@ func doCheck(check database.Check, driver selenium.WebDriver) error {
 			if err != nil {
 				return false, nil
 			}
-			if (dis) {
-				if check.Value != "" {
+			if dis {
+				if check.Value != nil {
 					s, err := elem.Text();
 					if err != nil {
 						return false, nil
 					}
-					return check.Value == s, nil
+					return *check.Value == s, nil
 				}
 				return true, nil
 			}
@@ -122,8 +124,8 @@ func doCheck(check database.Check, driver selenium.WebDriver) error {
 	return driver.WaitWithTimeout(waitfor, 10*time.Second)
 }
 
-func handleSeleniumError (err error, driver selenium.WebDriver) error {
-	SendAlert(fmt.Sprintf("Selenium Error: %s",err.Error()))
+func handleSeleniumError(err error, driver selenium.WebDriver) error {
+	SendAlert(fmt.Sprintf("Selenium Error: %s", err.Error()))
 	bytes, error := driver.Screenshot()
 	if error != nil {
 		SendError(error)

@@ -17,48 +17,46 @@ type Selenium struct {
 Page object
  */
 type Page struct {
-	PreCheck  Check
-	Actions   []Action
-	PostCheck Check
+	PreCheck  *Check   `json:"precheck,omitempty"`
+	Actions   []Action `json:"actions"`
+	PostCheck *Check   `json:"postcheck,omitempty"`
 }
 
 /*
 Action object
  */
 type Action struct {
-	Selector    string
-	InputData   InputData
-	ClickButton ClickButton
-	ClickLink   ClickLink
+	Selector    string       `json:"selector"`
+	InputData   *InputData   `json:"inputdata,omitempty"`
+	ClickButton *ClickButton `json:"clickbutton,omitempty"`
+	ClickLink   *ClickLink   `json:"clicklink,omitempty"`
 }
 
 /*
 InputData Object
  */
 type InputData struct {
-	Value string
+	Value string `json:"value"`
 }
 
 /*
 ClickButton object
  */
 type ClickButton struct {
-	Value string
 }
 
 /*
 ClickLink object
  */
 type ClickLink struct {
-	Value string
 }
 
 /*
 Check object
  */
 type Check struct {
-	Selector string
-	Value    string
+	Selector string  `json:"selector"`
+	Value    *string `json:"value,omitempty"`
 }
 
 /*
