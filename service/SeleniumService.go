@@ -70,7 +70,7 @@ func doSelenium(item database.Selenium) error {
 			}
 		}
 		for _, action := range page.Actions {
-			elems, err := findElement(action.SearchOption,webDriver)
+			elems, err := findElement(action.SearchOption, webDriver)
 			if err != nil {
 				return handleSeleniumError(err, webDriver)
 			}
@@ -99,7 +99,7 @@ func doSelenium(item database.Selenium) error {
 func doCheck(check *database.Check, driver selenium.WebDriver) error {
 	waitfor := func(wb selenium.WebDriver) (bool, error) {
 
-		elems, err := findElement(check.SearchOption,driver)
+		elems, err := findElement(check.SearchOption, driver)
 		if err != nil {
 			return false, nil
 		}
@@ -136,7 +136,7 @@ func handleSeleniumError(err error, driver selenium.WebDriver) error {
 	return err
 }
 
-func findElement(action database.SearchOption, driver selenium.WebDriver) ([]selenium.WebElement, error){
+func findElement(action database.SearchOption, driver selenium.WebDriver) ([]selenium.WebElement, error) {
 	selector := ""
 	if action.XPathSelector != nil {
 		selector = selenium.ByXPATH;
@@ -163,9 +163,9 @@ func findElement(action database.SearchOption, driver selenium.WebDriver) ([]sel
 		selector = selenium.ByCSSSelector
 	}
 	if action.Multiple {
-		return driver.FindElements(selector,action.SearchPattern)
-	} else {
-		elem, err := driver.FindElement(selector, action.SearchPattern)
-		return []selenium.WebElement{elem}, err
+		return driver.FindElements(selector, action.SearchPattern)
 	}
+	elem, err := driver.FindElement(selector, action.SearchPattern)
+	return []selenium.WebElement{elem}, err
+	
 }

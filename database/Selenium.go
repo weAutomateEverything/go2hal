@@ -32,6 +32,9 @@ type Action struct {
 	*ClickLink   `json:"clicklink,omitempty"`
 }
 
+/*
+SearchOption allows you to specify how you would like to search
+ */
 type SearchOption struct {
 	Multiple      bool     `json:"multiple"`
 	SearchPattern string   `json:"searchPattern"`
@@ -72,27 +75,51 @@ type Check struct {
 	Value *string `json:"value,omitempty"`
 }
 
+/*
+CSSSelector Search by CSS
+ */
 type CSSSelector struct {
 }
 
+/*
+NameSelector Search by name
+ */
 type NameSelector struct {
 }
 
+/*
+TagNameSelector search by tag
+ */
 type TagNameSelector struct {
 }
 
+/*
+ClassNameSelector Search by class
+ */
 type ClassNameSelector struct {
 }
 
+/*
+IDSelector Search by ID
+ */
 type IDSelector struct {
 }
 
+/*
+LinkTextSelector search by link text
+ */
 type LinkTextSelector struct {
 }
 
+/*
+PartialLinkTextSelect search by partial link text
+ */
 type PartialLinkTextSelect struct {
 }
 
+/*
+XPathSelector search by xpath
+ */
 type XPathSelector struct {
 }
 
