@@ -4,6 +4,10 @@ import (
 	"github.com/zamedic/go2hal/database"
 	"log"
 	"gopkg.in/telegram-bot-api.v4"
+	"runtime"
+	"io/ioutil"
+	"os"
+	"math/rand"
 )
 
 func init(){
@@ -34,6 +38,38 @@ func SendNonTechnicalAlert(message string) error {
 	}
 	err = SendMessage(alertGroup, message, 0)
 	return err
+}
+
+func sendImageToAlertGroup(image []byte) error {
+	path := ""
+
+	if runtime.GOOS == "windows" {
+		path = "c:/temp/"
+	} else {
+		path = "/tmp/"
+	}
+	path = path + string(rand.Int()) + ".png"
+	err := ioutil.WriteFile(path, image, os.ModePerm)
+
+	if err != nil {
+		SendError(err)
+		return err
+	}
+
+	alertGroup, err := database.AlertGroup()
+	if err != nil {
+		SendError(err)
+		return err
+	}
+
+
+	msg := tgbotapi.NewPhotoUpload(alertGroup, path)
+	_, err = bot.Send(msg)
+	if err != nil {
+		SendError(err)
+		return err
+	}
+	return nil
 }
 
 type setGroup struct {

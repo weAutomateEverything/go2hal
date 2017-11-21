@@ -58,22 +58,20 @@ func doSelenium(item database.Selenium) error {
 
 	err = webDriver.Get(item.InitialURL)
 	if err != nil {
-		fmt.Printf("Failed to open initial page %s\n", err)
-		return err
+		return handleSeleniumError(err,webDriver)
 	}
 
 	for _, page := range item.Pages {
 		if page.PreCheck.Selector != "" {
 			err = doCheck(page.PreCheck, webDriver)
 			if err != nil {
-				return err
+				return handleSeleniumError(err,webDriver)
 			}
 		}
 		for _, action := range page.Actions {
 			elem, err := webDriver.FindElement(selenium.ByCSSSelector, action.Selector)
 			if err != nil {
-				fmt.Printf("Failed to find element: %s\n", err)
-				return err
+				return handleSeleniumError(err,webDriver)
 			}
 			if action.ClickLink.Value != "" {
 				elem.Click()
@@ -89,7 +87,7 @@ func doSelenium(item database.Selenium) error {
 		if page.PostCheck.Selector != "" {
 			err := doCheck(page.PostCheck, webDriver)
 			if err != nil {
-				return err
+				return handleSeleniumError(err,webDriver)
 			}
 		}
 	}
@@ -122,4 +120,15 @@ func doCheck(check database.Check, driver selenium.WebDriver) error {
 		return false, nil
 	}
 	return driver.WaitWithTimeout(waitfor, 10*time.Second)
+}
+
+func handleSeleniumError (err error, driver selenium.WebDriver) error {
+	SendAlert(fmt.Sprintf("Selenium Error: %s",err.Error()))
+	bytes, error := driver.Screenshot()
+	if error != nil {
+		SendError(error)
+		return err
+	}
+	sendImageToAlertGroup(bytes)
+	return err
 }
