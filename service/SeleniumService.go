@@ -70,10 +70,11 @@ func doSelenium(item database.Selenium) error {
 			}
 		}
 		for _, action := range page.Actions {
-			elem, err := webDriver.FindElement(selenium.ByCSSSelector, action.Selector)
+			elems, err := findElement(action.SearchOption,webDriver)
 			if err != nil {
 				return handleSeleniumError(err, webDriver)
 			}
+			elem := elems[0]
 			if action.ClickLink != nil {
 				elem.Click()
 			}
@@ -98,7 +99,7 @@ func doSelenium(item database.Selenium) error {
 func doCheck(check *database.Check, driver selenium.WebDriver) error {
 	waitfor := func(wb selenium.WebDriver) (bool, error) {
 
-		elems, err := wb.FindElements(selenium.ByCSSSelector, check.Selector)
+		elems, err := findElement(check.SearchOption,driver)
 		if err != nil {
 			return false, nil
 		}
@@ -133,4 +134,38 @@ func handleSeleniumError(err error, driver selenium.WebDriver) error {
 	}
 	sendImageToAlertGroup(bytes)
 	return err
+}
+
+func findElement(action database.SearchOption, driver selenium.WebDriver) ([]selenium.WebElement, error){
+	selector := ""
+	if action.XPathSelector != nil {
+		selector = selenium.ByXPATH;
+	}
+	if action.PartialLinkTextSelect != nil {
+		selector = selenium.ByPartialLinkText
+	}
+	if action.LinkTextSelector != nil {
+		selector = selenium.ByLinkText
+	}
+	if action.IDSelector != nil {
+		selector = selenium.ByID
+	}
+	if action.ClassNameSelector != nil {
+		selector = selenium.ByCSSSelector
+	}
+	if action.NameSelector != nil {
+		selector = selenium.ByName
+	}
+	if action.TagNameSelector != nil {
+		selector = selenium.ByTagName
+	}
+	if action.CSSSelector != nil {
+		selector = selenium.ByCSSSelector
+	}
+	if action.Multiple {
+		return driver.FindElements(selector,action.SearchPattern)
+	} else {
+		elem, err := driver.FindElement(selector, action.SearchPattern)
+		return []selenium.WebElement{elem}, err
+	}
 }

@@ -26,10 +26,23 @@ type Page struct {
 Action object
  */
 type Action struct {
-	Selector    string       `json:"selector"`
-	InputData   *InputData   `json:"inputdata,omitempty"`
-	ClickButton *ClickButton `json:"clickbutton,omitempty"`
-	ClickLink   *ClickLink   `json:"clicklink,omitempty"`
+	SearchOption `json:"searchOption"`
+	*InputData   `json:"inputdata,omitempty"`
+	*ClickButton `json:"clickbutton,omitempty"`
+	*ClickLink   `json:"clicklink,omitempty"`
+}
+
+type SearchOption struct {
+	Multiple      bool     `json:"multiple"`
+	SearchPattern string   `json:"searchPattern"`
+	*CSSSelector           `json:"CSSSelector,omitempty"`
+	*NameSelector          `json:"nameSelector,omitempty"`
+	*TagNameSelector       `json:"tagNameSelector,omitempty"`
+	*ClassNameSelector     `json:"classNameSelector,omitempty"`
+	*IDSelector            `json:"IDSelector,omitempty"`
+	*LinkTextSelector      `json:"linkTextSelector,omitempty"`
+	*PartialLinkTextSelect `json:"partialLinkTextSelect,omitempty"`
+	*XPathSelector         `json:"XPathSelector,omitempty"`
 }
 
 /*
@@ -55,8 +68,32 @@ type ClickLink struct {
 Check object
  */
 type Check struct {
-	Selector string  `json:"selector"`
-	Value    *string `json:"value,omitempty"`
+	SearchOption  `json:"searchOption"`
+	Value *string `json:"value,omitempty"`
+}
+
+type CSSSelector struct {
+}
+
+type NameSelector struct {
+}
+
+type TagNameSelector struct {
+}
+
+type ClassNameSelector struct {
+}
+
+type IDSelector struct {
+}
+
+type LinkTextSelector struct {
+}
+
+type PartialLinkTextSelect struct {
+}
+
+type XPathSelector struct {
 }
 
 /*
