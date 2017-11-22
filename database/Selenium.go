@@ -17,6 +17,7 @@ type Selenium struct {
 Page object
  */
 type Page struct {
+	Name      string   `json:"name"`
 	PreCheck  *Check   `json:"precheck,omitempty"`
 	Actions   []Action `json:"actions"`
 	PostCheck *Check   `json:"postcheck,omitempty"`
@@ -26,6 +27,7 @@ type Page struct {
 Action object
  */
 type Action struct {
+	Name string  `json:"name"`
 	SearchOption `json:"searchOption"`
 	*InputData   `json:"inputdata,omitempty"`
 	*ClickButton `json:"clickbutton,omitempty"`
@@ -71,6 +73,7 @@ type ClickLink struct {
 Check object
  */
 type Check struct {
+	Name  string  `json:"name"`
 	SearchOption  `json:"searchOption"`
 	Value *string `json:"value,omitempty"`
 }
