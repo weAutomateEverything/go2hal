@@ -16,6 +16,7 @@ func main() {
 	rest.Router()
 
 	for true{
+		service.SendSNMPTestMessage()
 		time.Sleep(time.Minute * 5)
 	}
 }
