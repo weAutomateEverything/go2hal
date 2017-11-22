@@ -36,7 +36,7 @@ func SendSNMPTestMessage() {
 	}
 
 
-	log.Printf("Error: %s",result.Error)
+	log.Printf("Error: %d",result.Error)
 	log.Printf("Request ID %d",result.RequestID)
 
 
