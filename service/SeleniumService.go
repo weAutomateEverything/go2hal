@@ -5,6 +5,7 @@ import (
 	"github.com/tebeka/selenium"
 	"time"
 	"github.com/zamedic/go2hal/database"
+	"errors"
 )
 
 func init() {
@@ -45,6 +46,19 @@ func runTests() {
 }
 
 func doSelenium(item database.Selenium) error {
+	if item.SeleniumServer == "" {
+		return errors.New("no Selenium Server set")
+	}
+	if item.Name == "" {
+		return errors.New("no script name set")
+	}
+	if item.InitialURL == "" {
+		return errors.New("no initial url set")
+	}
+	if len(item.Pages) == 0 {
+		return errors.New("no pages detected in script")
+	}
+
 	var webDriver selenium.WebDriver
 	var err error
 	caps := selenium.Capabilities(map[string]interface{}{"browserName": "chrome"})
@@ -59,37 +73,56 @@ func doSelenium(item database.Selenium) error {
 
 	err = webDriver.Get(item.InitialURL)
 	if err != nil {
-		return handleSeleniumError(item.Name,err, webDriver)
+		return handleSeleniumError(item.Name, err, webDriver)
 	}
 
 	for _, page := range item.Pages {
+		if len(page.Actions) == 0 {
+			return fmt.Errorf("no pages found in test %s for page %s", item.Name, page.Name)
+		}
 		if page.PreCheck != nil {
+			if page.PreCheck.SearchPattern == "" {
+				return fmt.Errorf("no search pattern found for precheck on test %s, page %s, check %s", item.Name, page.Name, page.PreCheck.Name)
+			}
 			err = doCheck(page.PreCheck, webDriver)
 			if err != nil {
-				return handleSeleniumError(item.Name,err, webDriver)
+				return handleSeleniumError(item.Name, err, webDriver)
 			}
 		}
 		for _, action := range page.Actions {
+			if action.SearchPattern == "" {
+				return fmt.Errorf("no search pattern found for test %s, page %s, action %s", item.Name, page.Name, action.Name)
+			}
 			elems, err := findElement(action.SearchOption, webDriver)
 			if err != nil {
-				return handleSeleniumError(item.Name,err, webDriver)
+				return handleSeleniumError(item.Name, err, webDriver)
 			}
 			elem := elems[0]
+			executed := false
 			if action.ClickLink != nil {
 				elem.Click()
+				executed = true
 			}
-			if action.ClickButton != nil {
+			if action.ClickButton != nil && !executed {
 				elem.Click()
+				executed = true
 			}
-			if action.InputData != nil {
+			if action.InputData != nil && !executed {
 				elem.SendKeys(action.InputData.Value)
+				executed = true
+			}
+			if !executed {
+				return fmt.Errorf("no action executed for test %s, page %s, action %s", item.Name, page.Name, action.Name)
 			}
 
 		}
 		if page.PostCheck != nil {
+			if page.PostCheck.SearchPattern == "" {
+				return fmt.Errorf("no search pattern found for post check on test %s, page %s, check %s", item.Name, page.Name, page.PostCheck.Name)
+			}
 			err := doCheck(page.PostCheck, webDriver)
 			if err != nil {
-				return handleSeleniumError(item.Name,err, webDriver)
+				return handleSeleniumError(item.Name, err, webDriver)
 			}
 		}
 	}
@@ -126,7 +159,7 @@ func doCheck(check *database.Check, driver selenium.WebDriver) error {
 }
 
 func handleSeleniumError(name string, err error, driver selenium.WebDriver) error {
-	SendAlert(fmt.Sprintf("%s Selenium Error: %s",name, err.Error()))
+	SendAlert(fmt.Sprintf("%s Selenium Error: %s", name, err.Error()))
 	bytes, error := driver.Screenshot()
 	if error != nil {
 		SendError(error)
@@ -137,7 +170,7 @@ func handleSeleniumError(name string, err error, driver selenium.WebDriver) erro
 }
 
 func findElement(action database.SearchOption, driver selenium.WebDriver) ([]selenium.WebElement, error) {
-	selector := ""
+	selector := selenium.ByCSSSelector
 	if action.XPathSelector != nil {
 		selector = selenium.ByXPATH;
 	}
@@ -158,9 +191,6 @@ func findElement(action database.SearchOption, driver selenium.WebDriver) ([]sel
 	}
 	if action.TagNameSelector != nil {
 		selector = selenium.ByTagName
-	}
-	if action.CSSSelector != nil {
-		selector = selenium.ByCSSSelector
 	}
 	if action.Multiple {
 		return driver.FindElements(selector, action.SearchPattern)
