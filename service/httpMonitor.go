@@ -10,6 +10,7 @@ import (
 	"errors"
 	"bytes"
 	"net/url"
+	"io/ioutil"
 )
 
 //HTTPMonitor is the current status of the monitor
@@ -66,10 +67,12 @@ func checkHTTP(endpoint database.HTTPEndpoint) {
 		return
 	}
 	defer response.Body.Close()
+
 	if response.StatusCode != 200 {
+		msg, _ := ioutil.ReadAll(response.Body)
 		error := fmt.Sprintf("*HTTP Alert*\nName: %s \nEndpoint: %s \nDid not receive a 200 success "+
-			"response code. Recieved %d response code.", endpoint.Name, endpoint.Endpoint,
-			response.StatusCode)
+			"response code. Recieved %d response code. Body Message %s", endpoint.Name, endpoint.Endpoint,
+			response.StatusCode, msg)
 		SendAlert(error)
 		database.FailedEndpointTest(endpoint, error)
 	}
