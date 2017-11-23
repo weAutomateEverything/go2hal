@@ -20,13 +20,13 @@ func SendSNMPTestMessage() {
 	defer g.Default.Conn.Close()
 
 	p := g.SnmpPDU{
-		Name:  "1.3.6.1.6.3.1.1.4.1",
+		Name:  "1.3.6.1.4.1.789.1.2.2.4.0",
 		Value: []byte("Test Alert Message from HAL BOT. Please invoke Callout Group XXXXXXXXX"),
 		Type:  g.OctetString,
 	}
 
 	trap := g.SnmpTrap{
-		Variables: []g.SnmpPDU{p},
+		Variables: []g.SnmpPDU{p}, SpecificTrap:4,
 	}
 
 	result, err := g.Default.SendTrap(trap)
@@ -35,9 +35,7 @@ func SendSNMPTestMessage() {
 		return
 	}
 
-
-	log.Printf("Error: %d",result.Error)
-	log.Printf("Request ID %d",result.RequestID)
-
+	log.Printf("Error: %d", result.Error)
+	log.Printf("Request ID %d", result.RequestID)
 
 }
