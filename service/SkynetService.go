@@ -14,7 +14,7 @@ import (
 	"gopkg.in/telegram-bot-api.v4"
 )
 
-func init(){
+func init() {
 	log.Println("Initializing Skynet Rebuild Command")
 	register(func() command {
 		return &rebuildNode{}
@@ -24,9 +24,9 @@ func init(){
 /*
 SendSkynetAlert will check if the message should be be, and if so build a telegram message
  */
-func SendSkynetAlert(message string){
-	if(!checkSend(message)){
-		log.Println("Ignoreing message: "+message)
+func SendSkynetAlert(message string) {
+	if (!checkSend(message)) {
+		log.Println("Ignoreing message: " + message)
 		return
 	}
 
@@ -50,13 +50,13 @@ func SendSkynetAlert(message string){
 	buffer.WriteString(chefConfig["environment"].(string))
 	buffer.WriteString("\n")
 
-	runlist := chefConfig["run_list"].([]interface {})
+	runlist := chefConfig["run_list"].([]interface{})
 	log.Println(runlist)
 	buffer.WriteString("*Run list: *")
 
 	for _, recipe := range runlist {
-		recipeS := strings.Replace(recipe.(string),"recipe[","",-1)
-		recipeS = strings.Replace(recipeS,"]","",-1)
+		recipeS := strings.Replace(recipe.(string), "recipe[", "", -1)
+		recipeS = strings.Replace(recipeS, "]", "", -1)
 		buffer.WriteString(recipeS)
 		buffer.WriteString(" ")
 	}
@@ -109,7 +109,7 @@ func RecreateNode(nodeName, callerName string) error {
 	}
 
 	err = createNode(json, skynet)
-	err = waitForBuild(nodeName,skynet)
+	err = waitForBuild(nodeName, skynet)
 	return nil
 
 }
@@ -131,7 +131,7 @@ func deleteNode(nodeName, callerName string, skynet database.Skynet) error {
 }
 
 func waitForDelete(nodeName string, skynet database.Skynet) error {
-	return poll("ARCHIVED", nodeName, skynet, true)
+	return poll("ARCHIVED", nodeName, skynet, true, 300)
 }
 
 func createNode(json string, skynet database.Skynet) error {
@@ -146,7 +146,7 @@ func createNode(json string, skynet database.Skynet) error {
 }
 
 func waitForBuild(nodeName string, skynet database.Skynet) error {
-	return poll("BOOTSTRAPPED", nodeName, skynet, false)
+	return poll("BOOTSTRAPPED", nodeName, skynet, false, 1200)
 }
 
 func doHTTP(method, url, body string, skynet database.Skynet) (string, error) {
@@ -157,7 +157,7 @@ func doHTTP(method, url, body string, skynet database.Skynet) (string, error) {
 		return "", err
 	}
 	req.SetBasicAuth(skynet.Username, skynet.Password)
-	req.Header.Set("Content-Type","application/json")
+	req.Header.Set("Content-Type", "application/json")
 	resp, err := client.Do(req)
 	if err != nil {
 		logError(fmt.Sprintf("error in skynet call. %s", err.Error()))
@@ -173,10 +173,10 @@ func logError(error string) {
 	SendAlert(error)
 }
 
-func poll(expectedState, nodeName string, skynet database.Skynet, ignoreFailed bool) error {
+func poll(expectedState, nodeName string, skynet database.Skynet, ignoreFailed bool, timeout int) error {
 	i := 0
-	for i < 300 {
-		body, err := doHTTP ("GET", skynet.Address+"/virtual_machines/"+nodeName+"/state", "", skynet)
+	for i < timeout {
+		body, err := doHTTP("GET", skynet.Address+"/virtual_machines/"+nodeName+"/state", "", skynet)
 		if err != nil {
 			logError(fmt.Sprintf("Error retreiving node state: %s", err.Error()))
 			return err
@@ -197,20 +197,17 @@ func poll(expectedState, nodeName string, skynet database.Skynet, ignoreFailed b
 			return fmt.Errorf("%s has entered a Failed State", nodeName)
 		}
 		i++
-		if i%30 == 0 {
-			SendAlert(fmt.Sprintf("still waiting for node %s to reach state %s. Curent state is %s", nodeName,expectedState, state))
+		if i%60 == 0 {
+			SendAlert(fmt.Sprintf("still waiting for node %s to reach state %s. Curent state is %s", nodeName, expectedState, state))
 		}
 		time.Sleep(time.Second)
 	}
-	err := fmt.Errorf("Timed out waiting for node %s to delete", nodeName)
+	err := fmt.Errorf("Timed out waiting for node %s to %s", nodeName, expectedState)
 	logError(err.Error())
 	return err
 }
 
-
-
 type rebuildNode struct {
-
 }
 
 func (s *rebuildNode) commandIdentifier() string {
@@ -221,7 +218,6 @@ func (s *rebuildNode) commandDescription() string {
 	return "Rebuilds a node"
 }
 
-func (s *rebuildNode) execute(update tgbotapi.Update){
-	RecreateNode(update.Message.CommandArguments(),update.Message.From.UserName)
+func (s *rebuildNode) execute(update tgbotapi.Update) {
+	RecreateNode(update.Message.CommandArguments(), update.Message.From.UserName)
 }
-
