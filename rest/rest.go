@@ -53,6 +53,8 @@ func getRouter() *mux.Router {
 
 	r.HandleFunc("/selenium",addSeleniumCheck).Methods("POST")
 
+	r.HandleFunc("/sensu", sensuSlackAlert).Methods("POST")
+	
 	router.Mux = r
 	return r
 }
