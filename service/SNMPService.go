@@ -14,7 +14,7 @@ func SendSNMPTestMessage() {
 
 	err := g.Default.Connect()
 	if err != nil {
-		log.Println("Connect() err: %v", err)
+		log.Println("Connect() err: %s", err)
 		return
 	}
 	defer g.Default.Conn.Close()
@@ -31,7 +31,7 @@ func SendSNMPTestMessage() {
 
 	result, err := g.Default.SendTrap(trap)
 	if err != nil {
-		log.Println("Connect() err: %v", err)
+		log.Println("Connect() err: %s", err)
 		return
 	}
 
