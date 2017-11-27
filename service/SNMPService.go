@@ -16,6 +16,8 @@ func SendSNMPTestMessage() {
 	g.Default.Version = g.Version2c
 	g.Default.Logger = log.New(os.Stdout, "", 0)
 
+	log.Printf("SNMP Server: %s Port: %d",g.Default.Target,g.Default.Port)
+
 	err := g.Default.Connect()
 	if err != nil {
 		log.Printf("Connect() err: %v", err)
