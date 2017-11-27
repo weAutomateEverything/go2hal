@@ -20,7 +20,7 @@ func SendSNMPTestMessage() {
 	defer g.Default.Conn.Close()
 
 	p := g.SnmpPDU{
-		Name:  "1.3.6.1.4.1.789.1.2.2.4.0",
+		Name:  ".1.3.6.1.4.1.789.1.2.2.4.0",
 		Value: []byte("Test Alert Message from HAL BOT. Please invoke Callout Group XXXXXXXXX"),
 		Type:  g.OctetString,
 	}

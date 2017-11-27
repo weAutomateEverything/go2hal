@@ -6,6 +6,8 @@ import (
 	"github.com/zamedic/go2hal/database"
 	"github.com/zamedic/go2hal/service"
 	"encoding/json"
+	"log"
+	"strings"
 )
 
 type skynet struct {
@@ -40,7 +42,9 @@ func addSkynetEndpoint(w http.ResponseWriter, r *http.Request) {
 
 func rebuildNode(w http.ResponseWriter, r *http.Request) {
 	var rebuild skynetRebuild
-	err := json.NewDecoder(r.Body).Decode(&rebuild)
+	s, _ := ioutil.ReadAll(r.Body)
+	log.Printf("Received rebuild request %s",s)
+	err := json.NewDecoder(strings.NewReader(string(s))).Decode(&rebuild)
 	if err != nil {
 		service.SendError(err)
 		w.WriteHeader(http.StatusBadRequest)
