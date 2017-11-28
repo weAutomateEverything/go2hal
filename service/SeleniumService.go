@@ -12,6 +12,8 @@ func init() {
 	go func() { runTests() }()
 }
 
+var retries = 3
+
 /*
 TestSelenium tests a selenium endpoint and adds it to the database.
  */
@@ -73,7 +75,7 @@ func doSelenium(item database.Selenium) error {
 
 	err = webDriver.Get(item.InitialURL)
 	if err != nil {
-		return handleSeleniumError(item.Name, err, webDriver)
+		return handleSeleniumError(item.Name,"Initial Page","Load Page", err, webDriver)
 	}
 
 	for _, page := range item.Pages {
@@ -86,7 +88,7 @@ func doSelenium(item database.Selenium) error {
 			}
 			err = doCheck(page.PreCheck, webDriver)
 			if err != nil {
-				return handleSeleniumError(item.Name, err, webDriver)
+				return handleSeleniumError(item.Name,page.Name,page.PreCheck.Name, err, webDriver)
 			}
 		}
 		for _, action := range page.Actions {
@@ -95,7 +97,7 @@ func doSelenium(item database.Selenium) error {
 			}
 			elems, err := findElement(action.SearchOption, webDriver)
 			if err != nil {
-				return handleSeleniumError(item.Name, err, webDriver)
+				return handleSeleniumError(item.Name,page.Name,action.Name, err, webDriver)
 			}
 			elem := elems[0]
 			executed := false
@@ -122,7 +124,7 @@ func doSelenium(item database.Selenium) error {
 			}
 			err := doCheck(page.PostCheck, webDriver)
 			if err != nil {
-				return handleSeleniumError(item.Name, err, webDriver)
+				return handleSeleniumError(item.Name,page.Name,page.PostCheck.Name, err, webDriver)
 			}
 		}
 	}
@@ -155,10 +157,23 @@ func doCheck(check *database.Check, driver selenium.WebDriver) error {
 		}
 		return false, nil
 	}
-	return driver.WaitWithTimeout(waitfor, 10*time.Second)
+	/*
+	Sometimes, selenium throws a EOF error. This is because of some strange behavior within selenium. Lets try 3 times.
+	Then Fail.
+	 */
+	tries:= 0
+	for tries < retries {
+		err = driver.WaitWithTimeout(waitfor, 10*time.Second)
+		if err == nil {
+			break;
+		}
+		tries++
+	}
+	return err
+
 }
 
-func handleSeleniumError(name string, err error, driver selenium.WebDriver) error {
+func handleSeleniumError(name, page, action string, err error, driver selenium.WebDriver,) error {
 	SendAlert(fmt.Sprintf("%s Selenium Error: %s", name, err.Error()))
 	bytes, error := driver.Screenshot()
 	if error != nil {
