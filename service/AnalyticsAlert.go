@@ -18,7 +18,7 @@ func SendAnalyticsAlert(message string) {
 	}
 	var dat map[string]interface{}
 	if err := json2.Unmarshal([]byte(message), &dat); err != nil {
-		SendError(fmt.Errorf("Error unmarshalling: %s", message))
+		SendError(fmt.Errorf("error unmarshalling: %s", message))
 		return
 	}
 
@@ -33,6 +33,7 @@ func SendAnalyticsAlert(message string) {
 
 	log.Printf("Sending Alert: %s", buffer.String())
 	SendAlert(buffer.String())
+	database.IncreaseValue("ANALYTIC_ALERTS_SENT")
 }
 
 func checkSend(message string) bool {

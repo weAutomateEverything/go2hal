@@ -38,7 +38,7 @@ func receiveAppDynamicsAlert(w http.ResponseWriter, r *http.Request) {
 	}
 
 	database.SaveAudit("APPDYNAMICS", string(body))
-	database.ReceiveAppynamicsMessage()
+	database.IncreaseValue("APPDYNAMICS_ALERT_REQUESTS")
 	service.SendAppdynamicsAlert(string(body))
 }
 
@@ -98,6 +98,7 @@ func executeCommandFromAppdynamics(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(err.Error()))
 		return
 	}
+	database.IncreaseValue("APPDYNAMICS_EXECUTE_REQUESTS")
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -113,5 +114,6 @@ func businessAppDynamicsAlert(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	service.SendError(fmt.Errorf("business alert. Servity: %s - type: %s - Display Name: %s - Summary Message %s", c.Severity, c.Type, c.DisplayName, c.SummaryMessage))
+	database.IncreaseValue("APPDYNAMICS_BUSINESS_ALERT_REQUESTS")
 	w.WriteHeader(http.StatusOK)
 }

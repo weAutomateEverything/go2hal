@@ -14,6 +14,6 @@ func receiveDeliveryNotification(w http.ResponseWriter, r *http.Request) {
 		service.SendError(err)
 		return
 	}
-	database.ReceiveChefDeliveryMessage()
+	database.IncreaseValue("CHEF_DELIVERY_REQUESTS")
 	service.SendDeliveryAlert(string(body))
 }

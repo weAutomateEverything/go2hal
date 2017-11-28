@@ -13,6 +13,7 @@ func sendAnalyticsMessage(w http.ResponseWriter, r *http.Request) {
 		service.SendError(err)
 		return
 	}
-	database.ReceiveChefAuditMessage()
+
 	service.SendAnalyticsAlert(string(body))
+	database.IncreaseValue("SKYNET_ANALYTICS_REQUESTS")
 }

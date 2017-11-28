@@ -7,20 +7,16 @@ import (
 )
 
 type response struct {
-	Bots                 [] database.HeartBeat
-	MessagesSent         int64
-	MessagesReceived     int64
-	AppDynamicsMessages  int64
-	ChefDeliveryMessages int64
-	MessageQueueDepth    int
+	Bots   [] database.HeartBeat
+	Values map[string]int64
 }
 
 func status(w http.ResponseWriter, r *http.Request) {
 
 	res := response{}
 	res.Bots = database.GetBotHeartbeat()
-	res.MessagesSent, res.MessagesReceived, res.AppDynamicsMessages, res.ChefDeliveryMessages = database.GetStats()
-	res.MessageQueueDepth = database.QueueDepth()
+	stats := database.GetStats()
+	res.Values = stats.Values
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(&res)

@@ -70,6 +70,7 @@ func SendAppdynamicsAlert(message string) {
 
 		log.Printf("Sending Alert %s", buffer.String())
 		SendAlert(buffer.String())
+		database.IncreaseValue("APPDYNAMICS_ALERTS_SENT")
 	}
 }
 
@@ -102,6 +103,7 @@ func ExecuteCommandFromAppd(commandName, applicationID, nodeId string) error {
 		SendError(err)
 		return err
 	}
+	database.IncreaseValue("APPDYNAMICS_COMMANDS_EXECUTED")
 	return ExecuteRemoteCommand(commandName,ipaddress)
 }
 
@@ -114,6 +116,7 @@ func monitorAppdynamicsQueue() {
 		} else {
 			for _, endpoint := range endpoints.MqEndpoints {
 				checkQueues(endpoint)
+				database.IncreaseValue("QUEUE_CHECK_RUNS")
 			}
 		}
 		time.Sleep(time.Minute * 10)

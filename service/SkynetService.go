@@ -82,6 +82,7 @@ func SendSkynetAlert(message string) {
 	buffer.WriteString("\n")
 
 	SendAlert(buffer.String())
+	database.IncreaseValue("SKYNET_ALERTS_SENT")
 
 }
 
@@ -110,6 +111,7 @@ func RecreateNode(nodeName, callerName string) error {
 
 	err = createNode(json, skynet)
 	err = waitForBuild(nodeName, skynet)
+	database.IncreaseValue("SKYNET_NDOES_RECREATED")
 	return nil
 
 }

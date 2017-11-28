@@ -38,6 +38,7 @@ func runTests() {
 		} else {
 			for _, test := range tests {
 				err = doSelenium(test)
+				database.IncreaseValue("SELENIUM_RUNS")
 				if err != nil {
 					SendAlert(fmt.Sprintf("Error executing selenium test for %s. error: %s", test.Name, err.Error()))
 				}

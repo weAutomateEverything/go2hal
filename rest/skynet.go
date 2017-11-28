@@ -24,7 +24,7 @@ func sendSkynetAlert(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		service.SendError(err)
 	}
-	database.ReceiveSkynetMessage()
+	database.IncreaseValue("SKYNET_ALERT_REQUESTS")
 	service.SendSkynetAlert(string(body))
 }
 
@@ -54,4 +54,6 @@ func rebuildNode(w http.ResponseWriter, r *http.Request) {
 	go func() {
 		service.RecreateNode(rebuild.NodeName, rebuild.User)
 	}()
+	database.IncreaseValue("NODES_REBUILT_REQUESTS")
+
 }
