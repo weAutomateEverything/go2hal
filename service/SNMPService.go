@@ -7,7 +7,7 @@ import (
 	"strconv"
 )
 
-func SendSNMPTestMessage() {
+func sendSNMPTestMessage() {
 	if snmpServier() == "" {
 		return
 	}
