@@ -15,6 +15,8 @@ func main() {
 	service.GetBot()
 	rest.Router()
 
+	service.InvokeCallout("Test HAL")
+
 	for true{
 		time.Sleep(time.Minute * 5)
 	}

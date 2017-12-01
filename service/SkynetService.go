@@ -194,7 +194,7 @@ func poll(expectedState, nodeName string, skynet database.Skynet, ignoreFailed b
 		}
 		if !ignoreFailed && strings.ToUpper(state) == "FAILED" {
 			SendAlert(fmt.Sprintf("%s has entered a Failed State.", nodeName))
-			sendSNMPTestMessage()
+			InvokeCallout(fmt.Sprintf("Skynet Error rebuilding node %s",nodeName))
 			return fmt.Errorf("%s has entered a Failed State", nodeName)
 		}
 		i++
