@@ -10,10 +10,16 @@ type config struct {
 	*Jira
 }
 
+/*
+CallOut details
+ */
 type CallOut struct {
 	URL string
 }
 
+/*
+Jira details
+ */
 type Jira struct {
 	URL         string
 	Template    string
@@ -47,11 +53,11 @@ func GetCalloutDetails() (*CallOut, error) {
 SaveJiraDetails saves the JIRA details
  */
 func SaveJiraDetails(url, template, defaultUser string) error {
-	c , err:= getConfig()
+	c, err := getConfig()
 	if err != nil {
 		return err
 	}
-	c.Jira = &Jira{URL: url, Template: template,DefaultUser:defaultUser}
+	c.Jira = &Jira{URL: url, Template: template, DefaultUser: defaultUser}
 	return saveConfig(c)
 }
 
@@ -66,7 +72,7 @@ func GetJiraDetails() (*Jira, error) {
 	return c.Jira, err
 }
 
-func getConfig() (*config, error){
+func getConfig() (*config, error) {
 	c := database.C("Config")
 	q := c.Find(nil)
 	count, err := q.Count()
@@ -75,20 +81,20 @@ func getConfig() (*config, error){
 	}
 	if count == 0 {
 		return &config{}, nil
-	} else {
-		c := config{}
-		err := q.One(&c)
-		if err != nil {
-			return nil,err
-		}
-		return &c, nil
 	}
+	cfg := config{}
+	err = q.One(&cfg)
+	if err != nil {
+		return nil, err
+	}
+	return &cfg, nil
+
 }
 
 func saveConfig(config *config) error {
 	c := database.C("Config")
 	if config.ID == "" {
-		return  c.Insert(config)
+		return c.Insert(config)
 	} else {
 		return c.UpdateId(config.ID, config)
 	}

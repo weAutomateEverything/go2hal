@@ -15,6 +15,9 @@ import (
 	json2 "encoding/json"
 )
 
+/*
+InvokeCallout will invoke snmp if configured, then create a jira ticket if configured. 
+ */
 func InvokeCallout(message string){
 	sendSNMPMessage()
 	createJira(message)
