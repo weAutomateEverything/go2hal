@@ -95,8 +95,6 @@ func saveConfig(config *config) error {
 	c := database.C("Config")
 	if config.ID == "" {
 		return c.Insert(config)
-	} else {
-		return c.UpdateId(config.ID, config)
 	}
-
+	return c.UpdateId(config.ID, config)
 }

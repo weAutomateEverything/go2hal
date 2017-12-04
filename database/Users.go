@@ -21,7 +21,7 @@ func AddUser(employeeNumber, CalloutName, JiraName string) {
 }
 
 /*
-Return a user whos details matches the callout
+FindUserByCalloutName Return a user whos details matches the callout
  */
 func FindUserByCalloutName(name string) User {
 	var r User
