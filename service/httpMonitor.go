@@ -81,7 +81,7 @@ func checkHTTP(endpoint *database.HTTPEndpoint) {
 		SendAlert(emoji.Sprintf(":smoking: :white_check_mark: smoke test %s back to normal", endpoint.Name))
 	}
 
-	if err := database.SuccessfulEndpointTest(endpoint.ID.String()); err != nil {
+	if err := database.SuccessfulEndpointTest(endpoint); err != nil {
 		SendError(err)
 	}
 }

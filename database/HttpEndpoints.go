@@ -53,22 +53,16 @@ func GetHTMLEndpoints() []HTTPEndpoint {
 /*
 SuccessfulEndpointTest will update the mongo element with the ID with the latest details to show it passed successfully
  */
-func SuccessfulEndpointTest(id string) error {
+func SuccessfulEndpointTest(endpoint *HTTPEndpoint) error {
 	c := database.C("MonitorHtmlEndpoints")
-	result := HTTPEndpoint{}
-	err := c.FindId(id).One(&result);
-	if err != nil {
-		return fmt.Errorf("error retreiving endpoint with success details: %s", err.Error())
 
-	}
+	endpoint.lastChecked = time.Now()
+	endpoint.lastSuccess = time.Now()
+	endpoint.Passing = true
+	endpoint.Error = ""
+	endpoint.ErrorCount = 0
 
-	result.lastChecked = time.Now()
-	result.lastSuccess = time.Now()
-	result.Passing = true
-	result.Error = ""
-	result.ErrorCount = 0
-
-	err = c.UpdateId(id, result)
+	err := c.UpdateId(endpoint.ID, endpoint)
 	if err != nil {
 		return fmt.Errorf("error saving endpoint with success details: %s", err.Error())
 	}

@@ -100,6 +100,9 @@ SendError will log the error to the console and attempt to send it to the heartb
  */
 func SendError(err error) {
 	log.Println(err.Error())
+	if bot == nil  {
+		return
+	}
 	sendToHeartbeatGroup(emoji.Sprintf(":poop: %s %s", bot.Self.UserName, err.Error()))
 }
 
