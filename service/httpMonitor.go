@@ -11,6 +11,7 @@ import (
 	"bytes"
 	"net/url"
 	"io/ioutil"
+	"gopkg.in/kyokomi/emoji.v1"
 )
 
 //HTTPMonitor is the current status of the monitor
@@ -30,7 +31,7 @@ func init() {
 /*
 CheckEndpoint checks the http endpoint to ensure it passes
  */
-func CheckEndpoint(endpoint database.HTTPEndpoint) error {
+func CheckEndpoint(endpoint *database.HTTPEndpoint) error {
 	response, err := doHTTPEndpoint(endpoint)
 	if response != nil {
 		defer response.Body.Close()
@@ -51,34 +52,51 @@ func monitorEndpoints() {
 		endpoints := database.GetHTMLEndpoints()
 		if endpoints != nil {
 			for _, endpoint := range endpoints {
-				checkHTTP(endpoint)
+				checkHTTP(&endpoint)
 			}
 		}
 		time.Sleep(time.Minute * 2)
 	}
 }
 
-func checkHTTP(endpoint database.HTTPEndpoint) {
+func checkHTTP(endpoint *database.HTTPEndpoint) {
 	response, err := doHTTPEndpoint(endpoint)
 	if err != nil {
-		SendError(fmt.Errorf("*HTTP Alert*\nName: %s \nEndpoint: %s \nError: %s", endpoint.Name,
-			endpoint.Endpoint, err.Error()))
-		database.FailedEndpointTest(endpoint, err.Error())
+		s := emoji.Sprintf(":smoking: :x: *Smoke Test  Alert*\nName: %s \nEndpoint: %s \nError: %s", endpoint.Name,
+			endpoint.Endpoint, err.Error())
+		checkAlert(endpoint, s)
 		return
 	}
 	defer response.Body.Close()
 
 	if response.StatusCode != 200 {
 		msg, _ := ioutil.ReadAll(response.Body)
-		error := fmt.Sprintf("*HTTP Alert*\nName: %s \nEndpoint: %s \nDid not receive a 200 success "+
+		error := fmt.Sprintf(":smoking: :x: *HTTP Alert*\nName: %s \nEndpoint: %s \nDid not receive a 200 success "+
 			"response code. Recieved %d response code. Body Message %s", endpoint.Name, endpoint.Endpoint,
 			response.StatusCode, msg)
-		SendAlert(error)
-		database.FailedEndpointTest(endpoint, error)
+		checkAlert(endpoint, error)
+		return
+	}
+	if !endpoint.Passing && endpoint.ErrorCount >= endpoint.Threshold {
+		SendAlert(emoji.Sprintf(":smoking: :white_check_mark: smoke test %s back to normal", endpoint.Name))
+	}
+
+	database.SuccessfulEndpointTest(endpoint.ID.String())
+}
+
+func checkAlert(endpoint *database.HTTPEndpoint, msg string) {
+	database.FailedEndpointTest(endpoint, msg)
+	if endpoint.Threshold > 0 {
+		if endpoint.Threshold == endpoint.ErrorCount {
+			InvokeCallout(fmt.Sprintf("Some Test failures for %s", endpoint.Name))
+		}
+		if endpoint.Threshold >= endpoint.ErrorCount {
+			SendAlert(msg)
+		}
 	}
 }
 
-func doHTTPEndpoint(endpoint database.HTTPEndpoint) (*http.Response, error) {
+func doHTTPEndpoint(endpoint *database.HTTPEndpoint) (*http.Response, error) {
 	switch method := strings.ToUpper(endpoint.Method); method {
 	case "POST":
 		if len(endpoint.Parameters) > 1 {
