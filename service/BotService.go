@@ -90,7 +90,7 @@ func sendMessage(chatID int64, message string, messageID int, markup bool) (err 
 	if err != nil {
 		log.Println(err)
 	} else {
-		database.SendMessage()
+		database.IncreaseValue("MESSAGES_SENT")
 	}
 	return nil
 }

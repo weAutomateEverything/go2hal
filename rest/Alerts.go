@@ -17,7 +17,7 @@ func alertHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		handleError(err,w)
 	}
-	database.ReceiveAlert()
+	database.IncreaseValue("ALERT_REQUESTS")
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -28,6 +28,7 @@ func sendBusinessAlert(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	err = service.SendNonTechnicalAlert(string(body))
+	database.IncreaseValue("BUSINESS_ALERT_REQUESTS")
 
 }
 

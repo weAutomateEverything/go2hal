@@ -64,6 +64,7 @@ func sendImageToAlertGroup(image []byte) error {
 
 
 	msg := tgbotapi.NewPhotoUpload(alertGroup, path)
+	database.IncreaseValue("IMAGES_SENT")
 	_, err = bot.Send(msg)
 	if err != nil {
 		SendError(err)

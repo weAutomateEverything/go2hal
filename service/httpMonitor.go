@@ -52,6 +52,7 @@ func monitorEndpoints() {
 		if endpoints != nil {
 			for _, endpoint := range endpoints {
 				checkHTTP(endpoint)
+				database.IncreaseValue("HTTP_CHECKS")
 			}
 		}
 		time.Sleep(time.Minute * 2)

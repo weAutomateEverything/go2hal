@@ -66,6 +66,7 @@ func ExecuteRemoteCommand(commandName, address string) error {
 	}
 	log.Println("output")
 	log.Println(stdout)
+	database.IncreaseValue("COMMANDS_EXECUTED")
 
 	return nil
 }

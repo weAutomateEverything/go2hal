@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"gopkg.in/kyokomi/emoji.v1"
 	"fmt"
+	"github.com/zamedic/go2hal/database"
 )
 
 /*
@@ -76,6 +77,7 @@ func SendDeliveryAlert(message string) {
 	log.Printf("Sending Alert: %s", buffer.String())
 
 	SendAlert(buffer.String())
+	database.IncreaseValue("CHEF_DELIVERY_MESSAGES_SENT")
 
 }
 func getfield(attachments []interface{}, buffer *bytes.Buffer) {
