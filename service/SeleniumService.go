@@ -6,6 +6,7 @@ import (
 	"time"
 	"github.com/zamedic/go2hal/database"
 	"errors"
+	"gopkg.in/kyokomi/emoji.v1"
 )
 
 func init() {
@@ -39,7 +40,15 @@ func runTests() {
 			for _, test := range tests {
 				err = doSelenium(test)
 				if err != nil {
-					SendAlert(fmt.Sprintf("Error executing selenium test for %s. error: %s", test.Name, err.Error()))
+					database.SetSeleniumFailing(&test, err)
+					if test.Threshold > 0 && test.Threshold == test.ErrorCount {
+						SendAlert(emoji.Sprintf(":computer: :x: Error executing selenium test for %s. error: %s", test.Name, err.Error()))
+						InvokeCallout(fmt.Sprintf("Selenium Error: %s - %s",test.Name,err.Error()))
+					}
+				} else {
+					if !test.Passing && test.ErrorCount >= test.Threshold {
+						SendAlert(emoji.Sprintf(":computer: :white_check_mark: Selenium Test %s back to normal",test.Name))
+					}
 				}
 			}
 		}
@@ -174,14 +183,13 @@ func doCheck(check *database.Check, driver selenium.WebDriver) error {
 }
 
 func handleSeleniumError(name, page, action string, err error, driver selenium.WebDriver,) error {
-	SendAlert(fmt.Sprintf("%s Selenium Error: %s", name, err.Error()))
 	bytes, error := driver.Screenshot()
 	if error != nil {
 		SendError(error)
 		return err
 	}
 	sendImageToAlertGroup(bytes)
-	return err
+	return fmt.Errorf("application: %s,page: %s, action %s, Error: %s",name,page,action,err.Error())
 }
 
 func findElement(action database.SearchOption, driver selenium.WebDriver) ([]selenium.WebElement, error) {

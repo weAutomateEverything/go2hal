@@ -11,6 +11,10 @@ type Selenium struct {
 	Name           string
 	InitialURL     string
 	Pages          []Page
+	Threshold      int
+
+	Passing    bool
+	ErrorCount int
 }
 
 /*
@@ -140,4 +144,23 @@ AddSelenium adds a test to the database
  */
 func AddSelenium(selenium Selenium) error {
 	return database.C("Selenium").Insert(selenium)
+}
+
+/*
+SetSeleniumFailing sets thje selenium test to a failed state
+ */
+func SetSeleniumFailing(selenium *Selenium, err error) {
+	selenium.Passing = false
+	selenium.ErrorCount++
+	database.C("Selenium").UpdateId(selenium.ID,selenium)
+}
+
+/*
+SetSeleniumPassing sets the selenium test to a passed state
+ */
+func SetSeleniumPassing(selenium *Selenium){
+	selenium.Passing = true
+	selenium.ErrorCount = 0
+	database.C("Selenium").UpdateId(selenium.ID,selenium)
+
 }

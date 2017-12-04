@@ -13,6 +13,7 @@ import (
 	"bytes"
 	"fmt"
 	json2 "encoding/json"
+	"gopkg.in/kyokomi/emoji.v1"
 )
 
 /*
@@ -59,6 +60,7 @@ func sendSNMPMessage() {
 
 	log.Printf("Error: %d", result.Error)
 	log.Printf("Request ID %d", result.RequestID)
+	SendAlert(emoji.Sprint(":telephone_receiver: Invoked callout"))
 
 }
 
@@ -113,7 +115,7 @@ func createJira(description string) {
 
 	key := dat["key"].(string)
 
-	SendAlert(fmt.Sprintf("JIRA Ticket Created. ID: %s assigned to %s. Description %s", key, qr.User, description))
+	SendAlert(emoji.Sprintf(":ticket: JIRA Ticket Created. ID: %s assigned to %s. Description %s", key, qr.User, description))
 }
 
 func jiraUser() string {

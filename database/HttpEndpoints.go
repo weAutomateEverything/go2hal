@@ -12,9 +12,11 @@ type HTTPEndpoint struct {
 	Endpoint   string
 	Method     string
 	Parameters []Parameters
+	Threshold  int
 
 	lastChecked time.Time
 	lastSuccess time.Time
+	ErrorCount  int
 	Passing     bool
 	Error       string
 }
@@ -63,6 +65,7 @@ func SuccessfulEndpointTest(id string) {
 	result.lastSuccess = time.Now()
 	result.Passing = true
 	result.Error = ""
+	result.ErrorCount = 0
 
 	err = c.UpdateId(id, result)
 	if err != nil {
@@ -73,7 +76,7 @@ func SuccessfulEndpointTest(id string) {
 /*
 FailedEndpointTest will update the mongo element with the failed details
  */
-func FailedEndpointTest(endpoint HTTPEndpoint, errorMessage string) {
+func FailedEndpointTest(endpoint *HTTPEndpoint, errorMessage string) {
 	c := database.C("MonitorHtmlEndpoints")
 	result := HTTPEndpoint{}
 	err := c.FindId(endpoint.ID).One(&result);
@@ -85,6 +88,7 @@ func FailedEndpointTest(endpoint HTTPEndpoint, errorMessage string) {
 	result.lastChecked = time.Now()
 	result.Passing = false
 	result.Error = errorMessage
+	result.ErrorCount++
 
 	err = c.UpdateId(endpoint.ID, result)
 	if err != nil {
