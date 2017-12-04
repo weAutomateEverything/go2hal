@@ -194,8 +194,9 @@ func poll(expectedState, nodeName string, skynet database.Skynet, ignoreFailed b
 			SendAlert(fmt.Sprintf("%s has been reached state %s.", nodeName, expectedState))
 			return nil
 		}
-		if (!ignoreFailed && strings.ToUpper(state) == "FAILED") {
+		if !ignoreFailed && strings.ToUpper(state) == "FAILED" {
 			SendAlert(fmt.Sprintf("%s has entered a Failed State.", nodeName))
+			InvokeCallout(fmt.Sprintf("Skynet Error rebuilding node %s",nodeName))
 			return fmt.Errorf("%s has entered a Failed State", nodeName)
 		}
 		i++
@@ -204,7 +205,7 @@ func poll(expectedState, nodeName string, skynet database.Skynet, ignoreFailed b
 		}
 		time.Sleep(time.Second)
 	}
-	err := fmt.Errorf("Timed out waiting for node %s to %s", nodeName, expectedState)
+	err := fmt.Errorf("timed out waiting for node %s to %s", nodeName, expectedState)
 	logError(err.Error())
 	return err
 }
