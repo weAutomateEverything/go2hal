@@ -41,13 +41,17 @@ func runTests() {
 				err = doSelenium(test)
 				if err != nil {
 					database.SetSeleniumFailing(&test, err)
-					if test.Threshold > 0 && test.Threshold == test.ErrorCount {
-						SendAlert(emoji.Sprintf(":computer: :x: Error executing selenium test for %s. error: %s", test.Name, err.Error()))
-						InvokeCallout(fmt.Sprintf("Selenium Error: %s - %s",test.Name,err.Error()))
+					if test.Threshold > 0 {
+						if test.Threshold == test.ErrorCount {
+							InvokeCallout(fmt.Sprintf("Selenium Error: %s - %s", test.Name, err.Error()))
+						}
+						if test.Threshold >= test.ErrorCount {
+							SendAlert(emoji.Sprintf(":computer: :x: Error executing selenium test for %s. error: %s", test.Name, err.Error()))
+						}
 					}
 				} else {
 					if !test.Passing && test.ErrorCount >= test.Threshold {
-						SendAlert(emoji.Sprintf(":computer: :white_check_mark: Selenium Test %s back to normal",test.Name))
+						SendAlert(emoji.Sprintf(":computer: :white_check_mark: Selenium Test %s back to normal", test.Name))
 					}
 				}
 			}
@@ -84,7 +88,7 @@ func doSelenium(item database.Selenium) error {
 
 	err = webDriver.Get(item.InitialURL)
 	if err != nil {
-		return handleSeleniumError(item.Name,"Initial Page","Load Page", err, webDriver)
+		return handleSeleniumError(item.Name, "Initial Page", "Load Page", err, webDriver)
 	}
 
 	for _, page := range item.Pages {
@@ -97,7 +101,7 @@ func doSelenium(item database.Selenium) error {
 			}
 			err = doCheck(page.PreCheck, webDriver)
 			if err != nil {
-				return handleSeleniumError(item.Name,page.Name,page.PreCheck.Name, err, webDriver)
+				return handleSeleniumError(item.Name, page.Name, page.PreCheck.Name, err, webDriver)
 			}
 		}
 		for _, action := range page.Actions {
@@ -106,7 +110,7 @@ func doSelenium(item database.Selenium) error {
 			}
 			elems, err := findElement(action.SearchOption, webDriver)
 			if err != nil {
-				return handleSeleniumError(item.Name,page.Name,action.Name, err, webDriver)
+				return handleSeleniumError(item.Name, page.Name, action.Name, err, webDriver)
 			}
 			elem := elems[0]
 			executed := false
@@ -133,7 +137,7 @@ func doSelenium(item database.Selenium) error {
 			}
 			err := doCheck(page.PostCheck, webDriver)
 			if err != nil {
-				return handleSeleniumError(item.Name,page.Name,page.PostCheck.Name, err, webDriver)
+				return handleSeleniumError(item.Name, page.Name, page.PostCheck.Name, err, webDriver)
 			}
 		}
 	}
@@ -170,7 +174,7 @@ func doCheck(check *database.Check, driver selenium.WebDriver) error {
 	Sometimes, selenium throws a EOF error. This is because of some strange behavior within selenium. Lets try 3 times.
 	Then Fail.
 	 */
-	tries:= 0
+	tries := 0
 	for tries < retries {
 		err = driver.WaitWithTimeout(waitfor, 10*time.Second)
 		if err == nil {
@@ -182,14 +186,14 @@ func doCheck(check *database.Check, driver selenium.WebDriver) error {
 
 }
 
-func handleSeleniumError(name, page, action string, err error, driver selenium.WebDriver,) error {
+func handleSeleniumError(name, page, action string, err error, driver selenium.WebDriver, ) error {
 	bytes, error := driver.Screenshot()
 	if error != nil {
 		SendError(error)
 		return err
 	}
 	sendImageToAlertGroup(bytes)
-	return fmt.Errorf("application: %s,page: %s, action %s, Error: %s",name,page,action,err.Error())
+	return fmt.Errorf("application: %s,page: %s, action %s, Error: %s", name, page, action, err.Error())
 }
 
 func findElement(action database.SearchOption, driver selenium.WebDriver) ([]selenium.WebElement, error) {
