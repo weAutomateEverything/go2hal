@@ -4,7 +4,6 @@ import (
 	"gopkg.in/mgo.v2/bson"
 	"time"
 	"log"
-	"github.com/zamedic/go2hal/service"
 	"fmt"
 )
 
@@ -54,13 +53,13 @@ func GetHTMLEndpoints() []HTTPEndpoint {
 /*
 SuccessfulEndpointTest will update the mongo element with the ID with the latest details to show it passed successfully
  */
-func SuccessfulEndpointTest(id string) {
+func SuccessfulEndpointTest(id string) error {
 	c := database.C("MonitorHtmlEndpoints")
 	result := HTTPEndpoint{}
 	err := c.FindId(id).One(&result);
 	if err != nil {
-		service.SendError(fmt.Errorf("error retreiving endpoint with success details: %s", err.Error()))
-		return
+		return fmt.Errorf("error retreiving endpoint with success details: %s", err.Error())
+
 	}
 
 	result.lastChecked = time.Now()
@@ -71,20 +70,20 @@ func SuccessfulEndpointTest(id string) {
 
 	err = c.UpdateId(id, result)
 	if err != nil {
-		service.SendError(fmt.Errorf("error saving endpoint with success details: %s", err.Error()))
+		return fmt.Errorf("error saving endpoint with success details: %s", err.Error())
 	}
+	return nil
 }
 
 /*
 FailedEndpointTest will update the mongo element with the failed details
  */
-func FailedEndpointTest(endpoint *HTTPEndpoint, errorMessage string) {
+func FailedEndpointTest(endpoint *HTTPEndpoint, errorMessage string) error {
 	c := database.C("MonitorHtmlEndpoints")
 	result := HTTPEndpoint{}
 	err := c.FindId(endpoint.ID).One(&result);
 	if err != nil {
-		service.SendError(fmt.Errorf("Error retreiving endpoint with success details: %s", err.Error()))
-		return
+		return fmt.Errorf("error retreiving endpoint with success details: %s", err.Error())
 	}
 
 	result.lastChecked = time.Now()
@@ -94,6 +93,7 @@ func FailedEndpointTest(endpoint *HTTPEndpoint, errorMessage string) {
 
 	err = c.UpdateId(endpoint.ID, result)
 	if err != nil {
-		service.SendError(fmt.Errorf("Error saving endpoint with success details: %s", err.Error()))
+		return fmt.Errorf("error saving endpoint with success details: %s", err.Error())
 	}
+	return nil
 }
