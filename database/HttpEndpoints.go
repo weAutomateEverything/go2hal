@@ -4,6 +4,8 @@ import (
 	"gopkg.in/mgo.v2/bson"
 	"time"
 	"log"
+	"github.com/zamedic/go2hal/service"
+	"fmt"
 )
 
 type HTTPEndpoint struct {
@@ -57,7 +59,7 @@ func SuccessfulEndpointTest(id string) {
 	result := HTTPEndpoint{}
 	err := c.FindId(id).One(&result);
 	if err != nil {
-		log.Printf("Error retreiving endpoint with success details: %s", err.Error())
+		service.SendError(fmt.Errorf("error retreiving endpoint with success details: %s", err.Error()))
 		return
 	}
 
@@ -69,7 +71,7 @@ func SuccessfulEndpointTest(id string) {
 
 	err = c.UpdateId(id, result)
 	if err != nil {
-		log.Printf("Error saving endpoint with success details: %s", err.Error())
+		service.SendError(fmt.Errorf("error saving endpoint with success details: %s", err.Error()))
 	}
 }
 
@@ -81,7 +83,7 @@ func FailedEndpointTest(endpoint *HTTPEndpoint, errorMessage string) {
 	result := HTTPEndpoint{}
 	err := c.FindId(endpoint.ID).One(&result);
 	if err != nil {
-		log.Printf("Error retreiving endpoint with success details: %s", err.Error())
+		service.SendError(fmt.Errorf("Error retreiving endpoint with success details: %s", err.Error()))
 		return
 	}
 
@@ -92,6 +94,6 @@ func FailedEndpointTest(endpoint *HTTPEndpoint, errorMessage string) {
 
 	err = c.UpdateId(endpoint.ID, result)
 	if err != nil {
-		log.Printf("Error saving endpoint with success details: %s", err.Error())
+		service.SendError(fmt.Errorf("Error saving endpoint with success details: %s", err.Error()))
 	}
 }
