@@ -81,11 +81,15 @@ func checkHTTP(endpoint *database.HTTPEndpoint) {
 		SendAlert(emoji.Sprintf(":smoking: :white_check_mark: smoke test %s back to normal", endpoint.Name))
 	}
 
-	database.SuccessfulEndpointTest(endpoint.ID.String())
+	if err := database.SuccessfulEndpointTest(endpoint.ID.String()); err != nil {
+		SendError(err)
+	}
 }
 
 func checkAlert(endpoint *database.HTTPEndpoint, msg string) {
-	database.FailedEndpointTest(endpoint, msg)
+	if err := database.FailedEndpointTest(endpoint, msg); err != nil {
+		SendError(err)
+	}
 	if endpoint.Threshold > 0 {
 		if endpoint.Threshold == endpoint.ErrorCount {
 			InvokeCallout(fmt.Sprintf("Some Test failures for %s", endpoint.Name))

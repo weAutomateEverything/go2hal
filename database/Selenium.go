@@ -149,18 +149,18 @@ func AddSelenium(selenium Selenium) error {
 /*
 SetSeleniumFailing sets thje selenium test to a failed state
  */
-func SetSeleniumFailing(selenium *Selenium, err error) {
+func SetSeleniumFailing(selenium *Selenium, err error) error{
 	selenium.Passing = false
 	selenium.ErrorCount++
-	database.C("Selenium").UpdateId(selenium.ID,selenium)
+	return database.C("Selenium").UpdateId(selenium.ID,selenium)
 }
 
 /*
 SetSeleniumPassing sets the selenium test to a passed state
  */
-func SetSeleniumPassing(selenium *Selenium){
+func SetSeleniumPassing(selenium *Selenium) error {
 	selenium.Passing = true
 	selenium.ErrorCount = 0
-	database.C("Selenium").UpdateId(selenium.ID,selenium)
+	return database.C("Selenium").UpdateId(selenium.ID,selenium)
 
 }

@@ -40,7 +40,10 @@ func runTests() {
 			for _, test := range tests {
 				err = doSelenium(test)
 				if err != nil {
-					database.SetSeleniumFailing(&test, err)
+					if err = database.SetSeleniumFailing(&test, err); err != nil {
+						SendError(fmt.Errorf("error setting selenium test to failed. %s",err.Error()))
+						continue
+					}
 					if test.Threshold > 0 {
 						if test.Threshold == test.ErrorCount {
 							InvokeCallout(fmt.Sprintf("Selenium Error: %s - %s", test.Name, err.Error()))
@@ -50,6 +53,10 @@ func runTests() {
 						}
 					}
 				} else {
+					if err := database.SetSeleniumPassing(&test); err != nil {
+						SendError(fmt.Errorf("error setting selenium test to passed. %s",err.Error()))
+						continue
+					}
 					if !test.Passing && test.ErrorCount >= test.Threshold {
 						SendAlert(emoji.Sprintf(":computer: :white_check_mark: Selenium Test %s back to normal", test.Name))
 					}
