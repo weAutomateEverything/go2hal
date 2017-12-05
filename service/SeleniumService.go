@@ -40,6 +40,7 @@ func runTests() {
 			for _, test := range tests {
 				image, err := doSelenium(test)
 				if err != nil {
+					SendError(err)
 					if err = database.SetSeleniumFailing(&test, err); err != nil {
 						SendError(fmt.Errorf("error setting selenium test to failed. %s",err.Error()))
 						continue
@@ -66,7 +67,7 @@ func runTests() {
 				}
 			}
 		}
-		time.Sleep(10 * time.Minute)
+		time.Sleep(5 * time.Minute)
 	}
 }
 
