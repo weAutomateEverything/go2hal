@@ -19,7 +19,7 @@ var retries = 3
 TestSelenium tests a selenium endpoint and adds it to the database.
  */
 func TestSelenium(item database.Selenium) error {
-	err := doSelenium(item)
+	_, err := doSelenium(item)
 	if err != nil {
 		return err
 	}
@@ -38,7 +38,7 @@ func runTests() {
 			SendError(err)
 		} else {
 			for _, test := range tests {
-				err = doSelenium(test)
+				image, err := doSelenium(test)
 				if err != nil {
 					if err = database.SetSeleniumFailing(&test, err); err != nil {
 						SendError(fmt.Errorf("error setting selenium test to failed. %s",err.Error()))
@@ -50,6 +50,9 @@ func runTests() {
 						}
 						if test.Threshold >= test.ErrorCount {
 							SendAlert(emoji.Sprintf(":computer: :x: Error executing selenium test for %s. error: %s", test.Name, err.Error()))
+							if image != nil {
+								sendImageToAlertGroup(image)
+							}
 						}
 					}
 				} else {
@@ -67,18 +70,18 @@ func runTests() {
 	}
 }
 
-func doSelenium(item database.Selenium) error {
+func doSelenium(item database.Selenium) ([]byte, error) {
 	if item.SeleniumServer == "" {
-		return errors.New("no Selenium Server set")
+		return nil, errors.New("no Selenium Server set")
 	}
 	if item.Name == "" {
-		return errors.New("no script name set")
+		return nil, errors.New("no script name set")
 	}
 	if item.InitialURL == "" {
-		return errors.New("no initial url set")
+		return nil, errors.New("no initial url set")
 	}
 	if len(item.Pages) == 0 {
-		return errors.New("no pages detected in script")
+		return nil, errors.New("no pages detected in script")
 	}
 
 	var webDriver selenium.WebDriver
@@ -88,7 +91,7 @@ func doSelenium(item database.Selenium) error {
 
 	if webDriver, err = selenium.NewRemote(caps, item.SeleniumServer); err != nil {
 		fmt.Printf("Failed to open session: %s\n", err)
-		return err
+		return nil, err
 	}
 
 	defer webDriver.Quit()
@@ -100,11 +103,11 @@ func doSelenium(item database.Selenium) error {
 
 	for _, page := range item.Pages {
 		if len(page.Actions) == 0 {
-			return fmt.Errorf("no pages found in test %s for page %s", item.Name, page.Name)
+			return nil, fmt.Errorf("no pages found in test %s for page %s", item.Name, page.Name)
 		}
 		if page.PreCheck != nil {
 			if page.PreCheck.SearchPattern == "" {
-				return fmt.Errorf("no search pattern found for precheck on test %s, page %s, check %s", item.Name, page.Name, page.PreCheck.Name)
+				return nil, fmt.Errorf("no search pattern found for precheck on test %s, page %s, check %s", item.Name, page.Name, page.PreCheck.Name)
 			}
 			err = doCheck(page.PreCheck, webDriver)
 			if err != nil {
@@ -113,7 +116,7 @@ func doSelenium(item database.Selenium) error {
 		}
 		for _, action := range page.Actions {
 			if action.SearchPattern == "" {
-				return fmt.Errorf("no search pattern found for test %s, page %s, action %s", item.Name, page.Name, action.Name)
+				return nil, fmt.Errorf("no search pattern found for test %s, page %s, action %s", item.Name, page.Name, action.Name)
 			}
 			elems, err := findElement(action.SearchOption, webDriver)
 			if err != nil {
@@ -134,13 +137,13 @@ func doSelenium(item database.Selenium) error {
 				executed = true
 			}
 			if !executed {
-				return fmt.Errorf("no action executed for test %s, page %s, action %s", item.Name, page.Name, action.Name)
+				return nil, fmt.Errorf("no action executed for test %s, page %s, action %s", item.Name, page.Name, action.Name)
 			}
 
 		}
 		if page.PostCheck != nil {
 			if page.PostCheck.SearchPattern == "" {
-				return fmt.Errorf("no search pattern found for post check on test %s, page %s, check %s", item.Name, page.Name, page.PostCheck.Name)
+				return nil, fmt.Errorf("no search pattern found for post check on test %s, page %s, check %s", item.Name, page.Name, page.PostCheck.Name)
 			}
 			err := doCheck(page.PostCheck, webDriver)
 			if err != nil {
@@ -148,7 +151,7 @@ func doSelenium(item database.Selenium) error {
 			}
 		}
 	}
-	return nil
+	return nil,nil
 }
 
 func doCheck(check *database.Check, driver selenium.WebDriver) error {
@@ -193,14 +196,13 @@ func doCheck(check *database.Check, driver selenium.WebDriver) error {
 
 }
 
-func handleSeleniumError(name, page, action string, err error, driver selenium.WebDriver, ) error {
+func handleSeleniumError(name, page, action string, err error, driver selenium.WebDriver, ) ([]byte,error) {
 	bytes, error := driver.Screenshot()
 	if error != nil {
 		SendError(error)
-		return err
+		return nil,err
 	}
-	sendImageToAlertGroup(bytes)
-	return fmt.Errorf("application: %s,page: %s, action %s, Error: %s", name, page, action, err.Error())
+	return  bytes, fmt.Errorf("application: %s,page: %s, action %s, Error: %s", name, page, action, err.Error())
 }
 
 func findElement(action database.SearchOption, driver selenium.WebDriver) ([]selenium.WebElement, error) {
