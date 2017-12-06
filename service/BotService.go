@@ -212,7 +212,7 @@ func findCommand(command string) (a command) {
 func executeCommand(update tgbotapi.Update) bool {
 	command := findCommand(update.Message.Command())
 	if command != nil {
-		command.execute(update)
+		go func() {command.execute(update)}()
 		return true
 	}
 	return false
