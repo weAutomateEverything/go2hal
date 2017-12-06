@@ -64,11 +64,14 @@ func sendImageToAlertGroup(image []byte) error {
 
 
 	msg := tgbotapi.NewPhotoUpload(alertGroup, path)
-	_, err = bot.Send(msg)
-	if err != nil {
-		SendError(err)
-		return err
+	if (bot != nil){
+		_, err = bot.Send(msg)
+		if err != nil {
+			SendError(err)
+			return err
+		}
 	}
+
 	return nil
 }
 
