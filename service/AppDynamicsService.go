@@ -51,20 +51,26 @@ func SendAppdynamicsAlert(message string) {
 		buffer.WriteString("\n")
 
 		if application != nil {
+			app := application["name"].(string)
+			app = strings.Replace(app, "_", "\\_", -1)
 			buffer.WriteString("*Application:* ")
-			buffer.WriteString(application["name"].(string))
+			buffer.WriteString(app)
 			buffer.WriteString("\n")
 		}
 
 		if tier != nil {
+			ti := tier["name"].(string)
+			ti = strings.Replace(ti, "_", "\\_", -1)
 			buffer.WriteString("*Tier:* ")
-			buffer.WriteString(tier["name"].(string))
+			buffer.WriteString(ti)
 			buffer.WriteString("\n")
 		}
 
 		if node != nil {
+			no := node["name"].(string)
+			no = strings.Replace(no, "_", "\\_", -1)
 			buffer.WriteString("*Node:* ")
-			buffer.WriteString(node["name"].(string))
+			buffer.WriteString(no)
 			buffer.WriteString("\n")
 		}
 

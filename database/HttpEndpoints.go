@@ -4,6 +4,7 @@ import (
 	"gopkg.in/mgo.v2/bson"
 	"time"
 	"log"
+	"fmt"
 )
 
 type HTTPEndpoint struct {
@@ -12,9 +13,11 @@ type HTTPEndpoint struct {
 	Endpoint   string
 	Method     string
 	Parameters []Parameters
+	Threshold  int
 
 	lastChecked time.Time
 	lastSuccess time.Time
+	ErrorCount  int
 	Passing     bool
 	Error       string
 }
@@ -50,44 +53,41 @@ func GetHTMLEndpoints() []HTTPEndpoint {
 /*
 SuccessfulEndpointTest will update the mongo element with the ID with the latest details to show it passed successfully
  */
-func SuccessfulEndpointTest(id string) {
+func SuccessfulEndpointTest(endpoint *HTTPEndpoint) error {
 	c := database.C("MonitorHtmlEndpoints")
-	result := HTTPEndpoint{}
-	err := c.FindId(id).One(&result);
-	if err != nil {
-		log.Printf("Error retreiving endpoint with success details: %s", err.Error())
-		return
-	}
 
-	result.lastChecked = time.Now()
-	result.lastSuccess = time.Now()
-	result.Passing = true
-	result.Error = ""
+	endpoint.lastChecked = time.Now()
+	endpoint.lastSuccess = time.Now()
+	endpoint.Passing = true
+	endpoint.Error = ""
+	endpoint.ErrorCount = 0
 
-	err = c.UpdateId(id, result)
+	err := c.UpdateId(endpoint.ID, endpoint)
 	if err != nil {
-		log.Printf("Error saving endpoint with success details: %s", err.Error())
+		return fmt.Errorf("error saving endpoint with success details: %s", err.Error())
 	}
+	return nil
 }
 
 /*
 FailedEndpointTest will update the mongo element with the failed details
  */
-func FailedEndpointTest(endpoint HTTPEndpoint, errorMessage string) {
+func FailedEndpointTest(endpoint *HTTPEndpoint, errorMessage string) error {
 	c := database.C("MonitorHtmlEndpoints")
 	result := HTTPEndpoint{}
 	err := c.FindId(endpoint.ID).One(&result);
 	if err != nil {
-		log.Printf("Error retreiving endpoint with success details: %s", err.Error())
-		return
+		return fmt.Errorf("error retreiving endpoint with success details: %s", err.Error())
 	}
 
 	result.lastChecked = time.Now()
 	result.Passing = false
 	result.Error = errorMessage
+	result.ErrorCount++
 
 	err = c.UpdateId(endpoint.ID, result)
 	if err != nil {
-		log.Printf("Error saving endpoint with success details: %s", err.Error())
+		return fmt.Errorf("error saving endpoint with success details: %s", err.Error())
 	}
+	return nil
 }

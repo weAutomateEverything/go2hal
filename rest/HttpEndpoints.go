@@ -17,7 +17,7 @@ func addHTTPEndpoint(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(err.Error()))
 		return
 	}
-	err = service.CheckEndpoint(endpoint)
+	err = service.CheckEndpoint(&endpoint)
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusFailedDependency)

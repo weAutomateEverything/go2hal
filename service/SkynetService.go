@@ -138,7 +138,7 @@ func createNode(json string, skynet database.Skynet) error {
 
 	body, err := doHTTP("POST", skynet.Address+"/virtual_machines", json, skynet)
 	if err != nil {
-		SendAlert(fmt.Sprintf("Error creating node. %s", err.Error()))
+		InvokeCallout(fmt.Sprintf("skynet error creating node. error %s", err.Error()))
 		return err
 	}
 	log.Println(body)
@@ -153,14 +153,14 @@ func doHTTP(method, url, body string, skynet database.Skynet) (string, error) {
 	client := &http.Client{}
 	req, err := http.NewRequest(method, url, strings.NewReader(body))
 	if err != nil {
-		logError(fmt.Sprintf("Error creating URL to find node %s", err.Error()))
+		logError(fmt.Sprintf("skynet error creating URL to find node. Error %s. Method: %s, URL: %s, Body %s", err.Error(),method,url,body))
 		return "", err
 	}
 	req.SetBasicAuth(skynet.Username, skynet.Password)
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := client.Do(req)
 	if err != nil {
-		logError(fmt.Sprintf("error in skynet call. %s", err.Error()))
+		logError(fmt.Sprintf("error in skynet call.  Error %s. Method: %s, URL: %s, Body %s", err.Error(),method,url,body))
 		return "", err
 	}
 	bodyText, err := ioutil.ReadAll(resp.Body)
@@ -168,9 +168,8 @@ func doHTTP(method, url, body string, skynet database.Skynet) (string, error) {
 	return s, nil
 }
 
-func logError(error string) {
-	log.Println(error)
-	SendAlert(error)
+func logError( error string) {
+	SendAlert(err.Error())
 }
 
 func poll(expectedState, nodeName string, skynet database.Skynet, ignoreFailed bool, timeout int) error {
@@ -178,13 +177,13 @@ func poll(expectedState, nodeName string, skynet database.Skynet, ignoreFailed b
 	for i < timeout {
 		body, err := doHTTP("GET", skynet.Address+"/virtual_machines/"+nodeName+"/state", "", skynet)
 		if err != nil {
-			logError(fmt.Sprintf("Error retreiving node state: %s", err.Error()))
+			logError(fmt.Sprintf("skynet error retreiving node state:  Error %s. Node: %s", err.Error(),nodeName))
 			return err
 		}
 		var dat map[string]interface{}
 		err = json2.Unmarshal([]byte(body), &dat)
 		if err != nil {
-			logError(fmt.Sprintf("error unamrhsaling %s to json", body))
+			logError(fmt.Sprintf("skynet error unamrhsaling %s to json. Node: %s", body, nodeName))
 			return err
 		}
 		state := dat["state"].(map[string]interface{})["current"].(string)
@@ -192,17 +191,18 @@ func poll(expectedState, nodeName string, skynet database.Skynet, ignoreFailed b
 			SendAlert(fmt.Sprintf("%s has been reached state %s.", nodeName, expectedState))
 			return nil
 		}
-		if (!ignoreFailed && strings.ToUpper(state) == "FAILED") {
+		if !ignoreFailed && strings.ToUpper(state) == "FAILED" {
 			SendAlert(fmt.Sprintf("%s has entered a Failed State.", nodeName))
+			InvokeCallout(fmt.Sprintf("Skynet Error rebuilding node %s",nodeName))
 			return fmt.Errorf("%s has entered a Failed State", nodeName)
 		}
 		i++
 		if i%60 == 0 {
-			SendAlert(fmt.Sprintf("still waiting for node %s to reach state %s. Curent state is %s", nodeName, expectedState, state))
+			SendError(fmt.Errorf("still waiting for node %s to reach state %s. Curent state is %s", nodeName, expectedState, state))
 		}
 		time.Sleep(time.Second)
 	}
-	err := fmt.Errorf("Timed out waiting for node %s to %s", nodeName, expectedState)
+	err := fmt.Errorf("timed out waiting for node %s to %s", nodeName, expectedState)
 	logError(err.Error())
 	return err
 }
