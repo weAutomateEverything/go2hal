@@ -44,7 +44,7 @@ func runTests() {
 					}
 					if test.Threshold > 0 {
 						if test.Threshold == test.ErrorCount {
-							InvokeCallout(fmt.Sprintf("Selenium Error: %s - %s", test.Name, err.Error()))
+							InvokeCallout(fmt.Sprintf("Selenium Error: %s - %s", test.Name), err.Error())
 						}
 
 						if test.ErrorCount >= test.Threshold {

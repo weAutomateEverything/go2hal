@@ -138,7 +138,7 @@ func createNode(json string, skynet database.Skynet) error {
 
 	body, err := doHTTP("POST", skynet.Address+"/virtual_machines", json, skynet)
 	if err != nil {
-		InvokeCallout(fmt.Sprintf("skynet error creating node. error %s", err.Error()))
+		InvokeCallout("skynet error creating node",fmt.Sprintf("Json: %s, Error: %s", json, err.Error()))
 		return err
 	}
 	log.Println(body)
@@ -169,7 +169,7 @@ func doHTTP(method, url, body string, skynet database.Skynet) (string, error) {
 }
 
 func logError( error string) {
-	SendAlert(err.Error())
+	SendAlert(error)
 }
 
 func poll(expectedState, nodeName string, skynet database.Skynet, ignoreFailed bool, timeout int) error {
@@ -193,7 +193,7 @@ func poll(expectedState, nodeName string, skynet database.Skynet, ignoreFailed b
 		}
 		if !ignoreFailed && strings.ToUpper(state) == "FAILED" {
 			SendAlert(fmt.Sprintf("%s has entered a Failed State.", nodeName))
-			InvokeCallout(fmt.Sprintf("Skynet Error rebuilding node %s",nodeName))
+			InvokeCallout(fmt.Sprintf("Skynet Error rebuilding node %s",nodeName),"Node failed to build successfully")
 			return fmt.Errorf("%s has entered a Failed State", nodeName)
 		}
 		i++
@@ -202,6 +202,7 @@ func poll(expectedState, nodeName string, skynet database.Skynet, ignoreFailed b
 		}
 		time.Sleep(time.Second)
 	}
+	InvokeCallout(fmt.Sprintf("Timed out waiting for node %s to enter state %s",nodeName,expectedState), "")
 	err := fmt.Errorf("timed out waiting for node %s to %s", nodeName, expectedState)
 	logError(err.Error())
 	return err
