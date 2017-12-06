@@ -14,6 +14,7 @@ import (
 	"fmt"
 	json2 "encoding/json"
 	"gopkg.in/kyokomi/emoji.v1"
+	"errors"
 )
 
 /*
@@ -75,7 +76,7 @@ func createJira(description string) {
 		SendError(err)
 		return
 	}
-	if j.URL == "" {
+	if j == nil || j.URL == "" {
 		log.Println("No JIRA URL Set. Will not create a JIRA Item")
 		return
 	}
@@ -93,6 +94,8 @@ func createJira(description string) {
 		SendError(err)
 		return
 	}
+
+	SendError(errors.New(buf.String()))
 
 	resp, err := http.Post(j.URL, "application/json", buf)
 	if err != nil {
@@ -120,7 +123,15 @@ func createJira(description string) {
 
 func jiraUser() string {
 	user, err := getFirstCallName()
+	if err != nil {
+		SendError(err)
+		return ""
+
+	}
 	j, err := database.GetJiraDetails()
+	if j == nil {
+		return ""
+	}
 	if err != nil{
 		SendError(err)
 		return ""
@@ -139,6 +150,9 @@ func getFirstCallName() (string, error) {
 	c, err := database.GetCalloutDetails()
 	if err != nil {
 		return "", err
+	}
+	if c == nil {
+		return "", errors.New("no callout set")
 	}
 	endpoint := c.URL
 	if endpoint == "" {

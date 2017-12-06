@@ -7,7 +7,6 @@ import (
 	"time"
 	"gopkg.in/kyokomi/emoji.v1"
 	"fmt"
-
 )
 
 //HalBot Structure to describe the state of the bot
@@ -66,9 +65,8 @@ func GetBot() *HalBot {
 SendMessage sends a test message to the chat id.
  */
 func SendMessage(chatID int64, message string, messageID int) (err error) {
-	return sendMessage(chatID,message,messageID,true)
+	return sendMessage(chatID, message, messageID, true)
 }
-
 
 func sendMessage(chatID int64, message string, messageID int, markup bool) (err error) {
 	if !hal.Running {
@@ -100,7 +98,7 @@ SendError will log the error to the console and attempt to send it to the heartb
  */
 func SendError(err error) {
 	log.Println(err.Error())
-	if bot == nil  {
+	if bot == nil {
 		return
 	}
 	sendToHeartbeatGroup(emoji.Sprintf(":poop: %s %s", bot.Self.UserName, err.Error()))
@@ -109,7 +107,7 @@ func SendError(err error) {
 func sendToHeartbeatGroup(message string) {
 	chatID, err := database.HeartbeatGroup()
 	if err == nil && chatID != 0 {
-		sendMessage(chatID, message, 0,false)
+		sendMessage(chatID, message, 0, false)
 	} else {
 		log.Printf("Could not send %s to heartbeat group", message)
 	}
@@ -212,7 +210,7 @@ func findCommand(command string) (a command) {
 func executeCommand(update tgbotapi.Update) bool {
 	command := findCommand(update.Message.Command())
 	if command != nil {
-		command.execute(update)
+		go func() {command.execute(update)}()
 		return true
 	}
 	return false
@@ -229,7 +227,9 @@ func getCommands() []commandDescription {
 func heartbeat() {
 	time.Sleep(time.Second * 30)
 	for true {
-		sendToHeartbeatGroup(emoji.Sprintf("%s :heart:", bot.Self.UserName))
+		if bot != nil {
+			sendToHeartbeatGroup(emoji.Sprintf("%s :heart:", bot.Self.UserName))
+		}
 		time.Sleep(time.Hour)
 	}
 }
@@ -246,5 +246,3 @@ func (s *setHeartbeatGroup) execute(update tgbotapi.Update) {
 	database.SetHeartbeatGroup(update.Message.Chat.ID)
 	SendMessage(update.Message.Chat.ID, "heartbeat group updated", update.Message.MessageID)
 }
-
-

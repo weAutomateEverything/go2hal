@@ -15,8 +15,8 @@ type HTTPEndpoint struct {
 	Parameters []Parameters
 	Threshold  int
 
-	lastChecked time.Time
-	lastSuccess time.Time
+	LastChecked time.Time
+	LastSuccess time.Time
 	ErrorCount  int
 	Passing     bool
 	Error       string
@@ -56,8 +56,8 @@ SuccessfulEndpointTest will update the mongo element with the ID with the latest
 func SuccessfulEndpointTest(endpoint *HTTPEndpoint) error {
 	c := database.C("MonitorHtmlEndpoints")
 
-	endpoint.lastChecked = time.Now()
-	endpoint.lastSuccess = time.Now()
+	endpoint.LastChecked = time.Now()
+	endpoint.LastSuccess = time.Now()
 	endpoint.Passing = true
 	endpoint.Error = ""
 	endpoint.ErrorCount = 0
@@ -80,7 +80,7 @@ func FailedEndpointTest(endpoint *HTTPEndpoint, errorMessage string) error {
 		return fmt.Errorf("error retreiving endpoint with success details: %s", err.Error())
 	}
 
-	result.lastChecked = time.Now()
+	result.LastChecked = time.Now()
 	result.Passing = false
 	result.Error = errorMessage
 	result.ErrorCount++
