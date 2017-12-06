@@ -127,7 +127,6 @@ func monitorAppdynamicsQueue() {
 }
 
 func checkQueues(endpoint database.MqEndpoint) error {
-	log.Printf("Checking App Dynamics")
 
 	response, err := doGet(buildQueryString(endpoint))
 	if err != nil {
@@ -136,8 +135,6 @@ func checkQueues(endpoint database.MqEndpoint) error {
 		SendError(fmt.Errorf(" Queue depths Error: %s", err.Error()))
 		return err;
 	}
-
-	log.Printf("Received: %s", response)
 
 	if err != nil {
 		SendError(fmt.Errorf("queue - error parsing body %s", err))
@@ -166,7 +163,6 @@ func checkQueues(endpoint database.MqEndpoint) error {
 }
 
 func checkQueue(endpoint database.MqEndpoint, name string) error {
-	log.Printf("Checking Queue %s", name)
 	currDepth, err := getCurrentQueueDepthValue(buildQueryStringQueueDepth(endpoint, name))
 	if err != nil {
 		return err
@@ -177,7 +173,6 @@ func checkQueue(endpoint database.MqEndpoint, name string) error {
 		return err
 	}
 
-	log.Printf("Queue: %s, Current Depth: %.0f, Max Depth: %.0f", name, currDepth, maxDepth)
 	if maxDepth == 0 {
 		return fmt.Errorf("max depth for queue %s is 0", name)
 	}
