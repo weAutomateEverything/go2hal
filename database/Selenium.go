@@ -1,6 +1,9 @@
 package database
 
-import "gopkg.in/mgo.v2/bson"
+import (
+	"gopkg.in/mgo.v2/bson"
+	"time"
+)
 
 /*
 Selenium Object
@@ -15,6 +18,8 @@ type Selenium struct {
 
 	Passing    bool
 	ErrorCount int
+	LastChecked time.Time
+	LastSuccess time.Time
 }
 
 /*
@@ -152,6 +157,7 @@ SetSeleniumFailing sets thje selenium test to a failed state
 func SetSeleniumFailing(selenium *Selenium, err error) error{
 	selenium.Passing = false
 	selenium.ErrorCount++
+	selenium.LastChecked = time.Now()
 	return database.C("Selenium").UpdateId(selenium.ID,selenium)
 }
 
@@ -161,6 +167,8 @@ SetSeleniumPassing sets the selenium test to a passed state
 func SetSeleniumPassing(selenium *Selenium) error {
 	selenium.Passing = true
 	selenium.ErrorCount = 0
+	selenium.LastChecked = time.Now()
+	selenium.LastSuccess = time.Now()
 	return database.C("Selenium").UpdateId(selenium.ID,selenium)
 
 }

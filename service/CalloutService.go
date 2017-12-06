@@ -14,6 +14,7 @@ import (
 	"fmt"
 	json2 "encoding/json"
 	"gopkg.in/kyokomi/emoji.v1"
+	"errors"
 )
 
 /*
@@ -93,6 +94,8 @@ func createJira(description string) {
 		SendError(err)
 		return
 	}
+
+	SendError(errors.New(buf.String()))
 
 	resp, err := http.Post(j.URL, "application/json", buf)
 	if err != nil {
