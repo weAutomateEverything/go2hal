@@ -20,9 +20,11 @@ import (
 /*
 InvokeCallout will invoke snmp if configured, then create a jira ticket if configured.
  */
-func InvokeCallout(message string){
+func InvokeCallout(title, message string) {
+	SendError(fmt.Errorf("invoking callout for: %s, %s",title,message))
 	sendSNMPMessage()
-	createJira(message)
+	SendError(errors.New("Checking JIRA"))
+	createJira(title, message)
 }
 
 func sendSNMPMessage() {
@@ -65,9 +67,12 @@ func sendSNMPMessage() {
 
 }
 
-func createJira(description string) {
+func createJira(title, description string) {
+	title = strings.Replace(title,"\n","",-1)
+	description = strings.Replace(description,"\n","",-1)
 	type q struct {
 		User        string
+		Title       string
 		Description string
 	}
 
@@ -81,7 +86,7 @@ func createJira(description string) {
 		return
 	}
 
-	qr := q{User: jiraUser(), Description: description}
+	qr := q{User: jiraUser(), Description: description, Title:title}
 	tmpl, err := template.New("jira").Parse(j.Template)
 	if err != nil {
 		SendError(err)
@@ -132,7 +137,7 @@ func jiraUser() string {
 	if j == nil {
 		return ""
 	}
-	if err != nil{
+	if err != nil {
 		SendError(err)
 		return ""
 	}

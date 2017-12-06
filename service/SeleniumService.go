@@ -44,7 +44,7 @@ func runTests() {
 					}
 					if test.Threshold > 0 {
 						if test.Threshold == test.ErrorCount {
-							InvokeCallout(fmt.Sprintf("Selenium Error: %s - %s", test.Name, err.Error()))
+							InvokeCallout(fmt.Sprintf("Selenium Error with  test %s", test.Name), err.Error())
 						}
 
 						if test.ErrorCount >= test.Threshold {
@@ -158,19 +158,19 @@ func doCheck(check *database.Check, driver selenium.WebDriver) error {
 
 		elems, err := findElement(check.SearchOption, driver)
 		if err != nil {
-			return false, err
+			return false, nil
 		}
 
 		for _, elem := range elems {
 			dis, err := elem.IsDisplayed()
 			if err != nil {
-				return false, err
+				return false, nil
 			}
 			if dis {
 				if check.Value != nil {
 					s, err := elem.Text();
 					if err != nil {
-						return false, err
+						return false, nil
 					}
 					return *check.Value == s, nil
 				}

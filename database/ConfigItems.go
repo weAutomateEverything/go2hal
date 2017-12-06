@@ -69,7 +69,7 @@ func GetJiraDetails() (*Jira, error) {
 	if err != nil {
 		return nil, err
 	}
-	return c.Jira, err
+	return c.Jira, nil
 }
 
 func getConfig() (*config, error) {

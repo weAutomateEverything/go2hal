@@ -93,7 +93,7 @@ func checkAlert(endpoint *database.HTTPEndpoint, msg string) {
 	SendError(errors.New(msg))
 	if endpoint.Threshold > 0 {
 		if endpoint.Threshold == endpoint.ErrorCount {
-			InvokeCallout(fmt.Sprintf("Some Test failures for %s", endpoint.Name))
+			InvokeCallout(fmt.Sprintf("Some Test failures for %s", endpoint.Name),msg)
 		}
 		if endpoint.ErrorCount >= endpoint.Threshold {
 			SendAlert(msg)
