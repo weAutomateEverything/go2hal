@@ -71,8 +71,8 @@ func checkHTTP(endpoint *database.HTTPEndpoint) {
 
 	if response.StatusCode != 200 {
 		msg, _ := ioutil.ReadAll(response.Body)
-		error := fmt.Sprintf(":smoking: :x: *HTTP Alert*\nName: %s \nEndpoint: %s \nDid not receive a 200 success "+
-			"response code. Recieved %d response code. Body Message %s", endpoint.Name, endpoint.Endpoint,
+		error := emoji.Sprintf(":smoking: :x: *HTTP Alert*\nName: %s \nEndpoint: %s \nDid not receive a 200 success "+
+			"response code. Received %d response code. Body Message %s", endpoint.Name, endpoint.Endpoint,
 			response.StatusCode, msg)
 		checkAlert(endpoint, error)
 		return
