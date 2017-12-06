@@ -21,7 +21,9 @@ import (
 InvokeCallout will invoke snmp if configured, then create a jira ticket if configured.
  */
 func InvokeCallout(title, message string) {
+	SendError(fmt.Errorf("invoking callout for: %s, %s",title,message))
 	sendSNMPMessage()
+	SendError(errors.New("Checking JIRA"))
 	createJira(title, message)
 }
 
@@ -66,7 +68,6 @@ func sendSNMPMessage() {
 }
 
 func createJira(title, description string) {
-
 	title = strings.Replace(title,"\n","",-1)
 	description = strings.Replace(description,"\n","",-1)
 	type q struct {
