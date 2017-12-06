@@ -158,19 +158,19 @@ func doCheck(check *database.Check, driver selenium.WebDriver) error {
 
 		elems, err := findElement(check.SearchOption, driver)
 		if err != nil {
-			return false, err
+			return false, nil
 		}
 
 		for _, elem := range elems {
 			dis, err := elem.IsDisplayed()
 			if err != nil {
-				return false, err
+				return false, nil
 			}
 			if dis {
 				if check.Value != nil {
 					s, err := elem.Text();
 					if err != nil {
-						return false, err
+						return false, nil
 					}
 					return *check.Value == s, nil
 				}
