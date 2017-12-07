@@ -8,7 +8,6 @@ import (
 	"gopkg.in/kyokomi/emoji.v1"
 	"fmt"
 	"errors"
-	"google.golang.org/grpc/grpclb/grpc_lb_v1/service"
 	"runtime/debug"
 )
 
