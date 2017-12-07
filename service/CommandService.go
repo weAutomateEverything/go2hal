@@ -8,12 +8,22 @@ import (
 	"gopkg.in/kyokomi/emoji.v1"
 	"time"
 	"log"
+	"errors"
+	"runtime/debug"
 )
 
 /*
 ExecuteRemoteCommand will run the command against the supplied address
  */
 func ExecuteRemoteCommand(commandName, address string) error {
+	defer func() {
+		if err := recover(); err != nil {
+			fmt.Print(err)
+			SendError(errors.New(fmt.Sprint(err)))
+			SendError(errors.New(string(debug.Stack())))
+
+		}
+	}()
 	command, err := database.FindCommand(commandName)
 	if err != nil {
 		SendError(err)

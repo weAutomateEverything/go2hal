@@ -7,6 +7,9 @@ import (
 	"time"
 	"gopkg.in/kyokomi/emoji.v1"
 	"fmt"
+	"errors"
+	"google.golang.org/grpc/grpclb/grpc_lb_v1/service"
+	"runtime/debug"
 )
 
 //HalBot Structure to describe the state of the bot
@@ -122,6 +125,13 @@ func TestBot(token string) error {
 }
 
 func findFreeBot() {
+	defer func() {
+		if err := recover(); err != nil {
+			fmt.Print(err)
+			SendError(errors.New(fmt.Sprint(err)))
+			SendError(errors.New(string(debug.Stack())))
+		}
+	}()
 	for true {
 		bots := database.ListBots()
 		if bots != nil {

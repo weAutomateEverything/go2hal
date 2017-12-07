@@ -4,6 +4,10 @@ import (
 	"github.com/gorilla/mux"
 	"net/http"
 	"log"
+	"fmt"
+	"errors"
+	"github.com/zamedic/go2hal/service"
+	"runtime/debug"
 )
 
 /*
@@ -20,6 +24,15 @@ func init() {
 	go func() {
 		log.Println("Starting HTTP Server...")
 		log.Fatal(http.ListenAndServe(":8000", getRouter()))
+	}()
+	defer func() {
+		if err := recover(); err != nil {
+			fmt.Print(err)
+			service.SendError(errors.New(fmt.Sprint(err)))
+			service.SendError(errors.New(string(debug.Stack())))
+
+
+		}
 	}()
 }
 

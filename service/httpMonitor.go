@@ -12,6 +12,7 @@ import (
 	"net/url"
 	"io/ioutil"
 	"gopkg.in/kyokomi/emoji.v1"
+	"runtime/debug"
 )
 
 //HTTPMonitor is the current status of the monitor
@@ -46,6 +47,14 @@ func CheckEndpoint(endpoint *database.HTTPEndpoint) error {
 }
 
 func monitorEndpoints() {
+	defer func() {
+		if err := recover(); err != nil {
+			fmt.Print(err)
+			SendError(errors.New(fmt.Sprint(err)))
+			SendError(errors.New(string(debug.Stack())))
+
+		}
+	}()
 	log.Println("Starting HTTP Endpoint monitor")
 	h.running = true
 	for true {

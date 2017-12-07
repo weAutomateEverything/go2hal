@@ -12,6 +12,8 @@ import (
 	"gopkg.in/kyokomi/emoji.v1"
 	"bytes"
 	"gopkg.in/telegram-bot-api.v4"
+	"errors"
+	"runtime/debug"
 )
 
 func init() {
@@ -220,5 +222,13 @@ func (s *rebuildNode) commandDescription() string {
 }
 
 func (s *rebuildNode) execute(update tgbotapi.Update) {
+	defer func() {
+		if err := recover(); err != nil {
+			fmt.Print(err)
+			SendError(errors.New(fmt.Sprint(err)))
+			SendError(errors.New(string(debug.Stack())))
+
+		}
+	}()
 	RecreateNode(update.Message.CommandArguments(), update.Message.From.UserName)
 }

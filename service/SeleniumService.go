@@ -7,6 +7,7 @@ import (
 	"github.com/zamedic/go2hal/database"
 	"errors"
 	"gopkg.in/kyokomi/emoji.v1"
+	"runtime/debug"
 )
 
 func init() {
@@ -30,6 +31,16 @@ func TestSelenium(item database.Selenium) error {
 }
 
 func runTests() {
+	defer func() {
+		if err := recover(); err != nil {
+			fmt.Print(err)
+			SendError(errors.New(fmt.Sprint(err)))
+			SendError(errors.New(string(debug.Stack())))
+
+
+		}
+	}()
+
 	for true {
 		tests, err := database.GetAllSeleniumTests()
 		if err != nil {
