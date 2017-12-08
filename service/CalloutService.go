@@ -15,12 +15,21 @@ import (
 	json2 "encoding/json"
 	"gopkg.in/kyokomi/emoji.v1"
 	"errors"
+	"runtime/debug"
 )
 
 /*
 InvokeCallout will invoke snmp if configured, then create a jira ticket if configured.
  */
 func InvokeCallout(title, message string) {
+	defer func() {
+		if err := recover(); err != nil {
+			fmt.Print(err)
+			SendError(errors.New(fmt.Sprint(err)))
+			SendError(errors.New(string(debug.Stack())))
+
+		}
+	}()
 	SendError(fmt.Errorf("invoking callout for: %s, %s",title,message))
 	sendSNMPMessage()
 	SendError(errors.New("Checking JIRA"))
