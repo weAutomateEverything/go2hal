@@ -80,6 +80,17 @@ func SendAppdynamicsAlert(message string) {
 	}
 }
 
+func SendNonTechnicalAppDynamicsAlert(message string){
+
+	var buffer bytes.Buffer
+	buffer.WriteString(emoji.Sprintf(":red_circle:"))
+	buffer.WriteString(" ")
+	buffer.WriteString(message)
+
+	log.Printf("Sending Alert %s", message)
+	SendAlert(buffer.String())
+}
+
 /*
 AddAppdynamicsEndpoint calls the mongo service
  */

@@ -50,7 +50,7 @@ func getRouter() *mux.Router {
 	r.HandleFunc("/appdynamics/system/queue", addAppdynamicsQueueEndpoint).Methods("POST")
 	r.HandleFunc("/appdynamics/system", addAppDynamicsEndpoint).Methods("POST")
 	r.HandleFunc("/appdynamics/execute", executeCommandFromAppdynamics).Methods("POST")
-	r.HandleFunc("/appdynamics/alert/nontech", businessAppDynamicsAlert).Methods("POST")
+	r.HandleFunc("/appdynamics/alert/nontech", receiveNonTechAppDynamicsAlert).Methods("POST")
 
 	r.HandleFunc("/delivery", receiveDeliveryNotification).Methods("POST")
 	r.HandleFunc("/recipe", addRecipe).Methods("POST")
