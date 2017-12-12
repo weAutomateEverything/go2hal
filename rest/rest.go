@@ -71,6 +71,8 @@ func getRouter() *mux.Router {
 	r.HandleFunc("/config/jira",saveJira).Methods("POST")
 	r.HandleFunc("/config/callout",saveCallout).Methods("POST")
 
+	r.HandleFunc("/callout",invokeCallout).Methods("POST")
+
 	r.HandleFunc("/users",addUser).Methods("POST")
 	
 	router.Mux = r
