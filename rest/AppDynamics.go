@@ -42,19 +42,6 @@ func receiveAppDynamicsAlert(w http.ResponseWriter, r *http.Request) {
 	service.SendAppdynamicsAlert(string(body))
 }
 
-func receiveNonTechAppDynamicsAlert(w http.ResponseWriter, r *http.Request) {
-
-	body, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		service.SendError(err)
-		return
-	}
-
-	database.SaveAudit("APPDYNAMICS", string(body))
-	database.ReceiveAppynamicsMessage()
-	service.SendNonTechnicalAppDynamicsAlert(string(body))
-}
-
 func addAppDynamicsEndpoint(w http.ResponseWriter, r *http.Request) {
 	e := appdynamicsEndpoint{}
 	err := json.NewDecoder(r.Body).Decode(&e)
