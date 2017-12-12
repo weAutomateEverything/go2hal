@@ -8,14 +8,15 @@ import (
 type recipe struct {
 	ID     bson.ObjectId `bson:"_id,omitempty"`
 	Recipe string
+	FriendlyName string
 }
 
 /*
 AddRecipe will add a recipe to the watch list for the bot
  */
-func AddRecipe(recipeName string) error {
+func AddRecipe(recipeName, friendlyName string) error {
 	c := database.C("recipes")
-	recipeItem := recipe{Recipe: recipeName}
+	recipeItem := recipe{Recipe: recipeName, FriendlyName:friendlyName}
 	return c.Insert(recipeItem)
 
 }

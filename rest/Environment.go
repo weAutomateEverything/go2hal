@@ -8,7 +8,7 @@ import (
 )
 
 type environment struct {
-	Environment string
+	EnvironmentName, FriendlyName string
 }
 
 func addChefEnvironment(w http.ResponseWriter, r *http.Request) {
@@ -21,6 +21,6 @@ func addChefEnvironment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	database.AddChefEnvironment(environment.Environment)
+	database.AddChefEnvironment(environment.EnvironmentName,environment.FriendlyName)
 	w.WriteHeader(http.StatusOK)
 }
