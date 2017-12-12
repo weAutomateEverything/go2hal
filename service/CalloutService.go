@@ -1,7 +1,7 @@
 package service
 
 import (
-	g "github.com/soniah/gosnmp"
+	g "github.com/zamedic/gosnmp"
 	"log"
 	"os"
 	"strconv"
