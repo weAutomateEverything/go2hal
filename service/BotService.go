@@ -130,12 +130,17 @@ func sendKeyboard(buttons []string, text string, chat int64){
 	keyB := tgbotapi.NewReplyKeyboard()
 	keyBRow := tgbotapi.NewKeyboardButtonRow()
 
-	for _,l := range buttons {
-
+	for i,l := range buttons {
 		btn := tgbotapi.KeyboardButton{l,false,false}
 		keyBRow = append(keyBRow,btn)
+		if i > 0 && i % 3 == 0 {
+			keyB.Keyboard = append(keyB.Keyboard, keyBRow)
+			keyBRow = tgbotapi.NewKeyboardButtonRow()
+		}
 	}
-	keyB.Keyboard = append(keyB.Keyboard, keyBRow)
+	if len(keyBRow) > 0 {
+		keyB.Keyboard = append(keyB.Keyboard, keyBRow)
+	}
 	keyB.OneTimeKeyboard = true
 
 	msg := tgbotapi.NewMessage(chat,text)
