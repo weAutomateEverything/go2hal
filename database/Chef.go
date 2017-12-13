@@ -4,6 +4,9 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
+/*
+ChefClient contains the name, url and key for HAL to be able to connect to CHEF.
+ */
 type ChefClient struct {
 	ID bson.ObjectId `bson:"_id,omitempty"`
 	Name,URL,Key string
@@ -16,6 +19,9 @@ func AddChefClient(name,url,key string){
 	c.Insert(chef)
 }
 
+/*
+GetChefClientDetails returns the chef client details
+ */
 func GetChefClientDetails() (ChefClient,error){
 	c := database.C("chef")
 	var client ChefClient

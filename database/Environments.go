@@ -2,6 +2,9 @@ package database
 
 import "gopkg.in/mgo.v2/bson"
 
+/*
+ChefEnvironment contains the chef environments this bot is allowed to use in CHEF
+ */
 type ChefEnvironment struct {
 	ID           bson.ObjectId `bson:"_id,omitempty"`
 	Environment  string

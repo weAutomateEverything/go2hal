@@ -5,6 +5,9 @@ import (
 	"log"
 )
 
+/*
+Recipe are the chef recipes the bot wants to interact with
+ */
 type Recipe struct {
 	ID     bson.ObjectId `bson:"_id,omitempty"`
 	Recipe string

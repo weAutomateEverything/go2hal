@@ -41,14 +41,6 @@ func AddChefClient(name, key, url string) error {
 	return nil
 }
 
-func AddChefEnvironment(envName, friendlyName string){
-	database.AddChefEnvironment(envName,friendlyName)
-}
-
-func AddRecipe(recipeName, friendlyName string){
-	database.AddRecipe(recipeName,friendlyName)
-}
-
 func getChefClient() (client *chef.Client, err error) {
 	c, err := database.GetChefClientDetails()
 	if err != nil {
