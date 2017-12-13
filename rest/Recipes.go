@@ -22,7 +22,7 @@ func addRecipe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	database.AddRecipe(recipe.Name)
+	database.AddRecipe(recipe.RecipeName,recipe.FriendlyName)
 	w.WriteHeader(http.StatusOK)
 
 }

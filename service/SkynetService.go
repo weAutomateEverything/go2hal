@@ -21,11 +21,6 @@ func init() {
 	register(func() command {
 		return &rebuildNode{}
 	})
-	if(database.IsChefConfigured()){
-
-	}
-
-
 }
 
 /*
@@ -217,8 +212,7 @@ func poll(expectedState, nodeName string, skynet database.Skynet, ignoreFailed b
 
 type rebuildNode struct {
 }
-type rebuildChefNode struct {
-}
+
 
 /* Rebuild Node */
 func (s *rebuildNode) commandIdentifier() string {
@@ -241,18 +235,6 @@ func (s *rebuildNode) execute(update tgbotapi.Update) {
 	RecreateNode(update.Message.CommandArguments(), update.Message.From.UserName)
 }
 
-/* Rebuild Chef Node */
-func (s *rebuildChefNode)commandIdentifier() string{
-	return "RebuildChefNode"
-}
 
-func (s *rebuildChefNode)commandDescription() string  {
-	return "Rebuilds a node based on a chef search"
-
-}
-
-func (s *rebuildChefNode) execute(update tgbotapi.Update) {
- //TODO: Impliment Method
-}
 
 
