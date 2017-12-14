@@ -1,0 +1,17 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: hal-service
+spec:
+  selector:
+    app: hal
+  ports:
+  - protocol: TCP
+    name: snmp
+    port: 161
+    targetPort: 9162
+  - protocol: TCP
+    name: http
+    port: 80
+    targetPort: 8000
+  type: LoadBalancer
