@@ -36,6 +36,7 @@ func SendAppdynamicsAlert(message string) {
 		event := event.(map[string]interface{})
 
 		message := event["eventMessage"].(string)
+		businessMessage := event["businessEvent"].(string)
 
 		application := event["application"].(map[string]interface{})
 		tier := event["tier"].(map[string]interface{})
@@ -48,6 +49,9 @@ func SendAppdynamicsAlert(message string) {
 		var buffer bytes.Buffer
 		buffer.WriteString(emoji.Sprintf(":red_circle:"))
 		buffer.WriteString(" ")
+		buffer.WriteString(businessMessage)
+		buffer.WriteString("\n")
+		buffer.WriteString("===================================")
 		buffer.WriteString(message)
 		buffer.WriteString("\n")
 
