@@ -31,12 +31,15 @@ func SendAppdynamicsAlert(message string) {
 		return
 	}
 
+	business := dat["business"].(map[string]interface{})
+	businessMessage := business["businessEvent"].(string)
+
 	events := dat["events"].([]interface{})
 	for _, event := range events {
 		event := event.(map[string]interface{})
 
 		message := event["eventMessage"].(string)
-		businessMessage := event["businessEvent"].(string)
+
 
 		application := event["application"].(map[string]interface{})
 		tier := event["tier"].(map[string]interface{})
@@ -51,7 +54,8 @@ func SendAppdynamicsAlert(message string) {
 		buffer.WriteString(" ")
 		buffer.WriteString(businessMessage)
 		buffer.WriteString("\n")
-		buffer.WriteString("===================================")
+		buffer.WriteString("==============================================")
+		buffer.WriteString("\n")
 		buffer.WriteString(message)
 		buffer.WriteString("\n")
 
