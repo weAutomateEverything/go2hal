@@ -16,8 +16,15 @@ import (
 	"gopkg.in/kyokomi/emoji.v1"
 	"errors"
 	"runtime/debug"
+	"gopkg.in/telegram-bot-api.v4"
 )
 
+
+func init(){
+	register(func() command {
+		return &whosOnFirstCall{}
+	})
+}
 /*
 InvokeCallout will invoke snmp if configured, then create a jira ticket if configured.
  */
@@ -197,3 +204,27 @@ func snmpPort() uint16 {
 	i, _ := strconv.ParseInt(os.Getenv("SNMP_PORT"), 10, 16)
 	return uint16(i)
 }
+
+/* -------------- */
+
+type whosOnFirstCall struct {}
+
+
+/* Set Heartbeat group */
+func (s *whosOnFirstCall) commandIdentifier() string {
+	return "FirstCall"
+}
+
+func (s *whosOnFirstCall) commandDescription() string {
+	return "Who is on first call?"
+}
+
+func (s *whosOnFirstCall) execute(update tgbotapi.Update) {
+	name, err := getFirstCallName()
+	if err != nil {
+		SendError(err)
+		return
+	}
+	SendMessage(update.Message.Chat.ID, fmt.Sprintf("%s is on first call",name), update.Message.MessageID)
+}
+

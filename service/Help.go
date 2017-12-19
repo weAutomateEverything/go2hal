@@ -27,6 +27,7 @@ func (s *help) commandDescription() string {
 func (s *help) execute(update tgbotapi.Update) {
 	var buffer bytes.Buffer
 	for _, x := range getCommands(){
+		buffer.WriteString("/")
 		buffer.WriteString(x.Name)
 		buffer.WriteString(" - ")
 		buffer.WriteString(x.Description)

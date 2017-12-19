@@ -213,6 +213,8 @@ func poll(expectedState, nodeName string, skynet database.Skynet, ignoreFailed b
 type rebuildNode struct {
 }
 
+
+/* Rebuild Node */
 func (s *rebuildNode) commandIdentifier() string {
 	return "RebuildNode"
 }
@@ -232,3 +234,7 @@ func (s *rebuildNode) execute(update tgbotapi.Update) {
 	}()
 	RecreateNode(update.Message.CommandArguments(), update.Message.From.UserName)
 }
+
+
+
+
