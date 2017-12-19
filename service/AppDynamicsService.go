@@ -32,7 +32,7 @@ func SendAppdynamicsAlert(message string) {
 	}
 
 	business := dat["business"].(map[string]interface{})
-	businessMessage := business["businessEvent"].(string)
+
 
 	events := dat["events"].([]interface{})
 	for _, event := range events {
@@ -52,10 +52,15 @@ func SendAppdynamicsAlert(message string) {
 		var buffer bytes.Buffer
 		buffer.WriteString(emoji.Sprintf(":red_circle:"))
 		buffer.WriteString(" ")
-		buffer.WriteString(businessMessage)
-		buffer.WriteString("\n")
-		buffer.WriteString("==============================================")
-		buffer.WriteString("\n")
+
+		if business["businessEvent"] != nil {
+			businessMessage := business["businessEvent"].(string)
+			buffer.WriteString(businessMessage)
+			buffer.WriteString("\n")
+			buffer.WriteString("==============================================")
+			buffer.WriteString("\n")
+		}
+
 		buffer.WriteString(message)
 		buffer.WriteString("\n")
 
