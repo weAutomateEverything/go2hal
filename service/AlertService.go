@@ -40,7 +40,10 @@ func SendNonTechnicalAlert(message string) error {
 	return err
 }
 
-func sendImageToAlertGroup(image []byte) error {
+/*
+SendImageToAlertGroup will send the image to the alert group
+ */
+func SendImageToAlertGroup(image []byte) error {
 	path := ""
 
 	if runtime.GOOS == "windows" {
