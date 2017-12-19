@@ -31,8 +31,19 @@ func SendAppdynamicsAlert(message string) {
 		return
 	}
 
-	business := dat["business"].(map[string]interface{})
+	if dat["business"] !=nil {
+		business := dat["business"].(map[string]interface{})
 
+		var NonTechBuffer bytes.Buffer
+
+		businessMessage := business["businessEvent"].(string)
+		NonTechBuffer.WriteString(emoji.Sprintf(":red_circle:"))
+		NonTechBuffer.WriteString(" ")
+		NonTechBuffer.WriteString(businessMessage)
+
+		log.Printf("Sending Non-Technical Alert %s", NonTechBuffer.String())
+		SendNonTechnicalAlert(NonTechBuffer.String())
+	}
 
 	events := dat["events"].([]interface{})
 	for _, event := range events {
@@ -52,15 +63,6 @@ func SendAppdynamicsAlert(message string) {
 		var buffer bytes.Buffer
 		buffer.WriteString(emoji.Sprintf(":red_circle:"))
 		buffer.WriteString(" ")
-
-		if business["businessEvent"] != nil {
-			businessMessage := business["businessEvent"].(string)
-			buffer.WriteString(businessMessage)
-			buffer.WriteString("\n")
-			buffer.WriteString("==============================================")
-			buffer.WriteString("\n")
-		}
-
 		buffer.WriteString(message)
 		buffer.WriteString("\n")
 
