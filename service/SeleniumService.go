@@ -61,7 +61,7 @@ func runTests() {
 						if test.ErrorCount >= test.Threshold {
 							SendAlert(emoji.Sprintf(":computer: :x: Error executing selenium test for %s. error: %s", test.Name, err.Error()))
 							if image != nil {
-								sendImageToAlertGroup(image)
+								SendImageToAlertGroup(image)
 							}
 						}
 					}
