@@ -31,8 +31,8 @@ func SendAppdynamicsAlert(message string) {
 		return
 	}
 
-	if dat["business"] !=nil {
-		business := dat["business"].(map[string]interface{})
+	if val, ok := dat["business"]; ok  {
+		business := val.(map[string]interface{})
 
 		var NonTechBuffer bytes.Buffer
 
