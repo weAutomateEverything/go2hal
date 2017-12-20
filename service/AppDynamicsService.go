@@ -31,11 +31,26 @@ func SendAppdynamicsAlert(message string) {
 		return
 	}
 
+	if val, ok := dat["business"]; ok  {
+		business := val.(map[string]interface{})
+
+		var NonTechBuffer bytes.Buffer
+
+		businessMessage := business["businessEvent"].(string)
+		NonTechBuffer.WriteString(emoji.Sprintf(":red_circle:"))
+		NonTechBuffer.WriteString(" ")
+		NonTechBuffer.WriteString(businessMessage)
+
+		log.Printf("Sending Non-Technical Alert %s", NonTechBuffer.String())
+		SendNonTechnicalAlert(NonTechBuffer.String())
+	}
+
 	events := dat["events"].([]interface{})
 	for _, event := range events {
 		event := event.(map[string]interface{})
 
 		message := event["eventMessage"].(string)
+
 
 		application := event["application"].(map[string]interface{})
 		tier := event["tier"].(map[string]interface{})
