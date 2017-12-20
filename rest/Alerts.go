@@ -7,10 +7,12 @@ import (
 	"github.com/zamedic/go2hal/service"
 	"encoding/json"
 	"encoding/base64"
+	"errors"
 )
 
 type imageAlertMessage struct {
 	Message, Image string
+	internalError bool
 }
 
 
@@ -43,9 +45,18 @@ func imageAlertHandler(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte(err.Error()))
 			return
 		}
-		service.SendImageToAlertGroup(b)
+		if req.internalError {
+			service.SendImageToHeartbeatGroup(b)
+		} else {
+			service.SendImageToAlertGroup(b)
+
+		}
 	}
-	service.SendAlert(req.Message)
+	if req.internalError{
+		service.SendError(errors.New(req.Message))
+	} else {
+		service.SendAlert(req.Message)
+	}
 }
 
 func sendBusinessAlert(w http.ResponseWriter, r *http.Request) {
