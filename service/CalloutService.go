@@ -192,6 +192,9 @@ func getFirstCallName() (string, error) {
 	bodyString := string(body)
 	split := strings.SplitAfter(bodyString, "<font color='red' size=2>")
 	names := strings.Split(split[1], "</font>")
+	if len(names) == 0 {
+		return "", errors.New("no callout found")
+	}
 	return names[0], nil
 
 }
