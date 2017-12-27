@@ -31,12 +31,13 @@ func init() {
 		}
 	}
 	session, err := mgo.DialWithInfo(dialinfo)
-	session.SetMode(mgo.Monotonic, true)
-
-	database = session.DB(dialinfo.Database)
 	if err != nil {
 		log.Panic(err)
 	}
+	session.SetMode(mgo.Monotonic, true)
+
+	database = session.DB(dialinfo.Database)
+
 }
 
 func getDialInfoParameters() *mgo.DialInfo{
