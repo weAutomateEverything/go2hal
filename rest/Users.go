@@ -12,6 +12,8 @@ type user struct {
 	JIRAName       string
 }
 
+
+
 func addUser(w http.ResponseWriter, r *http.Request){
 	var u user
 	err := json.NewDecoder(r.Body).Decode(&u)
