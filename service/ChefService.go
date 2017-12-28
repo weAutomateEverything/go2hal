@@ -5,27 +5,69 @@ import (
 	"github.com/zamedic/go2hal/database"
 	"gopkg.in/telegram-bot-api.v4"
 	"fmt"
+	"time"
+	"strings"
+	"gopkg.in/kyokomi/emoji.v1"
 )
 
-func init(){
-	chef, err :=database.IsChefConfigured()
+type node struct {
+	name        string
+	environment string
+}
+
+func init() {
+	chef, err := database.IsChefConfigured()
 	if err != nil {
 		SendError(err)
 	}
-	if chef{
+	if chef {
 		register(func() command {
 			return &rebuildChefNode{}
 		})
-		registerCommandlet(func() commandlet{
+		registerCommandlet(func() commandlet {
 			return &rebuildChefNodeRecipeReply{}
 		})
-		registerCommandlet(func() commandlet{
+		registerCommandlet(func() commandlet {
 			return &rebuildChefNodeEnvironmentReply{}
 		})
-		registerCommandlet(func() commandlet{
+		registerCommandlet(func() commandlet {
 			return &rebuildChefNodeExecute{}
 		})
+		monitorQuarentined()
+
 	}
+}
+
+func monitorQuarentined() {
+	for {
+		checkQuarentined()
+		time.Sleep(30 * time.Minute)
+	}
+}
+func checkQuarentined() {
+	recipes, err := database.GetRecipes()
+	if err != nil {
+		SendError(err)
+		return
+	}
+
+	env, err := database.GetChefEnvironments()
+	if err != nil {
+		SendError(err)
+		return
+	}
+
+	for _,r := range recipes {
+		for _, e := range env {
+			nodes := findNodesFromFriendlyNames(r.FriendlyName,e.FriendlyName)
+			for _,n := range nodes {
+				if strings.Index(n.environment,"quar") > 0 {
+					SendAlert(emoji.Sprintf(":hospital: *Node Quarantined* \n node %v has been placed in environment %v. Application %v ",n.name,n.environment, r.FriendlyName))
+				}
+			}
+		}
+	}
+
 }
 
 //AddChefClient Adds a chef client.
@@ -60,7 +102,7 @@ func connect(name, key, url string) (client *chef.Client, err error) {
 	return
 }
 
-func findNodesNamesFromFriendlyNames(recipe, environment string) []string{
+func findNodesFromFriendlyNames(recipe, environment string) []node {
 	chefRecipe, err := database.GetRecipeFromFriendlyName(recipe)
 	if err != nil {
 		SendError(err)
@@ -87,20 +129,22 @@ func findNodesNamesFromFriendlyNames(recipe, environment string) []string{
 
 	part := make(map[string]interface{})
 	part["name"] = []string{"name"}
+	part["chef_environment"] = []string{"chef_environment"}
 
-	res, err := query.DoPartial(client,part)
+	res, err := query.DoPartial(client, part)
 	if err != nil {
 		SendError(err)
 		return nil
 	}
 
-	result := make([]string, res.Total)
+	result := make([]node, res.Total)
 
 	for i, x := range res.Rows {
 		s := x.(map[string]interface{})
 		data := s["data"].(map[string]interface{})
 		name := data["name"].(string)
-		result[i] = name
+		env := data["chef_environment"].(string)
+		result[i] = node{name:name,environment:env}
 	}
 
 	return result
@@ -184,22 +228,24 @@ func (s *rebuildChefNodeEnvironmentReply) canExecute(update tgbotapi.Update, sta
 }
 
 func (s *rebuildChefNodeEnvironmentReply) execute(update tgbotapi.Update, state database.State) {
-	nodes := findNodesNamesFromFriendlyNames(state.Field[0],update.Message.Text)
-	sendKeyboard(nodes,"Select node to rebuild",update.Message.Chat.ID)
+	nodes := findNodesFromFriendlyNames(state.Field[0], update.Message.Text)
+	res := make([]string,len(nodes))
+	for i,x := range nodes {
+		res[i] = x.name
+	}
+	sendKeyboard(res, "Select node to rebuild", update.Message.Chat.ID)
 }
 
-func (s *rebuildChefNodeEnvironmentReply) 	nextState(update tgbotapi.Update,state database.State) string{
+func (s *rebuildChefNodeEnvironmentReply) nextState(update tgbotapi.Update, state database.State) string {
 	return "RebuildChefNodeSelectNode"
 }
 
-
-func (s *rebuildChefNodeEnvironmentReply) 	fields(update tgbotapi.Update,state database.State) []string {
-	return append(state.Field,update.Message.Text)
+func (s *rebuildChefNodeEnvironmentReply) fields(update tgbotapi.Update, state database.State) []string {
+	return append(state.Field, update.Message.Text)
 }
 
 /*------------------*/
 type rebuildChefNodeExecute struct {
-
 }
 
 func (s *rebuildChefNodeExecute) canExecute(update tgbotapi.Update, state database.State) bool {
@@ -215,12 +261,10 @@ func (s *rebuildChefNodeExecute) execute(update tgbotapi.Update, state database.
 	}()
 }
 
-func (s *rebuildChefNodeExecute) 	nextState(update tgbotapi.Update,state database.State) string{
+func (s *rebuildChefNodeExecute) nextState(update tgbotapi.Update, state database.State) string {
 	return ""
 }
 
-
-func (s *rebuildChefNodeExecute) 	fields(update tgbotapi.Update,state database.State) []string {
+func (s *rebuildChefNodeExecute) fields(update tgbotapi.Update, state database.State) []string {
 	return nil
 }
-
