@@ -62,7 +62,7 @@ func checkQuarentined() {
 			nodes := findNodesFromFriendlyNames(r.FriendlyName,e.FriendlyName)
 			for _,n := range nodes {
 				if strings.Index(n.environment,"quar") > 0 {
-					SendAlert(emoji.Sprintf(":hospital: *Node Quarantined* \n node %v has been placed in environment %v. Application %v ",n.name,n.environment, r.FriendlyName))
+					SendAlert(emoji.Sprintf(":hospital: *Node Quarantined* \n node %v has been placed in environment %v. Application %v ",n.name,strings.Replace(n.environment,"_", " ",-1), r.FriendlyName))
 				}
 			}
 		}
