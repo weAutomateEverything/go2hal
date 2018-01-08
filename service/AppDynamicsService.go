@@ -261,14 +261,12 @@ func doGet(uri string) (string, error) {
 
 	client := &http.Client{}
 	url := a.Endpoint + uri
-	log.Println(url)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		SendError(err)
 		return "", err
 	}
 
-	//req.SetBasicAuth(a.User, a.Password) //<username@group>
 	resp, err := client.Do(req)
 	if err != nil {
 		SendError(err)
@@ -305,7 +303,7 @@ func getIPAddressForNode(application, node string) (string, error) {
 	arrayIP := ipaddresses["ipAddresses"].([]interface{})
 	for _,ipo := range arrayIP {
 		ip := ipo.(string)
-		if (strings.Index(ip,".") > 0){
+		if strings.Index(ip,".") > 0 {
 			return ip,nil
 		}
 	}
