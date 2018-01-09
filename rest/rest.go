@@ -74,7 +74,7 @@ func getRouter() *mux.Router {
 	r.HandleFunc("/config/chef",addChefClient).Methods("POST")
 	r.HandleFunc("/config/chef/recipe",addRecipe).Methods("POST")
 	r.HandleFunc("/config/chef/environment",addChefEnvironment).Methods("POST")
-
+	r.HandleFunc("/config/seleniumtimeout",saveSeleniumTimout).Methods("POST")
 
 	r.HandleFunc("/callout",invokeCallout).Methods("POST")
 

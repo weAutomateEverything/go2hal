@@ -14,6 +14,10 @@ type callout struct {
 	URL string
 }
 
+type seleniumTimout struct {
+	Timeout int
+}
+
 func saveJira(w http.ResponseWriter, r *http.Request) {
 	var j jira
 	err := json.NewDecoder(r.Body).Decode(&j)
@@ -37,5 +41,19 @@ func saveCallout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	database.SaveCalloutDetails(c.URL)
+	w.WriteHeader(http.StatusOK)
+}
+
+
+func saveSeleniumTimout(w http.ResponseWriter, r *http.Request) {
+	var s seleniumTimout
+	err := json.NewDecoder(r.Body).Decode(&s)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	database.SaveSeleniumTimeDetails(s.Timeout)
 	w.WriteHeader(http.StatusOK)
 }

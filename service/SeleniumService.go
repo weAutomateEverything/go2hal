@@ -76,7 +76,9 @@ func runTests() {
 				}
 			}
 		}
-		time.Sleep(5 * time.Minute)
+
+		seleniumTime, err := database.GetSeleniumTimeDetails()
+		time.Sleep(time.Duration(seleniumTime) * time.Minute)
 	}
 }
 
