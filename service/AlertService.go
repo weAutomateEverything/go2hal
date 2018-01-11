@@ -18,6 +18,7 @@ func init(){
 	register(func() command {
 		return &setNonTechnicalGroup{}
 	})
+	log.Println("nitializing Set Group Command - Completed")
 }
 
 //SendAlert will send the alert message as defined in the alert group

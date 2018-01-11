@@ -11,6 +11,8 @@ func init() {
 	register(func() command {
 		return &help{}
 	})
+	log.Println("Initialising Help Command - Completed")
+
 }
 
 type help struct {

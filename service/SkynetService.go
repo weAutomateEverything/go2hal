@@ -21,6 +21,8 @@ func init() {
 	register(func() command {
 		return &rebuildNode{}
 	})
+	log.Println("Initializing Skynet Rebuild Command - completed")
+
 }
 
 /*

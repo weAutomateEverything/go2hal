@@ -52,6 +52,7 @@ var bot *tgbotapi.BotAPI
 var err error
 
 func init() {
+	log.Println("Initializing bot")
 	hal = &HalBot{false, nil}
 	go func() {
 		findFreeBot()
@@ -65,6 +66,8 @@ func init() {
 	register(func() command {
 		return &setHeartbeatGroup{}
 	})
+	log.Println("Initializing bot - Complete")
+
 }
 
 /*

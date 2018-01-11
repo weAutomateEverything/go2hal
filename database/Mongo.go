@@ -38,6 +38,7 @@ func init() {
 
 	database = session.DB(dialinfo.Database)
 
+	log.Println("Starting Database - Completed")
 }
 
 func getDialInfoParameters() *mgo.DialInfo{
