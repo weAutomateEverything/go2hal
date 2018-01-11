@@ -23,10 +23,12 @@ type HTTPMonitor struct {
 var h *HTTPMonitor
 
 func init() {
+	log.Print("Initializing HTTP Monitor")
 	h = &HTTPMonitor{}
 	go func() {
 		monitorEndpoints()
 	}()
+	log.Print("Initializing HTTP Monitor - completed")
 }
 
 /*

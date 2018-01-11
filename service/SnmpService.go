@@ -12,7 +12,12 @@ import (
 )
 
 func init(){
-	startSnmpServer()
+	log.Println("Starting SNMP Server")
+	go func() {
+		startSnmpServer()
+	}()
+	log.Println("Starting SNMP Server - completed")
+
 }
 
 func startSnmpServer() {

@@ -37,6 +37,7 @@ func init() {
 	if err != nil {
 		log.Panic(err)
 	}
+	log.Println("Starting Database - Completed")
 }
 
 func getDialInfoParameters() *mgo.DialInfo{
