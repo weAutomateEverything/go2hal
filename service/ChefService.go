@@ -8,6 +8,7 @@ import (
 	"time"
 	"strings"
 	"gopkg.in/kyokomi/emoji.v1"
+	"log"
 )
 
 type node struct {
@@ -16,6 +17,7 @@ type node struct {
 }
 
 func init() {
+	log.Println("Initializing Chef Service")
 	chef, err := database.IsChefConfigured()
 	if err != nil {
 		SendError(err)
@@ -33,9 +35,12 @@ func init() {
 		registerCommandlet(func() commandlet {
 			return &rebuildChefNodeExecute{}
 		})
-		monitorQuarentined()
-
+		go func() {
+			monitorQuarentined()
+		}()
 	}
+	log.Println("Initializing Chef Service - completed")
+
 }
 
 func monitorQuarentined() {
