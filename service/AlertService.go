@@ -41,7 +41,36 @@ func SendNonTechnicalAlert(message string) error {
 	return err
 }
 
-func sendImageToAlertGroup(image []byte) error {
+/*
+SendImageToAlertGroup will send the image to the alert group
+ */
+func SendImageToAlertGroup(image []byte) error {
+
+
+	alertGroup, err := database.AlertGroup()
+	if err != nil {
+		SendError(err)
+		return err
+	}
+
+	return sendImageToGroup(image, alertGroup)
+}
+
+/*
+SendImageToHeartbeatGroup will send the image to the heartbeat group
+ */
+func SendImageToHeartbeatGroup(image []byte) error {
+	group, err := database.HeartbeatGroup()
+	if err != nil {
+		SendError(err)
+		return err
+	}
+
+	return sendImageToGroup(image, group)
+
+}
+
+func sendImageToGroup(image []byte, group int64) error{
 	path := ""
 
 	if runtime.GOOS == "windows" {
@@ -57,15 +86,9 @@ func sendImageToAlertGroup(image []byte) error {
 		return err
 	}
 
-	alertGroup, err := database.AlertGroup()
-	if err != nil {
-		SendError(err)
-		return err
-	}
 
-
-	msg := tgbotapi.NewPhotoUpload(alertGroup, path)
-	if (bot != nil){
+	msg := tgbotapi.NewPhotoUpload(group, path)
+	if bot != nil{
 		_, err = bot.Send(msg)
 		if err != nil {
 			SendError(err)

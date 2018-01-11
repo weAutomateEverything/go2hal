@@ -8,7 +8,7 @@ import (
 )
 
 type recipe struct {
-	Name string
+	FriendlyName, RecipeName string
 }
 
 func addRecipe(w http.ResponseWriter, r *http.Request) {
@@ -22,7 +22,7 @@ func addRecipe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	database.AddRecipe(recipe.Name)
+	database.AddRecipe(recipe.RecipeName,recipe.FriendlyName)
 	w.WriteHeader(http.StatusOK)
 
 }

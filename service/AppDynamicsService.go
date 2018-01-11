@@ -31,11 +31,26 @@ func SendAppdynamicsAlert(message string) {
 		return
 	}
 
+	if val, ok := dat["business"]; ok  {
+		business := val.(map[string]interface{})
+
+		var NonTechBuffer bytes.Buffer
+
+		businessMessage := business["businessEvent"].(string)
+		NonTechBuffer.WriteString(emoji.Sprintf(":red_circle:"))
+		NonTechBuffer.WriteString(" ")
+		NonTechBuffer.WriteString(businessMessage)
+
+		log.Printf("Sending Non-Technical Alert %s", NonTechBuffer.String())
+		SendNonTechnicalAlert(NonTechBuffer.String())
+	}
+
 	events := dat["events"].([]interface{})
 	for _, event := range events {
 		event := event.(map[string]interface{})
 
 		message := event["eventMessage"].(string)
+
 
 		application := event["application"].(map[string]interface{})
 		tier := event["tier"].(map[string]interface{})
@@ -246,14 +261,12 @@ func doGet(uri string) (string, error) {
 
 	client := &http.Client{}
 	url := a.Endpoint + uri
-	log.Println(url)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		SendError(err)
 		return "", err
 	}
 
-	//req.SetBasicAuth(a.User, a.Password) //<username@group>
 	resp, err := client.Do(req)
 	if err != nil {
 		SendError(err)
@@ -290,7 +303,7 @@ func getIPAddressForNode(application, node string) (string, error) {
 	arrayIP := ipaddresses["ipAddresses"].([]interface{})
 	for _,ipo := range arrayIP {
 		ip := ipo.(string)
-		if (strings.Index(ip,".") > 0){
+		if strings.Index(ip,".") > 0 {
 			return ip,nil
 		}
 	}

@@ -40,6 +40,8 @@ func getRouter() *mux.Router {
 	r := mux.NewRouter()
 	r.HandleFunc("/alert", alertHandler)
 	r.HandleFunc("/alert/aws/container", handleEc2ContainerAlert)
+	r.HandleFunc("/alert/image", imageAlertHandler)
+
 	r.HandleFunc("/github", handleGithubMessage)
 	r.HandleFunc("/status", status)
 	r.HandleFunc("/bot", addBot).Methods("POST")
@@ -53,8 +55,7 @@ func getRouter() *mux.Router {
 	r.HandleFunc("/appdynamics/alert/nontech", businessAppDynamicsAlert).Methods("POST")
 
 	r.HandleFunc("/delivery", receiveDeliveryNotification).Methods("POST")
-	r.HandleFunc("/recipe", addRecipe).Methods("POST")
-	r.HandleFunc("/environment", addChefEnvironment).Methods("POST")
+
 	r.HandleFunc("/chefAudit", sendAnalyticsMessage).Methods("POST")
 
 	r.HandleFunc("/skynet", sendSkynetAlert).Methods("POST")
@@ -70,6 +71,10 @@ func getRouter() *mux.Router {
 
 	r.HandleFunc("/config/jira",saveJira).Methods("POST")
 	r.HandleFunc("/config/callout",saveCallout).Methods("POST")
+	r.HandleFunc("/config/chef",addChefClient).Methods("POST")
+	r.HandleFunc("/config/chef/recipe",addRecipe).Methods("POST")
+	r.HandleFunc("/config/chef/environment",addChefEnvironment).Methods("POST")
+
 
 	r.HandleFunc("/callout",invokeCallout).Methods("POST")
 

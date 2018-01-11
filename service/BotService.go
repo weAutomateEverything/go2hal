@@ -23,18 +23,29 @@ type command interface {
 	execute(update tgbotapi.Update)
 }
 
+type commandlet interface {
+	canExecute(update tgbotapi.Update, state database.State) bool
+	execute(update tgbotapi.Update, state database.State)
+	nextState(update tgbotapi.Update,state database.State) string
+	fields(update tgbotapi.Update,state database.State) []string
+}
+
 /**
 Basic information about a command
  */
 type commandDescription struct {
 	Name, Description string
 }
+
 type commandCtor func() command
+type commandletCtor func() commandlet
 
 type setHeartbeatGroup struct {
 }
 
 var commandList = []commandCtor{}
+var commandletList = []commandletCtor{}
+
 var hal *HalBot;
 
 var bot *tgbotapi.BotAPI
@@ -118,6 +129,28 @@ func sendToHeartbeatGroup(message string) {
 	}
 }
 
+func sendKeyboard(buttons []string, text string, chat int64){
+	keyB := tgbotapi.NewReplyKeyboard()
+	keyBRow := tgbotapi.NewKeyboardButtonRow()
+
+	for i,l := range buttons {
+		btn := tgbotapi.KeyboardButton{l,false,false}
+		keyBRow = append(keyBRow,btn)
+		if i > 0 && i % 3 == 0 {
+			keyB.Keyboard = append(keyB.Keyboard, keyBRow)
+			keyBRow = tgbotapi.NewKeyboardButtonRow()
+		}
+	}
+	if len(keyBRow) > 0 {
+		keyB.Keyboard = append(keyB.Keyboard, keyBRow)
+	}
+	keyB.OneTimeKeyboard = true
+
+	msg := tgbotapi.NewMessage(chat,text)
+	msg.ReplyMarkup = keyB
+	bot.Send(msg)
+}
+
 /*
 TestBot checks if the token is for a valid bot.
  */
@@ -187,6 +220,13 @@ func useBot(botkey string) {
 					continue
 				}
 			}
+
+			if update.Message != nil {
+				if executeCommandLet(update){
+					continue
+				}
+			}
+
 			log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
 			SendMessage(update.Message.Chat.ID, update.Message.Text, update.Message.MessageID)
 		}
@@ -209,6 +249,10 @@ func register(newfunc commandCtor) {
 	commandList = append(commandList, newfunc)
 }
 
+func registerCommandlet(newFunc commandletCtor){
+	commandletList = append(commandletList,newFunc)
+}
+
 func findCommand(command string) (a command) {
 	for _, item := range commandList {
 		a = item()
@@ -224,6 +268,19 @@ func executeCommand(update tgbotapi.Update) bool {
 	if command != nil {
 		go func() {command.execute(update)}()
 		return true
+	}
+	return false
+}
+
+func executeCommandLet(update tgbotapi.Update) bool {
+	state := database.GetState(update.Message.From.ID)
+	for _, c := range commandletList{
+		a := c()
+		if a.canExecute(update,state) {
+			a.execute(update,state)
+			database.SetState(update.Message.From.ID,a.nextState(update,state),a.fields(update,state))
+			return true
+		}
 	}
 	return false
 }
@@ -246,6 +303,8 @@ func heartbeat() {
 	}
 }
 
+
+/* Set Heartbeat group */
 func (s *setHeartbeatGroup) commandIdentifier() string {
 	return "SetHeartbeatGroup"
 }

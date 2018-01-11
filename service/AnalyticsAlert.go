@@ -44,7 +44,7 @@ func checkSend(message string) bool {
 		return false
 	}
 	for _, recipe := range recipes {
-		check := "RECIPE["+strings.ToUpper(recipe)+"]"
+		check := "RECIPE["+strings.ToUpper(recipe.Recipe)+"]"
 		log.Printf("Comparing %s",check)
 		if strings.Contains(message,check) {
 			log.Printf("Match Found, returning true")
