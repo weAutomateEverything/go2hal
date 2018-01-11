@@ -20,9 +20,12 @@ import (
 
 
 func init(){
+	log.Println("Initializing Callout Service")
 	register(func() command {
 		return &whosOnFirstCall{}
 	})
+	log.Println("Initializing Callout Service - completed")
+
 }
 /*
 InvokeCallout will invoke snmp if configured, then create a jira ticket if configured.

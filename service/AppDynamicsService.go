@@ -15,9 +15,11 @@ import (
 )
 
 func init() {
+	log.Println("Initialzing App Dynamics Queue Service")
 	go func() {
 		monitorAppdynamicsQueue()
 	}()
+	log.Println("Initialzing App Dynamics Queue Service - completed")
 }
 
 /*
@@ -128,7 +130,6 @@ func ExecuteCommandFromAppd(commandName, applicationID, nodeId string) error {
 }
 
 func monitorAppdynamicsQueue() {
-	log.Println("Starting App Dynamics Queue Service")
 	for true {
 		endpoints, err := database.GetAppDynamics()
 		if err != nil {
