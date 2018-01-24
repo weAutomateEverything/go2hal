@@ -8,6 +8,7 @@ type config struct {
 	ID bson.ObjectId `bson:"_id,omitempty"`
 	*CallOut
 	*Jira
+	*SeleniumTimeout
 }
 
 /*
@@ -24,6 +25,13 @@ type Jira struct {
 	URL         string
 	Template    string
 	DefaultUser string
+}
+
+/*
+SeleniumTimout details
+ */
+type SeleniumTimeout struct {
+	Timeout 	int
 }
 
 /*
@@ -47,6 +55,29 @@ func GetCalloutDetails() (*CallOut, error) {
 		return nil, err
 	}
 	return c.CallOut, nil
+}
+
+/*
+SaveSeleniumTimeDetails saves Selenium timeout interval
+*/
+func SaveSeleniumTimeDetails(timeout int) error {
+	c, err := getConfig()
+	if err != nil {
+		return err
+	}
+	c.SeleniumTimeout = &SeleniumTimeout{Timeout: timeout}
+	return saveConfig(c)
+}
+
+/*
+GetCalloutDetails returns the callout details
+ */
+func GetSeleniumTimeDetails() (int, error) {
+	c, err := getConfig()
+	if err != nil || c.SeleniumTimeout == nil || c.Timeout == 0{
+		return 5, err
+	}
+	return c.SeleniumTimeout.Timeout, nil
 }
 
 /*
