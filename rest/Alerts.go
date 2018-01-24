@@ -12,7 +12,7 @@ import (
 
 type imageAlertMessage struct {
 	Message, Image string
-	internalError bool
+	InternalError bool
 }
 
 
@@ -45,14 +45,14 @@ func imageAlertHandler(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte(err.Error()))
 			return
 		}
-		if req.internalError {
+		if req.InternalError {
 			service.SendImageToHeartbeatGroup(b)
 		} else {
 			service.SendImageToAlertGroup(b)
 
 		}
 	}
-	if req.internalError{
+	if req.InternalError{
 		service.SendError(errors.New(req.Message))
 	} else {
 		service.SendAlert(req.Message)
