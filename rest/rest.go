@@ -37,10 +37,7 @@ func init() {
 }
 
 func getRouter() *mux.Router {
-	r := mux.NewRouter()
-	r.HandleFunc("/alert", alertHandler)
-	r.HandleFunc("/alert/aws/container", handleEc2ContainerAlert)
-	r.HandleFunc("/alert/image", imageAlertHandler)
+
 
 	r.HandleFunc("/github", handleGithubMessage)
 	r.HandleFunc("/status", status)

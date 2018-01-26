@@ -12,9 +12,7 @@ import (
 	"errors"
 )
 
-var database *mgo.Database
-
-func init() {
+func NewConnection() *mgo.Database {
 	log.Println("Starting Database")
 
 	mongo :=mongoConnectionString()
@@ -36,9 +34,8 @@ func init() {
 	}
 	session.SetMode(mgo.Monotonic, true)
 
-	database = session.DB(dialinfo.Database)
-
-	log.Println("Starting Database - Completed")
+	database := session.DB(dialinfo.Database)
+	return database
 }
 
 func getDialInfoParameters() *mgo.DialInfo{
