@@ -14,6 +14,8 @@ import (
 	"github.com/zamedic/go2hal/appdynamics"
 	"github.com/zamedic/go2hal/callout"
 	"github.com/zamedic/go2hal/snmp"
+	"golang.org/x/crypto/ssh"
+	ssh2 "github.com/zamedic/go2hal/ssh"
 )
 
 func main() {
@@ -24,6 +26,7 @@ func main() {
 	telegramStore := telegram.NewMongoStore(db)
 	appdynamicsStore := appdynamics.NewMongoStore(db)
 	chefStore := chef.NewMongoStore(db)
+	sshStore := ssh2.NewMongoStore(db)
 
 	fieldKeys := []string{"method"}
 
@@ -63,6 +66,21 @@ func main() {
 			Name:      "request_latency_microseconds",
 			Help:      "Total duration of requests in microseconds.",
 		}, fieldKeys), analyticsService)
+
+	sshService := ssh2.NewService(alertService,sshStore)
+	sshService = ssh2.NewLoggingService(log.With(logger, "component", "ssh"), sshService)
+	sshService = ssh2.NewInstrumentService(kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
+		Namespace: "api",
+		Subsystem: "ssh",
+		Name:      "request_count",
+		Help:      "Number of requests received.",
+	}, fieldKeys),
+		kitprometheus.NewSummaryFrom(stdprometheus.SummaryOpts{
+			Namespace: "api",
+			Subsystem: "ssh",
+			Name:      "request_latency_microseconds",
+			Help:      "Total duration of requests in microseconds.",
+		}, fieldKeys), sshService)
 
 	appdynamicsService := appdynamics.NewService(alertService,sshService,appdynamicsStore)
 	appdynamicsService = appdynamics.NewLoggingService(log.With(logger, "component", "appdynamics"), appdynamicsService)

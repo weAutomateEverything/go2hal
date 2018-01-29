@@ -17,7 +17,11 @@ type Store interface {
 }
 
 type mongoStore struct {
-	mongo mgo.Database
+	mongo *mgo.Database
+}
+
+func NewMongoStore(db *mgo.Database) Store{
+	return &mongoStore{db}
 }
 type command struct {
 	ID            bson.ObjectId `bson:"_id,omitempty"`

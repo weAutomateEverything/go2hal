@@ -10,6 +10,7 @@ import (
 	"log"
 	"errors"
 	"runtime/debug"
+	"github.com/zamedic/go2hal/alert"
 )
 
 type Service interface {
@@ -17,39 +18,45 @@ type Service interface {
 }
 
 type service struct {
-
+	alert alert.Service
+	store Store
 }
+
+func NewService(alert alert.Service, store Store) Service {
+	return &service{alert, store}
+}
+
 /*
 ExecuteRemoteCommand will run the command against the supplied address
  */
-func (s *service)ExecuteRemoteCommand(commandName, address string) error {
+func (s *service) ExecuteRemoteCommand(commandName, address string) error {
 	defer func() {
 		if err := recover(); err != nil {
 			fmt.Print(err)
-			SendError(errors.New(fmt.Sprint(err)))
-			SendError(errors.New(string(debug.Stack())))
+			s.alert.SendError(errors.New(fmt.Sprint(err)))
+			s.alert.SendError(errors.New(string(debug.Stack())))
 
 		}
 	}()
-	command, err := database.FindCommand(commandName)
+	command, err := s.store.findCommand(commandName)
 	if err != nil {
-		SendError(err)
+		s.alert.SendError(err)
 		return err
 	}
 
-	key, err := database.GetKey()
+	key, err := s.store.getKey()
 	if err != nil {
-		SendError(err)
+		s.alert.SendError(err)
 		return err
 	}
 
 	err = ioutil.WriteFile("/tmp/key", []byte(key.Key), 0600)
 	if err != nil {
-		SendError(err)
+		s.alert.SendError(err)
 		return err
 	}
 
-	SendAlert(emoji.Sprintf(":ghost: Executing Remote Command %s on machine %s", command, address))
+	s.alert.SendAlert(emoji.Sprintf(":ghost: Executing Remote Command %s on machine %s", command, address))
 	cmd := exec.Command("sh", "-c", fmt.Sprintf("ssh -i /tmp/key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no %s@%s \"%s\" > /tmp/ssh.log", key.Username, address, command))
 	log.Println(cmd.Args)
 	stdout, err := cmd.StdoutPipe()
@@ -58,7 +65,7 @@ func (s *service)ExecuteRemoteCommand(commandName, address string) error {
 		err = cmd.Run()
 		if err != nil {
 			log.Println(err.Error())
-			SendError(err)
+			s.alert.SendError(err)
 		}
 	}()
 
@@ -68,18 +75,18 @@ func (s *service)ExecuteRemoteCommand(commandName, address string) error {
 		time.Sleep(time.Second * 1)
 		count++
 		if count%60 == 0 {
-			SendAlert(fmt.Sprintf("Still waiting for command %s to complete on %s", command, address))
+			s.alert.SendAlert(fmt.Sprintf("Still waiting for command %s to complete on %s", command, address))
 		}
 		if count > 600 {
-			SendAlert(emoji.Sprintf(":bangbang: Timed Out waiting for command %s to complete on %s", command, address))
+			s.alert.SendAlert(emoji.Sprintf(":bangbang: Timed Out waiting for command %s to complete on %s", command, address))
 			return fmt.Errorf("timed out waiting for %s to complete on %s", command, address)
 		}
 	}
 
 	if !cmd.ProcessState.Success() {
-		SendAlert(emoji.Sprintf(":bangbang:  command %s did not complete successfully on %s", command, address))
+		s.alert.SendAlert(emoji.Sprintf(":bangbang:  command %s did not complete successfully on %s", command, address))
 	} else {
-		SendAlert(emoji.Sprintf(":white_check_mark: command %s complete successfully on %s", command, address))
+		s.alert.SendAlert(emoji.Sprintf(":white_check_mark: command %s complete successfully on %s", command, address))
 	}
 	log.Println("output")
 	log.Println(stdout)
