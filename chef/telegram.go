@@ -4,15 +4,20 @@ import (
 	"gopkg.in/telegram-bot-api.v4"
 	"github.com/zamedic/go2hal/telegram"
 
-	"github.com/go-chef/chef"
 	"github.com/zamedic/go2hal/skynet"
+	"github.com/zamedic/go2hal/alert"
 )
 
 /* Rebuild chef Node */
 type rebuildChefNode struct {
 	stateStore telegram.Store
-	chefStore Store
-	telegram telegram.Service
+	chefStore  Store
+	alert      alert.Service
+	telegram   telegram.Service
+}
+
+func NewRebuildCHefNodeCommand(stateStore telegram.Store, chefStore Store, telegram telegram.Service, alert alert.Service) telegram.Command {
+	return &rebuildChefNode{stateStore, chefStore, alert, telegram}
 }
 
 func (s *rebuildChefNode) commandIdentifier() string {
@@ -26,12 +31,19 @@ func (s *rebuildChefNode) commandDescription() string {
 
 func (s *rebuildChefNode) execute(update tgbotapi.Update) {
 	s.stateStore.SetState(update.Message.From.ID, "REBUILD_CHEF", nil)
-	sendRecipeKeyboard(update.Message.Chat.ID, "Please select the application for the node you want to rebuild",s.telegram,s.chefStore)
+	sendRecipeKeyboard(update.Message.Chat.ID, "Please select the application for the node you want to rebuild", s.alert, s.chefStore, s.telegram)
 }
 
 /* Commandlets */
 
 type rebuildChefNodeRecipeReply struct {
+	store    Store
+	alert    alert.Service
+	telegram telegram.Service
+}
+
+func newRebuildChefNodeRecipeReplyCommandlet(store Store, alert alert.Service, telegram telegram.Service) telegram.Commandlet {
+	return &rebuildChefNodeRecipeReply{store, alert, telegram}
 }
 
 func (s *rebuildChefNodeRecipeReply) canExecute(update tgbotapi.Update, state telegram.State) bool {
@@ -39,7 +51,7 @@ func (s *rebuildChefNodeRecipeReply) canExecute(update tgbotapi.Update, state te
 }
 
 func (s *rebuildChefNodeRecipeReply) execute(update tgbotapi.Update, state telegram.State) {
-	sendEnvironemtKeyboard(update.Message.Chat.ID, "Please select the environment of the node you want to rebuild")
+	sendEnvironemtKeyboard(update.Message.Chat.ID, "Please select the environment of the node you want to rebuild", s.store, s.alert, s.telegram)
 }
 
 func (s *rebuildChefNodeRecipeReply) nextState(update tgbotapi.Update, state telegram.State) string {
@@ -54,6 +66,12 @@ func (s *rebuildChefNodeRecipeReply) fields(update tgbotapi.Update, state telegr
 
 type rebuildChefNodeEnvironmentReply struct {
 	telegram telegram.Service
+	store    Store
+	service  Service
+}
+
+func NewRebuildChefNodeEnvironmentReplyCommandlet(telegram telegram.Service,store    Store,service  Service) telegram.Commandlet{
+	return &rebuildChefNodeEnvironmentReply{telegram,store,service}
 }
 
 func (s *rebuildChefNodeEnvironmentReply) canExecute(update tgbotapi.Update, state telegram.State) bool {
@@ -61,9 +79,9 @@ func (s *rebuildChefNodeEnvironmentReply) canExecute(update tgbotapi.Update, sta
 }
 
 func (s *rebuildChefNodeEnvironmentReply) execute(update tgbotapi.Update, state telegram.State) {
-	nodes := findNodesFromFriendlyNames(state.Field[0], update.Message.Text)
-	res := make([]string,len(nodes))
-	for i,x := range nodes {
+	nodes := s.service.findNodesFromFriendlyNames(state.Field[0], update.Message.Text)
+	res := make([]string, len(nodes))
+	for i, x := range nodes {
 		res[i] = x.name
 	}
 	s.telegram.SendKeyboard(res, "Select node to rebuild", update.Message.Chat.ID)
@@ -79,7 +97,12 @@ func (s *rebuildChefNodeEnvironmentReply) fields(update tgbotapi.Update, state t
 
 /*------------------*/
 type rebuildChefNodeExecute struct {
-	skynet skynet.Skynet
+	skynet skynet.Service
+	alert  alert.Service
+}
+
+func NewRebuildChefNodeExecute(skynet skynet.Service,alert  alert.Service) telegram.Commandlet{
+	return &rebuildChefNodeExecute{skynet,alert}
 }
 
 func (s *rebuildChefNodeExecute) canExecute(update tgbotapi.Update, state telegram.State) bool {
@@ -88,9 +111,9 @@ func (s *rebuildChefNodeExecute) canExecute(update tgbotapi.Update, state telegr
 
 func (s *rebuildChefNodeExecute) execute(update tgbotapi.Update, state telegram.State) {
 	go func() {
-		err := RecreateNode(update.Message.Text, update.Message.From.FirstName)
+		err := s.skynet.RecreateNode(update.Message.Text, update.Message.From.FirstName)
 		if err != nil {
-			SendError(err)
+			s.alert.SendError(err)
 		}
 	}()
 }
@@ -99,14 +122,14 @@ func (s *rebuildChefNodeExecute) nextState(update tgbotapi.Update, state telegra
 	return ""
 }
 
-func (s *rebuildChefNodeExecute) fields(update tgbotapi.Update, state database.State) []string {
+func (s *rebuildChefNodeExecute) fields(update tgbotapi.Update, state telegram.State) []string {
 	return nil
 }
 
-func sendRecipeKeyboard(chat int64, text string, telegram telegram.Service, chefStore chef.Store) {
-	recipes, err := s.chefStore.GetRecipes()
+func sendRecipeKeyboard(chat int64, text string, alert alert.Service, chefStore Store, telegram telegram.Service) {
+	recipes, err := chefStore.GetRecipes()
 	if err != nil {
-		s.alert.SendError(err)
+		alert.SendError(err)
 		return
 	}
 
@@ -114,13 +137,13 @@ func sendRecipeKeyboard(chat int64, text string, telegram telegram.Service, chef
 	for x, i := range recipes {
 		l[x] = i.FriendlyName
 	}
-	s.alert.sendKeyboard(l, text, chat)
+	telegram.SendKeyboard(l, text, chat)
 }
 
-func sendEnvironemtKeyboard(chat int64, text string) {
-	e, err := database.GetChefEnvironments()
+func sendEnvironemtKeyboard(chat int64, text string, store Store, alert alert.Service, telegram telegram.Service) {
+	e, err := store.GetChefEnvironments()
 	if err != nil {
-		SendError(err)
+		alert.SendError(err)
 		return
 	}
 
@@ -128,6 +151,5 @@ func sendEnvironemtKeyboard(chat int64, text string) {
 	for x, i := range e {
 		l[x] = i.FriendlyName
 	}
-	sendKeyboard(l, text, chat)
+	telegram.SendKeyboard(l, text, chat)
 }
-

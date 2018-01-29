@@ -45,12 +45,6 @@ func getRouter() *mux.Router {
 	r.HandleFunc("/bot", botStatus).Methods("GET")
 	r.HandleFunc("/httpEndpoint", addHTTPEndpoint).Methods("POST")
 
-	r.HandleFunc("/appdynamics", receiveAppDynamicsAlert).Methods("POST")
-	r.HandleFunc("/appdynamics/system/queue", addAppdynamicsQueueEndpoint).Methods("POST")
-	r.HandleFunc("/appdynamics/system", addAppDynamicsEndpoint).Methods("POST")
-	r.HandleFunc("/appdynamics/execute", executeCommandFromAppdynamics).Methods("POST")
-	r.HandleFunc("/appdynamics/alert/nontech", businessAppDynamicsAlert).Methods("POST")
-
 	r.HandleFunc("/delivery", receiveDeliveryNotification).Methods("POST")
 
 	r.HandleFunc("/chefAudit", sendAnalyticsMessage).Methods("POST")

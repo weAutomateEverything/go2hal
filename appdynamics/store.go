@@ -12,13 +12,17 @@ type Store interface {
 	 */
 	GetAppDynamics() (*AppDynamics, error)
 
-
 	addAppDynamicsEndpoint(endpoint string) error
 	addMqEndpoint(name, application string, metricPath string) error
 }
 
 type mongoStore struct {
-	mongo mgo.Database
+	mongo *mgo.Database
+}
+
+func NewMongoStore(mongo *mgo.Database) Store {
+	return &mongoStore{mongo}
+
 }
 
 type AppDynamics struct {
@@ -55,7 +59,6 @@ func (s *mongoStore) addAppDynamicsEndpoint(endpoint string) error {
 	return nil
 }
 
-
 func (s *mongoStore) addMqEndpoint(name, application string, metricPath string) error {
 	var mq = MqEndpoint{Application: application, MetricPath: metricPath, Name: name}
 	appd, err := s.GetAppDynamics()
@@ -72,8 +75,7 @@ func (s *mongoStore) addMqEndpoint(name, application string, metricPath string) 
 	return nil
 }
 
-
-func (s *mongoStore)GetAppDynamics() (*AppDynamics, error) {
+func (s *mongoStore) GetAppDynamics() (*AppDynamics, error) {
 	c := s.mongo.C("appDynamics")
 	i, err := c.Count()
 	if err != nil {

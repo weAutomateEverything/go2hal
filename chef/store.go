@@ -41,9 +41,6 @@ type Store interface {
 	*/
 	GetRecipes() ([]Recipe, error)
 
-	/*
-	GetRecipeFromFriendlyName returns the chef recipe name based on the user friendly name supplied
-	*/
 	GetRecipeFromFriendlyName(recipe string) (string, error)
 
 	addChefClient(name, url, key string)

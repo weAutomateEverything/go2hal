@@ -10,6 +10,7 @@ import (
 	g "github.com/zamedic/gosnmp"
 	"log"
 	"errors"
+	"github.com/zamedic/go2hal/alert"
 )
 
 
@@ -18,19 +19,23 @@ type Service interface {
 	SendSNMPMessage()
 }
 
+type service struct {
+	alert alert.Service
+}
 
-func init(){
-	log.Println("Starting SNMP Server")
+func NewService(service alert.Service) Service {
+	s :=  &service{service}
 	go func() {
-		startSnmpServer()
+		s.startSnmpServer()
 	}()
-	log.Println("Starting SNMP Server - completed")
+
+	return s
 
 }
 
-func startSnmpServer() {
+func (s *service)startSnmpServer() {
 	tl := g.NewTrapListener()
-	tl.OnNewTrap = handleTrap
+	tl.OnNewTrap = s.handleTrap
 	tl.Params = g.Default
 	tl.Params.Logger = log.New(os.Stdout,"",0)
 	err := tl.Listen("0.0.0.0:9162")
@@ -40,7 +45,7 @@ func startSnmpServer() {
 
 }
 
-func handleTrap(packet *g.SnmpPacket, addr *net.UDPAddr) {
+func (s service)handleTrap(packet *g.SnmpPacket, addr *net.UDPAddr) {
 	var b bytes.Buffer
 	b.WriteString(fmt.Sprintf("got trapdata from %s\n", addr.IP))
 	b.WriteString("\n")
@@ -56,10 +61,10 @@ func handleTrap(packet *g.SnmpPacket, addr *net.UDPAddr) {
 
 		}
 	}
-	SendError(errors.New(b.String()))
+	s.alert.SendError(errors.New(b.String()))
 }
 
-func sendSNMPMessage() {
+func (s *service)SendSNMPMessage() {
 	if snmpServier() == "" {
 		return
 	}
@@ -95,7 +100,7 @@ func sendSNMPMessage() {
 
 	log.Printf("Error: %d", result.Error)
 	log.Printf("Request ID %d", result.RequestID)
-	SendAlert(emoji.Sprint(":telephone_receiver: Invoked callout"))
+	s.alert.SendAlert(emoji.Sprint(":telephone_receiver: Invoked callout"))
 
 }
 

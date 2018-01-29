@@ -12,7 +12,7 @@ import (
 )
 
 type Service interface {
-
+	RecreateNode(nodeName, callerName string) error
 }
 
 

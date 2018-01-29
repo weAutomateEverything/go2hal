@@ -10,7 +10,12 @@ import (
 type whosOnFirstCall struct {
 	alert alert.Service
 	telegram telegram.Service
+	service Service
 
+}
+
+func NewWhosOnFirstCallCommand(alert alert.Service,telegram telegram.Service,service Service) telegram.Command{
+	return &whosOnFirstCall{alert,telegram,service}
 }
 
 
@@ -24,7 +29,7 @@ func (s *whosOnFirstCall) commandDescription() string {
 }
 
 func (s *whosOnFirstCall) execute(update tgbotapi.Update) {
-	name, err := getFirstCallName()
+	name, err := s.service.getFirstCallName()
 	if err != nil {
 		s.alert.SendError(err)
 		return

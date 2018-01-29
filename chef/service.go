@@ -13,10 +13,8 @@ import (
 )
 
 type Service interface {
-	/*
-	SendDeliveryAlert will unmarshal the input json and send an alert to the telegram group.
-	*/
-	SendDeliveryAlert(message string)
+	sendDeliveryAlert(message string)
+	findNodesFromFriendlyNames(recipe, environment string)[]node
 }
 
 type service struct {
@@ -25,15 +23,16 @@ type service struct {
 	chefStore Store
 }
 
-func NewService() Service{
-
-	return &service{}
+func NewService(alert alert.Service,chefStore Store) Service{
+	s := &service{alert,chefStore}
+	go func() {
+		s.monitorQuarentined()
+	}()
+	return s
 }
 
-/*
-SendDeliveryAlert will unmarshal the input json and send an alert to the telegram group.
- */
-func (s service)SendDeliveryAlert(message string) {
+
+func (s service)sendDeliveryAlert(message string) {
 	var dat map[string]interface{}
 
 	message = strings.Replace(message, "\n", "\\n", -1)
@@ -116,7 +115,7 @@ func getfield(attachments []interface{}, buffer *bytes.Buffer) {
 	}
 }
 
-func monitorQuarentined(s service) {
+func (s service)monitorQuarentined() {
 	for {
 		checkQuarentined(s)
 		time.Sleep(30 * time.Minute)
@@ -137,7 +136,7 @@ func checkQuarentined(s service) {
 
 	for _,r := range recipes {
 		for _, e := range env {
-			nodes := findNodesFromFriendlyNames(r.FriendlyName,e.FriendlyName,s)
+			nodes := s.findNodesFromFriendlyNames(r.FriendlyName,e.FriendlyName)
 			for _,n := range nodes {
 				if strings.Index(n.environment,"quar") > 0 {
 					s.alert.SendAlert(emoji.Sprintf(":hospital: *Node Quarantined* \n node %v has been placed in environment %v. Application %v ",n.name,strings.Replace(n.environment,"_", " ",-1), r.FriendlyName))
@@ -148,7 +147,7 @@ func checkQuarentined(s service) {
 
 }
 
-func findNodesFromFriendlyNames(recipe, environment string, s service) []node {
+func (s service)findNodesFromFriendlyNames(recipe, environment string) []node {
 	chefRecipe, err := s.chefStore.GetRecipeFromFriendlyName(recipe)
 	if err != nil {
 		s.alert.SendError(err)

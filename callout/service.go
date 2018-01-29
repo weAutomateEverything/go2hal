@@ -1,47 +1,39 @@
 package callout
 
 import (
-	"log"
-	"os"
-	"strconv"
+
 	"net/http"
 	"io/ioutil"
 	"strings"
-	"github.com/zamedic/go2hal/database"
-	"html/template"
-	"bytes"
+
 	"fmt"
-	json2 "encoding/json"
-	"gopkg.in/kyokomi/emoji.v1"
+
 	"errors"
-	"runtime/debug"
 	"github.com/zamedic/go2hal/alert"
 	"github.com/zamedic/go2hal/snmp"
 	"github.com/zamedic/go2hal/jira"
 	"github.com/zamedic/go2hal/config"
 )
 
-func init() {
-	log.Println("Initializing Callout Service")
-	register(func() command {
-		return &whosOnFirstCall{}
-	})
-	log.Println("Initializing Callout Service - completed")
-
-}
 
 type Service interface {
 	/*
 	InvokeCallout will invoke snmp if configured, then create a jira ticket if configured.
 	*/
 	InvokeCallout(title, message string)
+
+	getFirstCallName() (string, error)
+
 }
 
 type service struct {
 	alert alert.Service
 	snmp snmp.Service
 	jira jira.Service
-	configStore config.Store
+}
+
+func NewService(alert alert.Service,snmp snmp.Service,jira jira.Service) Service{
+	return &service{alert,snmp,jira}
 }
 
 /*
@@ -51,7 +43,7 @@ func (s *service)InvokeCallout(title, message string) {
 
 	s.alert.SendError(fmt.Errorf("invoking callout for: %s, %s", title, message))
 	s.snmp.SendSNMPMessage()
-	n, err := getFirstCallName()
+	n, err := s.getFirstCallName()
 	if err != nil {
 		s.alert.SendError(err)
 		n = "DEFAULT"
@@ -61,7 +53,7 @@ func (s *service)InvokeCallout(title, message string) {
 
 
 
-func getFirstCallName(s service) (string, error) {
+func (s *service)getFirstCallName() (string, error) {
 	c, err := s.configStore.GetCalloutDetails()
 	if err != nil {
 		return "", err
