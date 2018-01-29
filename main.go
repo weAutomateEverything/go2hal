@@ -22,6 +22,7 @@ import (
 	"os/signal"
 	"syscall"
 	"fmt"
+	"github.com/zamedic/go2hal/sensu"
 )
 
 func main() {
@@ -179,6 +180,21 @@ func main() {
 			Help:      "Total duration of requests in microseconds.",
 		}, fieldKeys), skynetService)
 
+	sensuService := sensu.NewService(alertService)
+	sensuService = sensu.NewLoggingService(log.With(logger, "component", "sensu"), sensuService)
+	sensuService = sensu.NewInstrumentService(kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
+		Namespace: "api",
+		Subsystem: "sensu",
+		Name:      "request_count",
+		Help:      "Number of requests received.",
+	}, fieldKeys),
+		kitprometheus.NewSummaryFrom(stdprometheus.SummaryOpts{
+			Namespace: "api",
+			Subsystem: "sensu",
+			Name:      "request_latency_microseconds",
+			Help:      "Total duration of requests in microseconds.",
+		}, fieldKeys), sensuService)
+
 	//Telegram Commands
 	telegramService.RegisterCommand(alert.NewSetGroupCommand(telegramService, alertStore))
 	telegramService.RegisterCommand(alert.NewSetNonTechnicalGroupCommand(telegramService, alertStore))
@@ -199,10 +215,11 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.Handle("/alert", alert.MakeHandler(alertService, httpLogger))
-	mux.Handle("/audit", analytics.MakeHandler(analyticsService, httpLogger))
+	mux.Handle("/chefAudit", analytics.MakeHandler(analyticsService, httpLogger))
 	mux.Handle("/appdynamics", appdynamics.MakeHandler(appdynamicsService, httpLogger))
-	mux.Handle("/chef", chef.MakeHandler(chefService, httpLogger))
+	mux.Handle("/delivery", chef.MakeHandler(chefService, httpLogger))
 	mux.Handle("/skynet", skynet.MakeHandler(skynetService, httpLogger))
+	mux.Handle("/sensu", sensu.MakeHandler(sensuService, httpLogger))
 
 	http.Handle("/", accessControl(mux))
 	http.Handle("/metrics", promhttp.Handler())

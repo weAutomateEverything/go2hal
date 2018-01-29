@@ -8,19 +8,19 @@ import (
 )
 
 type Service interface {
-	handleSensu(sensu sensuMessage)
+	handleSensu(sensu SensuMessageRequest)
 }
 
 type service struct {
 	alert alert.Service
 }
 
-func NewService(service alert.Service) Service{
-	return &service{alert:service}
+func NewService(alert alert.Service) Service{
+	return &service{alert:alert}
 }
 
 
-func (s *service) handleSensu(sensu sensuMessage) {
+func (s *service) handleSensu(sensu SensuMessageRequest) {
 	for _, msg := range sensu.Attachments {
 		e := ""
 		if strings.Index(msg.Title, "CRITICAL") > 0 {

@@ -18,6 +18,7 @@ import (
 
 type Service interface {
 	RecreateNode(nodeName, callerName string) error
+	sendSkynetAlert(message string)
 }
 
 type service struct {
@@ -30,11 +31,9 @@ func NewService(alert alert.Service, chefStore chef.Store, calloutService callou
 	return &service{alert,chefStore,calloutService}
 }
 
-/*
-SendSkynetAlert will check if the message should be be, and if so build a telegram message
- */
-func (s *service) SendSkynetAlert(message string) {
-	if (!s.checkSend(message)) {
+
+func (s *service) sendSkynetAlert(message string) {
+	if !s.checkSend(message) {
 		log.Println("Ignoreing message: " + message)
 		return
 	}

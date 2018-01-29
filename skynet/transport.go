@@ -17,9 +17,11 @@ func MakeHandler(service Service, logger kitlog.Logger) http.Handler {
 	}
 
 	skynetRebuild := kithttp.NewServer(makeSkynetRebuildEndpoint(service), decodeSkynetRebuildRequest, gokit.EncodeResponse, opts...)
+	skynetAlert := kithttp.NewServer(makeSkynetAlertEndpoint(service), gokit.DecodeString, gokit.EncodeResponse, opts...)
 
 	r := mux.NewRouter()
 
+	r.Handle("/skynet", skynetAlert).Methods("POST")
 	r.Handle("/skynet/rebuild", skynetRebuild).Methods("POST")
 
 	return r
@@ -32,6 +34,5 @@ func decodeSkynetRebuildRequest(_ context.Context, r *http.Request) (interface{}
 		return nil, err
 	}
 	return request, nil
-
 
 }

@@ -5,10 +5,12 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"runtime/debug"
 )
 
 // encode errors from business-logic
-func EncodeError(_ context.Context, err error, w http.ResponseWriter) {
+func EncodeError(c context.Context, err error, w http.ResponseWriter) {
+	debug.PrintStack()
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 
 	w.WriteHeader(http.StatusInternalServerError)
