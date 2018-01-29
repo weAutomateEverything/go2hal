@@ -2,7 +2,6 @@ package http
 
 
 import (
-	"github.com/zamedic/go2hal/database"
 	"time"
 	"net/http"
 	"fmt"
@@ -13,30 +12,31 @@ import (
 	"net/url"
 	"io/ioutil"
 	"gopkg.in/kyokomi/emoji.v1"
-	"runtime/debug"
+	"github.com/zamedic/go2hal/alert"
+	"github.com/zamedic/go2hal/callout"
 )
 
-//HTTPMonitor is the current status of the monitor
-type HTTPMonitor struct {
-	running bool
+type Service interface {
+
 }
 
-var h *HTTPMonitor
+type service struct {
+	alert alert.Service
+	store Store
+	callout callout.Service
+}
 
-func init() {
-	log.Print("Initializing HTTP Monitor")
-	h = &HTTPMonitor{}
+func NewService(alertService alert.Service, store Store,callout callout.Service) Service {
+	s := &service{alertService, store, callout}
 	go func() {
-		monitorEndpoints()
+		s.monitorEndpoints()
 	}()
-	log.Print("Initializing HTTP Monitor - completed")
+	return s
 }
 
-/*
-CheckEndpoint checks the http endpoint to ensure it passes
- */
-func CheckEndpoint(endpoint *database.HTTPEndpoint) error {
-	response, err := doHTTPEndpoint(endpoint)
+
+func (s service)checkEndpoint(endpoint httpEndpoint) error {
+	response, err := s.doHTTPEndpoint(endpoint)
 	if response != nil {
 		defer response.Body.Close()
 	}
@@ -49,34 +49,25 @@ func CheckEndpoint(endpoint *database.HTTPEndpoint) error {
 	return nil
 }
 
-func monitorEndpoints() {
-	defer func() {
-		if err := recover(); err != nil {
-			fmt.Print(err)
-			SendError(errors.New(fmt.Sprint(err)))
-			SendError(errors.New(string(debug.Stack())))
-
-		}
-	}()
+func (s service)monitorEndpoints() {
 	log.Println("Starting HTTP Endpoint monitor")
-	h.running = true
 	for true {
-		endpoints := database.GetHTMLEndpoints()
+		endpoints := s.store.getHTMLEndpoints()
 		if endpoints != nil {
 			for _, endpoint := range endpoints {
-				checkHTTP(&endpoint)
+				s.checkHTTP(endpoint)
 			}
 		}
 		time.Sleep(time.Minute * 2)
 	}
 }
 
-func checkHTTP(endpoint *database.HTTPEndpoint) {
-	response, err := doHTTPEndpoint(endpoint)
+func (s service)checkHTTP(endpoint httpEndpoint) {
+	response, err := s.doHTTPEndpoint(endpoint)
 	if err != nil {
-		s := emoji.Sprintf(":smoking: :x: *Smoke Test  Alert*\nName: %s \nEndpoint: %s \nError: %s", endpoint.Name,
+		msg := emoji.Sprintf(":smoking: :x: *Smoke Test  Alert*\nName: %s \nEndpoint: %s \nError: %s", endpoint.Name,
 			endpoint.Endpoint, err.Error())
-		checkAlert(endpoint, s)
+		s.checkAlert(endpoint, msg)
 		return
 	}
 	defer response.Body.Close()
@@ -86,34 +77,34 @@ func checkHTTP(endpoint *database.HTTPEndpoint) {
 		error := emoji.Sprintf(":smoking: :x: *HTTP Alert*\nName: %s \nEndpoint: %s \nDid not receive a 200 success "+
 			"response code. Received %d response code. Body Message %s", endpoint.Name, endpoint.Endpoint,
 			response.StatusCode, msg)
-		checkAlert(endpoint, error)
+		s.checkAlert(endpoint, error)
 		return
 	}
 	if !endpoint.Passing && endpoint.ErrorCount >= endpoint.Threshold {
-		SendAlert(emoji.Sprintf(":smoking: :white_check_mark: smoke test %s back to normal", endpoint.Name))
+		s.alert.SendAlert(emoji.Sprintf(":smoking: :white_check_mark: smoke test %s back to normal", endpoint.Name))
 	}
 
-	if err := database.SuccessfulEndpointTest(endpoint); err != nil {
-		SendError(err)
+	if err := s.store.successfulEndpointTest(&endpoint); err != nil {
+		s.alert.SendError(err)
 	}
 }
 
-func checkAlert(endpoint *database.HTTPEndpoint, msg string) {
-	if err := database.FailedEndpointTest(endpoint, msg); err != nil {
-		SendError(err)
+func (s service)checkAlert(endpoint httpEndpoint, msg string) {
+	if err := s.store.failedEndpointTest(&endpoint, msg); err != nil {
+		s.alert.SendError(err)
 	}
-	SendError(errors.New(msg))
+	s.alert.SendError(errors.New(msg))
 	if endpoint.Threshold > 0 {
 		if endpoint.Threshold == endpoint.ErrorCount {
-			InvokeCallout(fmt.Sprintf("Some Test failures for %s", endpoint.Name),msg)
+			s.callout.InvokeCallout(fmt.Sprintf("Some Test failures for %s", endpoint.Name),msg)
 		}
 		if endpoint.ErrorCount >= endpoint.Threshold {
-			SendAlert(msg)
+			s.alert.SendAlert(msg)
 		}
 	}
 }
 
-func doHTTPEndpoint(endpoint *database.HTTPEndpoint) (*http.Response, error) {
+func (s service)doHTTPEndpoint(endpoint httpEndpoint) (*http.Response, error) {
 	switch method := strings.ToUpper(endpoint.Method); method {
 	case "POST":
 		if len(endpoint.Parameters) > 1 {

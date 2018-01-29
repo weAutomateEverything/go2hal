@@ -24,6 +24,8 @@ import (
 	"fmt"
 	"github.com/zamedic/go2hal/sensu"
 	"github.com/go-kit/kit/log/level"
+	"github.com/zamedic/go2hal/selenium"
+	http2 "github.com/zamedic/go2hal/http"
 )
 
 func main() {
@@ -36,6 +38,8 @@ func main() {
 	chefStore := chef.NewMongoStore(db)
 	sshStore := ssh2.NewMongoStore(db)
 	userStore := user.NewMongoStore(db)
+	seleniumStore := selenium.NewMongoStore(db)
+	httpStore := http2.NewMongoStore(db)
 
 	fieldKeys := []string{"method"}
 
@@ -196,6 +200,9 @@ func main() {
 			Name:      "request_latency_microseconds",
 			Help:      "Total duration of requests in microseconds.",
 		}, fieldKeys), sensuService)
+
+	_ = selenium.NewService(seleniumStore,alertService,calloutService)
+	_ = http2.NewService(alertService,httpStore,calloutService)
 
 	//Telegram Commands
 	telegramService.RegisterCommand(alert.NewSetGroupCommand(telegramService, alertStore))

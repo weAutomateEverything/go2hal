@@ -9,33 +9,29 @@ import (
 )
 
 type Store interface {
-	//AddHTMLEndpoint allows for a new endpoint to be added
-	AddHTMLEndpoint(endpoint HTTPEndpoint)
+	addHTMLEndpoint(endpoint httpEndpoint)
 
-	//GetHTMLEndpoints returns a list of HTML Endpoints
-	GetHTMLEndpoints() []HTTPEndpoint
+	getHTMLEndpoints() []httpEndpoint
 
-	/*
-	SuccessfulEndpointTest will update the mongo element with the ID with the latest details to show it passed successfully
-	*/
-	SuccessfulEndpointTest(endpoint *HTTPEndpoint) error
+	successfulEndpointTest(endpoint *httpEndpoint) error
 
-	/*
-	FailedEndpointTest will update the mongo element with the failed details
-	*/
-	FailedEndpointTest(endpoint *HTTPEndpoint, errorMessage string) error
+	failedEndpointTest(endpoint *httpEndpoint, errorMessage string) error
 }
 
 type mongoStore struct {
-	mongo mgo.Database
+	mongo *mgo.Database
 }
 
-type HTTPEndpoint struct {
+func NewMongoStore(db *mgo.Database)Store{
+	return &mongoStore{db}
+}
+
+type httpEndpoint struct {
 	ID         bson.ObjectId `bson:"_id,omitempty"`
 	Name       string
 	Endpoint   string
 	Method     string
-	Parameters []Parameters
+	Parameters []parameters
 	Threshold  int
 
 	LastChecked time.Time
@@ -45,16 +41,16 @@ type HTTPEndpoint struct {
 	Error       string
 }
 
-type Parameters struct {
+type parameters struct {
 	Name, Value string
 }
 
-func (s *mongoStore)AddHTMLEndpoint(endpoint HTTPEndpoint) {
+func (s *mongoStore)addHTMLEndpoint(endpoint httpEndpoint) {
 	c := s.mongo.C("MonitorHtmlEndpoints")
 	c.Insert(endpoint)
 }
 
-func (s *mongoStore)GetHTMLEndpoints() []HTTPEndpoint {
+func (s *mongoStore)getHTMLEndpoints() []httpEndpoint {
 	c := s.mongo.C("MonitorHtmlEndpoints")
 	q := c.Find(nil)
 	i, err := q.Count()
@@ -62,7 +58,7 @@ func (s *mongoStore)GetHTMLEndpoints() []HTTPEndpoint {
 		log.Println(err)
 		return nil
 	}
-	r := make([]HTTPEndpoint, i)
+	r := make([]httpEndpoint, i)
 	err = q.All(&r)
 	if err != nil {
 		log.Println(err)
@@ -72,7 +68,7 @@ func (s *mongoStore)GetHTMLEndpoints() []HTTPEndpoint {
 }
 
 
-func (s *mongoStore)SuccessfulEndpointTest(endpoint *HTTPEndpoint) error {
+func (s *mongoStore)successfulEndpointTest(endpoint *httpEndpoint) error {
 	c := s.mongo.C("MonitorHtmlEndpoints")
 
 	endpoint.LastChecked = time.Now()
@@ -89,9 +85,9 @@ func (s *mongoStore)SuccessfulEndpointTest(endpoint *HTTPEndpoint) error {
 }
 
 
-func (s *mongoStore)FailedEndpointTest(endpoint *HTTPEndpoint, errorMessage string) error {
+func (s *mongoStore)failedEndpointTest(endpoint *httpEndpoint, errorMessage string) error {
 	c := s.mongo.C("MonitorHtmlEndpoints")
-	result := HTTPEndpoint{}
+	result := httpEndpoint{}
 	err := c.FindId(endpoint.ID).One(&result);
 	if err != nil {
 		return fmt.Errorf("error retreiving endpoint with success details: %s", err.Error())

@@ -4,74 +4,87 @@ import (
 	"fmt"
 	"github.com/tebeka/selenium"
 	"time"
-	"github.com/zamedic/go2hal/database"
 	"errors"
 	"gopkg.in/kyokomi/emoji.v1"
 	"runtime/debug"
+	"github.com/zamedic/go2hal/alert"
+	"github.com/zamedic/go2hal/callout"
 )
 
-func init() {
-	go func() { runTests() }()
+type Service interface{
+
 }
 
-/*
-TestSelenium tests a selenium endpoint and adds it to the database.
- */
-func TestSelenium(item database.Selenium) error {
-	_, err := doSelenium(item)
+type service struct {
+	store Store
+	alert alert.Service
+	calloutService callout.Service
+}
+
+func NewService(store Store,alertService alert.Service, calloutService callout.Service) Service{
+	s :=  &service{store,alertService,calloutService}
+	go func() {
+		s.runTests()
+	}()
+	return s
+}
+
+
+func (s *service)testSelenium(item Selenium) error {
+	_, err := s.doSelenium(item)
 	if err != nil {
 		return err
 	}
 
-	err = database.AddSelenium(item)
+	err = s.store.AddSelenium(item)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func runTests() {
+func (s *service)runTests() {
 	defer func() {
 		if err := recover(); err != nil {
 			fmt.Print(err)
-			SendError(errors.New(fmt.Sprint(err)))
-			SendError(errors.New(string(debug.Stack())))
+			s.alert.SendError(errors.New(fmt.Sprint(err)))
+			s.alert.SendError(errors.New(string(debug.Stack())))
 
 
 		}
 	}()
 
 	for true {
-		tests, err := database.GetAllSeleniumTests()
+		tests, err := s.store.GetAllSeleniumTests()
 		if err != nil {
-			SendError(err)
+			s.alert.SendError(err)
 		} else {
 			for _, test := range tests {
-				image, err := doSelenium(test)
+				image, err := s.doSelenium(test)
 				if err != nil {
-					if error := database.SetSeleniumFailing(&test, err); error != nil {
-						SendError(fmt.Errorf("error setting selenium test to failed. %s", error.Error()))
+					if error := s.store.SetSeleniumFailing(&test, err); error != nil {
+						s.alert.SendError(fmt.Errorf("error setting selenium test to failed. %s", error.Error()))
 						continue
 					}
 					if test.Threshold > 0 {
 						if test.Threshold == test.ErrorCount {
-							InvokeCallout(fmt.Sprintf("Selenium Error with  test %s", test.Name), err.Error())
+							s.calloutService.InvokeCallout(fmt.Sprintf("Selenium Error with  test %s", test.Name), err.Error())
 						}
 
 						if test.ErrorCount >= test.Threshold {
-							SendAlert(emoji.Sprintf(":computer: :x: Error executing selenium test for %s. error: %s", test.Name, err.Error()))
+							s.alert.SendAlert(emoji.Sprintf(":computer: :x: Error executing selenium test for %s. error: %s", test.Name, err.Error()))
 							if image != nil {
-								SendImageToAlertGroup(image)
+								s.alert.SendImageToAlertGroup(image)
 							}
 						}
 					}
 				} else {
-					if err := database.SetSeleniumPassing(&test); err != nil {
-						SendError(fmt.Errorf("error setting selenium test to passed. %s", err.Error()))
+					if err := s.store.SetSeleniumPassing(&test); err != nil {
+						s.alert.SendError(fmt.Errorf("error setting selenium test to passed. %s", err.Error()))
 						continue
 					}
 					if !test.Passing && test.ErrorCount >= test.Threshold {
-						SendAlert(emoji.Sprintf(":computer: :white_check_mark: Selenium Test %s back to normal", test.Name))
+						s.alert.SendAlert(emoji.Sprintf(":computer: :white_check_mark: Selenium Test %s back to normal", test.Name))
 					}
 				}
 			}
@@ -80,7 +93,7 @@ func runTests() {
 	}
 }
 
-func doSelenium(item database.Selenium) ([]byte, error) {
+func (s service)doSelenium(item Selenium) ([]byte, error) {
 	if item.SeleniumServer == "" {
 		return nil, errors.New("no Selenium Server set")
 	}
@@ -108,7 +121,7 @@ func doSelenium(item database.Selenium) ([]byte, error) {
 
 	err = webDriver.Get(item.InitialURL)
 	if err != nil {
-		return handleSeleniumError(item.Name, "Initial Page", "Load Page", err, webDriver)
+		return s.handleSeleniumError(item.Name, "Initial Page", "Load Page", err, webDriver)
 	}
 
 	for _, page := range item.Pages {
@@ -121,7 +134,7 @@ func doSelenium(item database.Selenium) ([]byte, error) {
 			}
 			err = doCheck(page.PreCheck, webDriver)
 			if err != nil {
-				return handleSeleniumError(item.Name, page.Name, page.PreCheck.Name, err, webDriver)
+				return s.handleSeleniumError(item.Name, page.Name, page.PreCheck.Name, err, webDriver)
 			}
 		}
 		for _, action := range page.Actions {
@@ -130,7 +143,7 @@ func doSelenium(item database.Selenium) ([]byte, error) {
 			}
 			elems, err := findElement(action.SearchOption, webDriver)
 			if err != nil {
-				return handleSeleniumError(item.Name, page.Name, action.Name, err, webDriver)
+				return s.handleSeleniumError(item.Name, page.Name, action.Name, err, webDriver)
 			}
 			elem := elems[0]
 			executed := false
@@ -157,14 +170,14 @@ func doSelenium(item database.Selenium) ([]byte, error) {
 			}
 			err := doCheck(page.PostCheck, webDriver)
 			if err != nil {
-				return handleSeleniumError(item.Name, page.Name, page.PostCheck.Name, err, webDriver)
+				return s.handleSeleniumError(item.Name, page.Name, page.PostCheck.Name, err, webDriver)
 			}
 		}
 	}
 	return nil, nil
 }
 
-func doCheck(check *database.Check, driver selenium.WebDriver) error {
+func doCheck(check *Check, driver selenium.WebDriver) error {
 	waitfor := func(wb selenium.WebDriver) (bool, error) {
 
 		elems, err := findElement(check.SearchOption, driver)
@@ -194,16 +207,16 @@ func doCheck(check *database.Check, driver selenium.WebDriver) error {
 
 }
 
-func handleSeleniumError(name, page, action string, err error, driver selenium.WebDriver, ) ([]byte, error) {
+func (s service)handleSeleniumError(name, page, action string, err error, driver selenium.WebDriver, ) ([]byte, error) {
 	bytes, error := driver.Screenshot()
 	if error != nil {
-		SendError(error)
+		s.alert.SendError(error)
 		return nil, err
 	}
 	return bytes, fmt.Errorf("application: %s,page: %s, action %s, Error: %s", name, page, action, err.Error())
 }
 
-func findElement(action database.SearchOption, driver selenium.WebDriver) ([]selenium.WebElement, error) {
+func findElement(action SearchOption, driver selenium.WebDriver) ([]selenium.WebElement, error) {
 	selector := selenium.ByCSSSelector
 	if action.XPathSelector != nil {
 		selector = selenium.ByXPATH;
