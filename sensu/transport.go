@@ -4,6 +4,7 @@ import (
 	"net/http"
 	kitlog "github.com/go-kit/kit/log"
 	kithttp "github.com/go-kit/kit/transport/http"
+
 	"github.com/gorilla/mux"
 	"github.com/zamedic/go2hal/gokit"
 	"context"
@@ -14,9 +15,15 @@ func MakeHandler(service Service, logger kitlog.Logger) http.Handler {
 	opts := []kithttp.ServerOption{
 		kithttp.ServerErrorLogger(logger),
 		kithttp.ServerErrorEncoder(gokit.EncodeError),
+		kithttp.ServerBefore(gokit.LogRequest()),
 	}
 
-	sensuAlert := kithttp.NewServer(makeSensuEndpoint(service), decodeSensu, gokit.EncodeResponse, opts...)
+	endpoint := makeSensuEndpoint(service)
+	endpoint = loggingMiddleware(kitlog.With(logger, "method", "uppercase"))(endpoint)
+
+
+	sensuAlert := kithttp.NewServer(endpoint, decodeSensu, gokit.EncodeResponse, opts...)
+
 
 	r := mux.NewRouter()
 

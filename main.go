@@ -23,6 +23,7 @@ import (
 	"syscall"
 	"fmt"
 	"github.com/zamedic/go2hal/sensu"
+	"github.com/go-kit/kit/log/level"
 )
 
 func main() {
@@ -41,7 +42,8 @@ func main() {
 	//Services
 	var logger log.Logger
 	logger = log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
-	logger = log.With(logger, "ts", log.DefaultTimestampUTC)
+	logger = level.NewFilter(logger, level.AllowAll())
+	logger = log.With(logger, "ts", log.DefaultTimestamp)
 
 	telegramService := telegram.NewService(telegramStore)
 

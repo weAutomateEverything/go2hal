@@ -27,5 +27,14 @@ func makeSensuEndpoint(s Service) endpoint.Endpoint {
 	}
 }
 
+func loggingMiddleware(logger log.Logger) endpoint.Middleware {
+	return func(next endpoint.Endpoint) endpoint.Endpoint {
+		return func(ctx context.Context, request interface{}) (interface{}, error) {
+			logger.Log("request", request)
+			defer logger.Log("msg", "called endpoint")
+			return next(ctx, request)
+		}
+	}
+}
 
 
