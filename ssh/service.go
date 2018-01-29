@@ -1,7 +1,6 @@
 package ssh
 
 import (
-	"github.com/zamedic/go2hal/database"
 	"io/ioutil"
 	"os/exec"
 	"fmt"

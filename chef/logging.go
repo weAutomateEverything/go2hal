@@ -25,7 +25,7 @@ func (s *loggingService)sendDeliveryAlert(message string){
 	s.Service.sendDeliveryAlert(message)
 
 }
-func (s *loggingService)findNodesFromFriendlyNames(recipe, environment string)[]node{
+func (s *loggingService)FindNodesFromFriendlyNames(recipe, environment string)[]Node{
 	defer func(begin time.Time) {
 		s.logger.Log(
 			"method", "findNodesFromFriendlyNames",
@@ -34,6 +34,6 @@ func (s *loggingService)findNodesFromFriendlyNames(recipe, environment string)[]
 			"took", time.Since(begin),
 		)
 	}(time.Now())
-	return s.Service.findNodesFromFriendlyNames(recipe,environment)
+	return s.Service.FindNodesFromFriendlyNames(recipe,environment)
 
 }

@@ -14,7 +14,7 @@ import (
 
 type Service interface {
 	sendDeliveryAlert(message string)
-	findNodesFromFriendlyNames(recipe, environment string)[]node
+	FindNodesFromFriendlyNames(recipe, environment string)[]Node
 }
 
 type service struct {
@@ -136,10 +136,10 @@ func checkQuarentined(s service) {
 
 	for _,r := range recipes {
 		for _, e := range env {
-			nodes := s.findNodesFromFriendlyNames(r.FriendlyName,e.FriendlyName)
+			nodes := s.FindNodesFromFriendlyNames(r.FriendlyName,e.FriendlyName)
 			for _,n := range nodes {
-				if strings.Index(n.environment,"quar") > 0 {
-					s.alert.SendAlert(emoji.Sprintf(":hospital: *Node Quarantined* \n node %v has been placed in environment %v. Application %v ",n.name,strings.Replace(n.environment,"_", " ",-1), r.FriendlyName))
+				if strings.Index(n.Environment,"quar") > 0 {
+					s.alert.SendAlert(emoji.Sprintf(":hospital: *Node Quarantined* \n node %v has been placed in environment %v. Application %v ",n.Name,strings.Replace(n.Environment,"_", " ",-1), r.FriendlyName))
 				}
 			}
 		}
@@ -147,7 +147,7 @@ func checkQuarentined(s service) {
 
 }
 
-func (s service)findNodesFromFriendlyNames(recipe, environment string) []node {
+func (s service)FindNodesFromFriendlyNames(recipe, environment string) []Node {
 	chefRecipe, err := s.chefStore.GetRecipeFromFriendlyName(recipe)
 	if err != nil {
 		s.alert.SendError(err)
@@ -182,14 +182,14 @@ func (s service)findNodesFromFriendlyNames(recipe, environment string) []node {
 		return nil
 	}
 
-	result := make([]node, res.Total)
+	result := make([]Node, res.Total)
 
 	for i, x := range res.Rows {
 		s := x.(map[string]interface{})
 		data := s["data"].(map[string]interface{})
 		name := data["name"].(string)
 		env := data["chef_environment"].(string)
-		result[i] = node{name:name,environment:env}
+		result[i] = Node{Name:name,Environment:env}
 	}
 
 	return result
@@ -215,7 +215,7 @@ func connect(name, key, url string) (client *chef.Client, err error) {
 	return
 }
 
-type node struct {
-	name        string
-	environment string
+type Node struct {
+	Name        string
+	Environment string
 }

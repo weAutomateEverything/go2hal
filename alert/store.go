@@ -4,7 +4,6 @@ import (
 	"gopkg.in/mgo.v2/bson"
 	"fmt"
 	"log"
-	"github.com/zamedic/go2hal/database"
 	"gopkg.in/mgo.v2"
 )
 

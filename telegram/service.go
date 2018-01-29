@@ -7,7 +7,6 @@ import (
 	"gopkg.in/telegram-bot-api.v4"
 	"math/rand"
 	"log"
-	"time"
 	"bytes"
 )
 
@@ -21,16 +20,16 @@ type Service interface {
 }
 
 type Command interface {
-	commandIdentifier() string
-	commandDescription() string
-	execute(update tgbotapi.Update)
+	CommandIdentifier() string
+	CommandDescription() string
+	Execute(update tgbotapi.Update)
 }
 
 type Commandlet interface {
-	canExecute(update tgbotapi.Update, state State) bool
-	execute(update tgbotapi.Update, state State)
-	nextState(update tgbotapi.Update, state State) string
-	fields(update tgbotapi.Update, state State) []string
+	CanExecute(update tgbotapi.Update, state State) bool
+	Execute(update tgbotapi.Update, state State)
+	NextState(update tgbotapi.Update, state State) string
+	Fields(update tgbotapi.Update, state State) []string
 }
 
 type service struct {
@@ -45,8 +44,9 @@ var commandletList = []commandletCtor{}
 var telegramBot *tgbotapi.BotAPI
 
 func NewService(store Store) Service{
-	findFreeBot(store)
-	return &service{store}
+	s :=  &service{store}
+	s.useBot(os.Getenv("BOT_KEY"))
+	return s
 }
 
 
@@ -81,12 +81,12 @@ func (s *service) SendImageToGroup(image []byte, group int64) error {
 
 func (s *service)RegisterCommand(command Command){
 	register(func() Command{
-		return &command
+		return command
 	})
 }
 func (s *service)RegisterCommandLet(commandlet  Commandlet){
 	registerCommandlet(func() Commandlet{
-		return &commandlet
+		return commandlet
 	})
 }
 
@@ -112,37 +112,20 @@ func (s *service) SendKeyboard(buttons []string, text string, chat int64){
 	telegramBot.Send(msg)
 }
 
-func findFreeBot(s Store) {
-	defer func() {
-		if err := recover(); err != nil {
-			log.Println(err)
-		}
-	}()
-	for true {
-		bots := s.listBots()
-		if bots != nil {
-			for _, botkey := range bots {
-				useBot(botkey,s)
-			}
-		}
-		time.Sleep(time.Minute * 2)
-	}
-}
-
-func useBot(botkey string, s Store) error{
+func (s service)useBot(botkey string) error{
 	var err error
 	telegramBot, err = tgbotapi.NewBotAPI(botkey)
 	if err != nil {
 		return err
 	}
 	go func() {
-		pollMessage(s)
+		s.pollMessage()
 	}()
 	return nil
 
 }
 
-func pollMessage(s Store){
+func (s service)pollMessage(){
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60
 	for true {
@@ -167,7 +150,7 @@ func pollMessage(s Store){
 			}
 
 			if update.Message != nil {
-				if executeCommandLet(update,s){
+				if s.executeCommandLet(update){
 					continue
 				}
 			}
@@ -199,19 +182,19 @@ func sendMessage(chatID int64, message string, messageID int, markup bool) (err 
 func executeCommand(update tgbotapi.Update) bool {
 	command := findCommand(update.Message.Command())
 	if command != nil {
-		go func() {command.execute(update)}()
+		go func() {command.Execute(update)}()
 		return true
 	}
 	return false
 }
 
-func executeCommandLet(update tgbotapi.Update, s Store) bool {
-	state := s.getState(update.Message.From.ID)
+func (s service)executeCommandLet(update tgbotapi.Update) bool {
+	state := s.store.getState(update.Message.From.ID)
 	for _, c := range commandletList{
 		a := c()
-		if a.canExecute(update,state) {
-			a.execute(update,state)
-			s.SetState(update.Message.From.ID,a.nextState(update,state),a.fields(update,state))
+		if a.CanExecute(update,state) {
+			a.Execute(update,state)
+			s.store.SetState(update.Message.From.ID,a.NextState(update,state),a.Fields(update,state))
 			return true
 		}
 	}
@@ -221,7 +204,7 @@ func executeCommandLet(update tgbotapi.Update, s Store) bool {
 func findCommand(command string) (a Command) {
 	for _, item := range commandList {
 		a = item()
-		if a.commandIdentifier() == command {
+		if a.CommandIdentifier() == command {
 			return a
 		}
 	};
@@ -244,15 +227,15 @@ func NewHelpCommand(telegram Service) Command {
 	return &help{telegram}
 }
 
-func (s *help) commandIdentifier() string {
+func (s *help) CommandIdentifier() string {
 	return "help"
 }
 
-func (s *help) commandDescription() string {
+func (s *help) CommandDescription() string {
 	return "Gets list of commands"
 }
 
-func (s *help) execute(update tgbotapi.Update) {
+func (s *help) Execute(update tgbotapi.Update) {
 	var buffer bytes.Buffer
 	for _, x := range getCommands(){
 		buffer.WriteString("/")
@@ -269,7 +252,7 @@ func (s *help) execute(update tgbotapi.Update) {
 func getCommands() []commandDescription {
 	result := make([]commandDescription, len(commandList))
 	for i, x := range commandList {
-		result[i] = commandDescription{x().commandIdentifier(), x().commandDescription()}
+		result[i] = commandDescription{x().CommandIdentifier(), x().CommandDescription()}
 	}
 	return result
 }

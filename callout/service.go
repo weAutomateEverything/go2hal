@@ -12,7 +12,7 @@ import (
 	"github.com/zamedic/go2hal/alert"
 	"github.com/zamedic/go2hal/snmp"
 	"github.com/zamedic/go2hal/jira"
-	"github.com/zamedic/go2hal/config"
+	"os"
 )
 
 
@@ -54,14 +54,7 @@ func (s *service)InvokeCallout(title, message string) {
 
 
 func (s *service)getFirstCallName() (string, error) {
-	c, err := s.configStore.GetCalloutDetails()
-	if err != nil {
-		return "", err
-	}
-	if c == nil {
-		return "", errors.New("no callout set")
-	}
-	endpoint := c.URL
+	endpoint := getCalloutDetails()
 	if endpoint == "" {
 		return "DEFAULT", nil
 	}
@@ -83,6 +76,9 @@ func (s *service)getFirstCallName() (string, error) {
 	}
 	return names[0], nil
 
+}
+func getCalloutDetails() string {
+	return os.Getenv("CALLOUT_URL")
 }
 
 

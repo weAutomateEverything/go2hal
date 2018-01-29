@@ -6,13 +6,13 @@ import (
 	"io/ioutil"
 	"fmt"
 	"gopkg.in/kyokomi/emoji.v1"
-	"github.com/zamedic/go2hal/config"
 	"github.com/zamedic/go2hal/alert"
 	"log"
 	"text/template"
 	"net/http"
 	"encoding/json"
 	"github.com/zamedic/go2hal/user"
+	"os"
 )
 
 type Service interface {
@@ -21,10 +21,13 @@ type Service interface {
 
 type service struct {
 	alert alert.Service
-	confStore config.Store
 	userStore user.Store
 }
 
+func NewService(alert alert.Service,userStore user.Store) Service{
+	return &service{alert,userStore}
+
+}
 
 func (s *service)CreateJira(title, description string, username string) {
 	title = strings.Replace(title, "\n", "", -1)
@@ -35,18 +38,16 @@ func (s *service)CreateJira(title, description string, username string) {
 		Description string
 	}
 
-	j, err := s.confStore.GetJiraDetails()
-	if err != nil {
-		s.alert.SendError(err)
-		return
-	}
-	if j == nil || j.URL == "" {
+	jiraUrl := os.Getenv("JIRA_URL")
+	if jiraUrl == "" {
 		log.Println("No JIRA URL Set. Will not create a JIRA Item")
 		return
 	}
 
-	qr := q{User: jiraUser(username), Description: description, Title: title}
-	tmpl, err := template.New("jira").Parse(j.Template)
+	jiraTemplate := os.Getenv("JIRA_TEMPLATE")
+
+	qr := q{User: s.jiraUser(username), Description: description, Title: title}
+	tmpl, err := template.New("jira").Parse(jiraTemplate)
 	if err != nil {
 		s.alert.SendError(err)
 		return
@@ -59,7 +60,7 @@ func (s *service)CreateJira(title, description string, username string) {
 		return
 	}
 
-	resp, err := http.Post(j.URL, "application/json", buf)
+	resp, err := http.Post(jiraUrl, "application/json", buf)
 	if err != nil {
 		s.alert.SendError(err)
 		return
@@ -84,21 +85,13 @@ func (s *service)CreateJira(title, description string, username string) {
 }
 
 
-func jiraUser(username string, s service) string {
-	j, err := s.confStore.GetJiraDetails()
-	if j == nil {
-		return ""
-	}
-	if err != nil {
-		s.alert.SendError(err)
-		return ""
-	}
-	if username == "DEFAULT" || err != nil {
-		return j.DefaultUser
+func (s *service)jiraUser(username string) string {
+	if username == "DEFAULT"  {
+		return os.Getenv("JIRA_DEFAULT_USER")
 	}
 	u := s.userStore.FindUserByCalloutName(username).JIRAName
 	if u == "" {
-		return j.DefaultUser
+		return os.Getenv("JIRA_DEFAULT_USER")
 	}
 	return u
 }

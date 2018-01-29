@@ -23,8 +23,8 @@ type service struct {
 	alert alert.Service
 }
 
-func NewService(service alert.Service) Service {
-	s :=  &service{service}
+func NewService(alert alert.Service) Service {
+	s :=  &service{alert}
 	go func() {
 		s.startSnmpServer()
 	}()

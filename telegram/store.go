@@ -16,7 +16,6 @@ type Store interface {
 type mongoStore struct{
 	mongo *mgo.Database
 }
-
 /*
 State is the current user state when flowing through a multi step process.
  */

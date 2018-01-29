@@ -33,7 +33,7 @@ func (s *loggingService) addAppdynamicsEndpoint(endpoint string) (err error) {
 			"took", time.Since(begin),
 		)
 	}(time.Now())
-	s.Service.addAppdynamicsEndpoint(endpoint)
+	return s.Service.addAppdynamicsEndpoint(endpoint)
 }
 func (s *loggingService) addAppDynamicsQueue(name, application, metricPath string) (err error) {
 	defer func(begin time.Time) {
@@ -46,7 +46,7 @@ func (s *loggingService) addAppDynamicsQueue(name, application, metricPath strin
 			"took", time.Since(begin),
 		)
 	}(time.Now())
-	s.Service.addAppDynamicsQueue(name, application, metricPath)
+	return s.Service.addAppDynamicsQueue(name, application, metricPath)
 }
 func (s *loggingService) executeCommandFromAppd(commandName, applicationID, nodeId string) (err error) {
 	defer func(begin time.Time) {
@@ -59,5 +59,5 @@ func (s *loggingService) executeCommandFromAppd(commandName, applicationID, node
 			"took", time.Since(begin),
 		)
 	}(time.Now())
-	s.Service.executeCommandFromAppd(commandName, applicationID, nodeId)
+	return s.Service.executeCommandFromAppd(commandName, applicationID, nodeId)
 }

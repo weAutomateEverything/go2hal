@@ -53,7 +53,7 @@ func (s *mongoStore)findCommand(name string) (string, error) {
 }
 
 
-func (s *mongoStore)addKey(username, key string) error {
+func (s *mongoStore)addKey(username, k string) error {
 	c := s.mongo.C("keys")
 	q := c.Find(nil)
 	count, err := q.Count()
@@ -61,7 +61,7 @@ func (s *mongoStore)addKey(username, key string) error {
 		return err
 	}
 	if count == 0 {
-		r := key{Username: username, Key: key}
+		r := key{Username: username, Key: k}
 		return c.Insert(r)
 	}
 	r := key{}
@@ -69,7 +69,7 @@ func (s *mongoStore)addKey(username, key string) error {
 	if err != nil {
 		return err
 	}
-	r.Key = key
+	r.Key = k
 	r.Username = username
 	return c.UpdateId(r.ID, r)
 

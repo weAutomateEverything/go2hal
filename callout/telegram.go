@@ -20,15 +20,15 @@ func NewWhosOnFirstCallCommand(alert alert.Service,telegram telegram.Service,ser
 
 
 /* Set Heartbeat group */
-func (s *whosOnFirstCall) commandIdentifier() string {
+func (s *whosOnFirstCall) CommandIdentifier() string {
 	return "FirstCall"
 }
 
-func (s *whosOnFirstCall) commandDescription() string {
+func (s *whosOnFirstCall) CommandDescription() string {
 	return "Who is on first call?"
 }
 
-func (s *whosOnFirstCall) execute(update tgbotapi.Update) {
+func (s *whosOnFirstCall) Execute(update tgbotapi.Update) {
 	name, err := s.service.getFirstCallName()
 	if err != nil {
 		s.alert.SendError(err)

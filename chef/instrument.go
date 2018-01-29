@@ -26,11 +26,11 @@ func (s *instrumentingService)sendDeliveryAlert(message string){
 	}(time.Now())
 	s.Service.sendDeliveryAlert(message)
 }
-func (s *instrumentingService)findNodesFromFriendlyNames(recipe, environment string)[]node{
+func (s *instrumentingService)FindNodesFromFriendlyNames(recipe, environment string)[]Node{
 	defer func(begin time.Time) {
 		s.requestCount.With("method", "findNodesFromFriendlyNames").Add(1)
 		s.requestLatency.With("method", "findNodesFromFriendlyNames").Observe(time.Since(begin).Seconds())
 	}(time.Now())
-	return s.Service.findNodesFromFriendlyNames(recipe,environment)
+	return s.Service.FindNodesFromFriendlyNames(recipe,environment)
 }
 

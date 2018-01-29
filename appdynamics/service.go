@@ -114,8 +114,8 @@ func (s *service)addAppdynamicsEndpoint(endpoint string) error {
 }
 
 func (s *service)addAppDynamicsQueue(name, application, metricPath string) error {
-	endpointObject := s.store.MqEndpoint{MetricPath: metricPath, Application: application, Name: name};
-	err := checkQueues(endpointObject,s.alert,s.store);
+	endpointObject := MqEndpoint{MetricPath: metricPath, Application: application, Name: name}
+	err := checkQueues(endpointObject,s.alert,s.store)
 	if err != nil {
 		return err
 	}
