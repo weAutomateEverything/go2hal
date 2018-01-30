@@ -19,7 +19,7 @@ before_script:
 
 
 script:
- - gocov test -v ./...
+ - bin/test.sh
  - go build
 
 after_success:
