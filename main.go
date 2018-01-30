@@ -29,6 +29,7 @@ import (
 )
 
 func main() {
+
 	db := database.NewConnection()
 
 	//Stores
@@ -51,7 +52,7 @@ func main() {
 
 	telegramService := telegram.NewService(telegramStore)
 
-	alertService := alert.NewService(telegramService)
+	alertService := alert.NewService(telegramService, alertStore)
 	alertService = alert.NewLoggingService(log.With(logger, "component", "alert"), alertService)
 	alertService = alert.NewInstrumentService(kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
 		Namespace: "api",
@@ -243,6 +244,8 @@ func main() {
 		signal.Notify(c, syscall.SIGINT)
 		errs <- fmt.Errorf("%s", <-c)
 	}()
+
+
 
 	logger.Log("terminated", <-errs)
 

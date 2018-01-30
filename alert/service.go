@@ -6,6 +6,9 @@ import (
 	"log"
 )
 
+/*
+Service interface
+ */
 type Service interface {
 	SendAlert(message string) error
 	SendNonTechnicalAlert(message string) error
@@ -17,14 +20,17 @@ type Service interface {
 
 type service struct {
 	telegram telegram.Service
-	store Store
+	store    Store
 }
 
-func NewService(t telegram.Service) Service {
-
+/*
+NewService returns a new Alert Service
+ */
+func NewService(t telegram.Service, store Store) Service {
 
 	return &service{
 		telegram: t,
+		store:    store,
 	}
 }
 
