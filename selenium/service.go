@@ -49,8 +49,6 @@ func (s *service)runTests() {
 			fmt.Print(err)
 			s.alert.SendError(errors.New(fmt.Sprint(err)))
 			s.alert.SendError(errors.New(string(debug.Stack())))
-
-
 		}
 	}()
 

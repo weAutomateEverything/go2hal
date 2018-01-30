@@ -68,6 +68,7 @@ func (s *service)CreateJira(title, description string, username string) {
 	defer resp.Body.Close()
 
 	response, err := ioutil.ReadAll(resp.Body)
+	log.Printf("JIRA Response: %v",string(response))
 	if err != nil {
 		s.alert.SendError(err)
 		return
