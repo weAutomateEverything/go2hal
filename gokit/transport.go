@@ -5,7 +5,8 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
-	http2 "github.com/go-kit/kit/transport/http"
+	kitlog "github.com/go-kit/kit/log"
+	kithttp "github.com/go-kit/kit/transport/http"
 	"log"
 	"fmt"
 	"strings"
@@ -49,7 +50,7 @@ type errorer interface {
 	error() error
 }
 
-func LogRequest() http2.RequestFunc{
+func logRequest() kithttp.RequestFunc{
 	return func(i context.Context, request *http.Request) context.Context {
 		log.Print(formatRequest(request))
 		return i
@@ -87,4 +88,15 @@ func formatRequest(r *http.Request) string {
 
 	// Return the request as a string
 	return strings.Join(request, "\n")
+}
+
+/*
+GetServerOpts creates a default server option with an error logger, error encoder and a http request logger.
+ */
+func GetServerOpts(logger kitlog.Logger)[]kithttp.ServerOption{
+	return []kithttp.ServerOption{
+		kithttp.ServerErrorLogger(logger),
+		kithttp.ServerErrorEncoder(EncodeError),
+		kithttp.ServerBefore(logRequest()),
+	}
 }

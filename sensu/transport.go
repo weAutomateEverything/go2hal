@@ -12,15 +12,9 @@ import (
 )
 
 func MakeHandler(service Service, logger kitlog.Logger) http.Handler {
-	opts := []kithttp.ServerOption{
-		kithttp.ServerErrorLogger(logger),
-		kithttp.ServerErrorEncoder(gokit.EncodeError),
-		kithttp.ServerBefore(gokit.LogRequest()),
-	}
+	opts := gokit.GetServerOpts(logger)
 
 	endpoint := makeSensuEndpoint(service)
-	endpoint = loggingMiddleware(kitlog.With(logger, "method", "uppercase"))(endpoint)
-
 
 	sensuAlert := kithttp.NewServer(endpoint, decodeSensu, gokit.EncodeResponse, opts...)
 

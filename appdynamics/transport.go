@@ -10,10 +10,7 @@ import (
 )
 
 func MakeHandler(service Service, logger kitlog.Logger) http.Handler {
-	opts := []kithttp.ServerOption{
-		kithttp.ServerErrorLogger(logger),
-		kithttp.ServerErrorEncoder(gokit.EncodeError),
-	}
+	opts := gokit.GetServerOpts(logger)
 
 	appDynamicsAlertEndoint := kithttp.NewServer(makeAppDynamicsAlertEndpoint(service), gokit.DecodeString, gokit.EncodeResponse, opts...)
 	addAppdynamicsEndpoint := kithttp.NewServer(makeAddAppdynamicsEndpoint(service), gokit.DecodeString, gokit.EncodeResponse, opts...)

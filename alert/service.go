@@ -65,7 +65,7 @@ func (s *service) SendImageToHeartbeatGroup(image []byte) error {
 
 }
 
-func (s service) SendHeartbeatGroupAlert(message string) error {
+func (s *service) SendHeartbeatGroupAlert(message string) error {
 	group, err := s.store.heartbeatGroup()
 	if err != nil {
 		s.SendError(err)
