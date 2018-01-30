@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"strings"
 	"github.com/zamedic/go2hal/alert"
-	"log"
 	"encoding/json"
 	"github.com/zamedic/go2hal/chef"
 )
@@ -26,7 +25,6 @@ func NewService(alertService alert.Service, chefStore chef.Store) Service{
 
 func (s *service) SendAnalyticsAlert(message string){
 	if !s.checkSend(message) {
-		log.Println("Ignoreing message: "+message)
 		return
 	}
 	var dat map[string]interface{}
@@ -44,13 +42,11 @@ func (s *service) SendAnalyticsAlert(message string){
 	buffer.WriteString("\n")
 	getfield(attachments, &buffer)
 
-	log.Printf("Sending Alert: %s", buffer.String())
 	s.alert.SendAlert(buffer.String())
 }
 
 func (s *service)checkSend(message string) bool {
 	message = strings.ToUpper(message)
-	log.Printf("Checking if we should send: %s",message)
 	recipes, err := s.chefStore.GetRecipes()
 	if err != nil {
 		s.alert.SendError(err)
@@ -58,13 +54,10 @@ func (s *service)checkSend(message string) bool {
 	}
 	for _, recipe := range recipes {
 		check := "RECIPE["+strings.ToUpper(recipe.Recipe)+"]"
-		log.Printf("Comparing %s",check)
 		if strings.Contains(message,check) {
-			log.Printf("Match Found, returning true")
 			return true
 		}
 	}
-	log.Printf("No match found, not sending message")
 	return false;
 }
 
