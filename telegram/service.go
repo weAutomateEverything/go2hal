@@ -4,7 +4,7 @@ import (
 	"runtime"
 	"io/ioutil"
 	"os"
-	"gopkg.in/telegram-bot-api.v4"
+	tgbotapi "gopkg.in/telegram-bot-api.v4"
 	"math/rand"
 	"log"
 	"bytes"

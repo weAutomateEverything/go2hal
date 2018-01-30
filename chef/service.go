@@ -10,6 +10,7 @@ import (
 	"github.com/zamedic/go2hal/alert"
 	"time"
 	"github.com/go-chef/chef"
+	"github.com/zamedic/go2hal/util"
 )
 
 type Service interface {
@@ -84,7 +85,7 @@ func (s service)sendDeliveryAlert(message string) {
 	buffer.WriteString(bodies[1])
 	buffer.WriteString("\n")
 
-	getfield(attachments, &buffer)
+	util.Getfield(attachments, &buffer)
 
 	buffer.WriteString("[")
 	buffer.WriteString(parts[1])
@@ -98,22 +99,7 @@ func (s service)sendDeliveryAlert(message string) {
 	s.alert.SendAlert(buffer.String())
 
 }
-func getfield(attachments []interface{}, buffer *bytes.Buffer) {
-	for _, attachment := range attachments {
-		attachmentI := attachment.(map[string]interface{})
-		fields := attachmentI["fields"].([]interface{})
 
-		//Loop through the fields
-		for _, field := range fields {
-			fieldI := field.(map[string]interface{})
-			buffer.WriteString("*")
-			buffer.WriteString(fieldI["title"].(string))
-			buffer.WriteString("* ")
-			buffer.WriteString(fieldI["value"].(string))
-			buffer.WriteString("\n")
-		}
-	}
-}
 
 func (s service)monitorQuarentined() {
 	for {

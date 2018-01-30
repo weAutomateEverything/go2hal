@@ -17,7 +17,7 @@ func NewLoggingService(logger log.Logger, s Service) Service {
 func (s loggingService) CreateJira(title, description string, name string) {
 	defer func(begin time.Time) {
 		s.logger.Log(
-			"method", "sendDeliveryAlert",
+			"method", "CreateJira",
 			"title", title,
 			"description", description,
 			"name", name,

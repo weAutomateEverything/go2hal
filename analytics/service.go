@@ -5,9 +5,9 @@ import (
 	"bytes"
 	"strings"
 	"github.com/zamedic/go2hal/alert"
-	"log"
 	"encoding/json"
 	"github.com/zamedic/go2hal/chef"
+	"github.com/zamedic/go2hal/util"
 )
 
 type Service interface {
@@ -26,7 +26,6 @@ func NewService(alertService alert.Service, chefStore chef.Store) Service{
 
 func (s *service) SendAnalyticsAlert(message string){
 	if !s.checkSend(message) {
-		log.Println("Ignoreing message: "+message)
 		return
 	}
 	var dat map[string]interface{}
@@ -42,15 +41,13 @@ func (s *service) SendAnalyticsAlert(message string){
 	buffer.WriteString("*analytics Event*\n")
 	buffer.WriteString(dat["text"].(string))
 	buffer.WriteString("\n")
-	getfield(attachments, &buffer)
+	util.Getfield(attachments, &buffer)
 
-	log.Printf("Sending Alert: %s", buffer.String())
 	s.alert.SendAlert(buffer.String())
 }
 
 func (s *service)checkSend(message string) bool {
 	message = strings.ToUpper(message)
-	log.Printf("Checking if we should send: %s",message)
 	recipes, err := s.chefStore.GetRecipes()
 	if err != nil {
 		s.alert.SendError(err)
@@ -58,29 +55,10 @@ func (s *service)checkSend(message string) bool {
 	}
 	for _, recipe := range recipes {
 		check := "RECIPE["+strings.ToUpper(recipe.Recipe)+"]"
-		log.Printf("Comparing %s",check)
 		if strings.Contains(message,check) {
-			log.Printf("Match Found, returning true")
 			return true
 		}
 	}
-	log.Printf("No match found, not sending message")
 	return false;
 }
 
-func getfield(attachments []interface{}, buffer *bytes.Buffer) {
-	for _, attachment := range attachments {
-		attachmentI := attachment.(map[string]interface{})
-		fields := attachmentI["fields"].([]interface{})
-
-		//Loop through the fields
-		for _, field := range fields {
-			fieldI := field.(map[string]interface{})
-			buffer.WriteString("*")
-			buffer.WriteString(fieldI["title"].(string))
-			buffer.WriteString("* ")
-			buffer.WriteString(fieldI["value"].(string))
-			buffer.WriteString("\n")
-		}
-	}
-}
