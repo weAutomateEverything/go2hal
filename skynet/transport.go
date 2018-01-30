@@ -11,10 +11,7 @@ import (
 )
 
 func MakeHandler(service Service, logger kitlog.Logger) http.Handler {
-	opts := []kithttp.ServerOption{
-		kithttp.ServerErrorLogger(logger),
-		kithttp.ServerErrorEncoder(gokit.EncodeError),
-	}
+	opts := gokit.GetServerOpts(logger)
 
 	skynetRebuild := kithttp.NewServer(makeSkynetRebuildEndpoint(service), decodeSkynetRebuildRequest, gokit.EncodeResponse, opts...)
 	skynetAlert := kithttp.NewServer(makeSkynetAlertEndpoint(service), gokit.DecodeString, gokit.EncodeResponse, opts...)

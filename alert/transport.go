@@ -12,10 +12,8 @@ import (
 )
 
 func MakeHandler(service Service, logger kitlog.Logger) http.Handler {
-	opts := []kithttp.ServerOption{
-		kithttp.ServerErrorLogger(logger),
-		kithttp.ServerErrorEncoder(gokit.EncodeError),
-	}
+	opts := gokit.GetServerOpts(logger)
+
 
 	alertHandler := kithttp.NewServer(makeAlertEndpoint(service), gokit.DecodeString, gokit.EncodeResponse, opts..., )
 	imageAlertHandler := kithttp.NewServer(makeImageAlertEndpoint(service), decodeImageAlertRequest, gokit.EncodeResponse, opts..., )
