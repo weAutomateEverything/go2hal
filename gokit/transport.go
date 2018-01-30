@@ -50,7 +50,7 @@ type errorer interface {
 	error() error
 }
 
-func LogRequest() kithttp.RequestFunc{
+func logRequest() kithttp.RequestFunc{
 	return func(i context.Context, request *http.Request) context.Context {
 		log.Print(formatRequest(request))
 		return i
@@ -90,10 +90,13 @@ func formatRequest(r *http.Request) string {
 	return strings.Join(request, "\n")
 }
 
+/*
+GetServerOpts creates a default server option with an error logger, error encoder and a http request logger.
+ */
 func GetServerOpts(logger kitlog.Logger)[]kithttp.ServerOption{
 	return []kithttp.ServerOption{
 		kithttp.ServerErrorLogger(logger),
 		kithttp.ServerErrorEncoder(EncodeError),
-		kithttp.ServerBefore(LogRequest()),
+		kithttp.ServerBefore(logRequest()),
 	}
 }

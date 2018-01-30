@@ -3,7 +3,6 @@ package sensu
 import (
 	"github.com/go-kit/kit/endpoint"
 	"context"
-	"github.com/go-kit/kit/log"
 )
 
 type SensuMessageRequest struct {
