@@ -7,6 +7,7 @@ import (
 	"github.com/zamedic/go2hal/alert"
 	"encoding/json"
 	"github.com/zamedic/go2hal/chef"
+	"github.com/zamedic/go2hal/util"
 )
 
 type Service interface {
@@ -40,7 +41,7 @@ func (s *service) SendAnalyticsAlert(message string){
 	buffer.WriteString("*analytics Event*\n")
 	buffer.WriteString(dat["text"].(string))
 	buffer.WriteString("\n")
-	getfield(attachments, &buffer)
+	util.Getfield(attachments, &buffer)
 
 	s.alert.SendAlert(buffer.String())
 }
@@ -61,19 +62,3 @@ func (s *service)checkSend(message string) bool {
 	return false;
 }
 
-func getfield(attachments []interface{}, buffer *bytes.Buffer) {
-	for _, attachment := range attachments {
-		attachmentI := attachment.(map[string]interface{})
-		fields := attachmentI["fields"].([]interface{})
-
-		//Loop through the fields
-		for _, field := range fields {
-			fieldI := field.(map[string]interface{})
-			buffer.WriteString("*")
-			buffer.WriteString(fieldI["title"].(string))
-			buffer.WriteString("* ")
-			buffer.WriteString(fieldI["value"].(string))
-			buffer.WriteString("\n")
-		}
-	}
-}
