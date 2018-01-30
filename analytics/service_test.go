@@ -4,15 +4,15 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
-	"github.com/zamedic/go2hal/alert/mock_alert"
 	"github.com/zamedic/go2hal/chef"
+	"github.com/zamedic/go2hal/alert"
 )
 
 func TestService_SendAnalyticsAlert(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockAlert := mock_alert.NewMockService(ctrl)
+	mockAlert := alert.NewMockService(ctrl)
 	mockStore := chef.NewMockStore(ctrl)
 
 	service := NewService(mockAlert,mockStore)
