@@ -7,6 +7,9 @@ import (
 	"errors"
 )
 
+
+
+
 func makeAlertEndpoint(s Service) endpoint.Endpoint{
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(string)
@@ -19,6 +22,7 @@ type imageAlertMessage struct {
 	Message, Image string
 	InternalError bool
 }
+
 
 func makeImageAlertEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
@@ -50,3 +54,4 @@ func makeBusinessAlertEndpoint(s Service) endpoint.Endpoint{
 		return nil, nil
 	}
 }
+

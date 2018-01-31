@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"strings"
 	"bytes"
+	"github.com/pkg/errors"
 )
 
 // encode errors from business-logic
@@ -33,6 +34,14 @@ func DecodeString(_ context.Context, r *http.Request) (interface{}, error) {
 	return string(s),nil
 }
 
+func DecodeResponse(_ context.Context, r *http.Response) (interface{}, error) {
+	if r.StatusCode >= 400 {
+		s, _ := ioutil.ReadAll(r.Body)
+		return nil, errors.New(string(s))
+	}
+	return nil,nil
+}
+
 func EncodeResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 
@@ -44,6 +53,17 @@ func EncodeResponse(ctx context.Context, w http.ResponseWriter, response interfa
 		return nil
 	}
 	return json.NewEncoder(w).Encode(response)
+}
+/*
+EncodeRequest converts the input request into a json string and adds it to the request body
+ */
+func EncodeRequest(_ context.Context, r *http.Request, request interface{}) error {
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(request); err != nil {
+		return err
+	}
+	r.Body = ioutil.NopCloser(&buf)
+	return nil
 }
 
 type errorer interface {
