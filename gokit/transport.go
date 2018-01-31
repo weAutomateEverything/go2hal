@@ -1,17 +1,17 @@
 package gokit
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
-	"io/ioutil"
-	"net/http"
+	"fmt"
 	kitlog "github.com/go-kit/kit/log"
 	kithttp "github.com/go-kit/kit/transport/http"
-	"log"
-	"fmt"
-	"strings"
-	"bytes"
 	"github.com/pkg/errors"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"strings"
 )
 
 // EncodeError response back to the client
@@ -28,7 +28,7 @@ func EncodeError(c context.Context, err error, w http.ResponseWriter) {
 
 /*
 DecodeString will return the the body of the http request as a string
- */
+*/
 func DecodeString(_ context.Context, r *http.Request) (interface{}, error) {
 	s, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -39,7 +39,7 @@ func DecodeString(_ context.Context, r *http.Request) (interface{}, error) {
 
 /*
 DecodeResponse will check the response for an error, and if there is, it will set the body to the error message
- */
+*/
 func DecodeResponse(_ context.Context, r *http.Response) (interface{}, error) {
 	if r.StatusCode >= 400 {
 		s, _ := ioutil.ReadAll(r.Body)
@@ -50,7 +50,7 @@ func DecodeResponse(_ context.Context, r *http.Response) (interface{}, error) {
 
 /*
 EncodeResponse Convert the response into the response body
- */
+*/
 func EncodeResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 
@@ -66,7 +66,7 @@ func EncodeResponse(ctx context.Context, w http.ResponseWriter, response interfa
 
 /*
 EncodeRequest converts the input request into a json string and adds it to the request body
- */
+*/
 func EncodeRequest(_ context.Context, r *http.Request, request interface{}) error {
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(request); err != nil {
@@ -122,7 +122,7 @@ func formatRequest(r *http.Request) string {
 
 /*
 GetServerOpts creates a default server option with an error logger, error encoder and a http request logger.
- */
+*/
 func GetServerOpts(logger kitlog.Logger) []kithttp.ServerOption {
 	return []kithttp.ServerOption{
 		kithttp.ServerErrorLogger(logger),
