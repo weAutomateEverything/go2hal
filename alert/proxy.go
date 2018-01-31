@@ -1,17 +1,17 @@
 package alert
 
 import (
-	"github.com/go-kit/kit/endpoint"
-	"fmt"
-	"net/url"
-	"github.com/zamedic/go2hal/gokit"
-	"github.com/go-kit/kit/transport/http"
 	"context"
+	"fmt"
 	"github.com/go-kit/kit/circuitbreaker"
+	"github.com/go-kit/kit/endpoint"
 	"github.com/go-kit/kit/ratelimit"
-	"time"
+	"github.com/go-kit/kit/transport/http"
 	"github.com/sony/gobreaker"
+	"github.com/zamedic/go2hal/gokit"
 	"golang.org/x/time/rate"
+	"net/url"
+	"time"
 )
 
 type alertKubernetesProxy struct {
@@ -19,7 +19,9 @@ type alertKubernetesProxy struct {
 
 	sendAlertEndpoint endpoint.Endpoint
 }
-
+/*
+NewKubernetesAlertProxy will return an alert service that is actually a HTTP Proxy into the kubertes service
+ */
 func NewKubernetesAlertProxy(namespace string) Service {
 	e := makeAlertKubernetesHttpProxy(namespace)
 	e = circuitbreaker.Gobreaker(gobreaker.NewCircuitBreaker(gobreaker.Settings{}))(e)
@@ -49,7 +51,7 @@ func (s *alertKubernetesProxy) SendError(err error) {
 
 }
 
-func makeAlertKubernetesHttpProxy(namespance string) (endpoint.Endpoint) {
+func makeAlertKubernetesHTTPProxy(namespance string) endpoint.Endpoint {
 	u := ""
 	if namespance == "" {
 		u = "http://hal/alert"
