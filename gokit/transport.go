@@ -1,19 +1,20 @@
 package gokit
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
-	"io/ioutil"
-	"net/http"
+	"fmt"
 	kitlog "github.com/go-kit/kit/log"
 	kithttp "github.com/go-kit/kit/transport/http"
+	"github.com/pkg/errors"
+	"io/ioutil"
 	"log"
-	"fmt"
+	"net/http"
 	"strings"
-	"bytes"
 )
 
-// encode errors from business-logic
+// EncodeError response back to the client
 func EncodeError(c context.Context, err error, w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 
@@ -25,14 +26,31 @@ func EncodeError(c context.Context, err error, w http.ResponseWriter) {
 
 }
 
+/*
+DecodeString will return the the body of the http request as a string
+*/
 func DecodeString(_ context.Context, r *http.Request) (interface{}, error) {
 	s, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		return nil, err
 	}
-	return string(s),nil
+	return string(s), nil
 }
 
+/*
+DecodeResponse will check the response for an error, and if there is, it will set the body to the error message
+*/
+func DecodeResponse(_ context.Context, r *http.Response) (interface{}, error) {
+	if r.StatusCode >= 400 {
+		s, _ := ioutil.ReadAll(r.Body)
+		return nil, errors.New(string(s))
+	}
+	return nil, nil
+}
+
+/*
+EncodeResponse Convert the response into the response body
+*/
 func EncodeResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 
@@ -46,11 +64,23 @@ func EncodeResponse(ctx context.Context, w http.ResponseWriter, response interfa
 	return json.NewEncoder(w).Encode(response)
 }
 
+/*
+EncodeRequest converts the input request into a json string and adds it to the request body
+*/
+func EncodeRequest(_ context.Context, r *http.Request, request interface{}) error {
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(request); err != nil {
+		return err
+	}
+	r.Body = ioutil.NopCloser(&buf)
+	return nil
+}
+
 type errorer interface {
 	error() error
 }
 
-func logRequest() kithttp.RequestFunc{
+func logRequest() kithttp.RequestFunc {
 	return func(i context.Context, request *http.Request) context.Context {
 		log.Print(formatRequest(request))
 		return i
@@ -76,13 +106,13 @@ func formatRequest(r *http.Request) string {
 
 	// If this is a POST, add post data
 	if r.Method == "POST" {
-	r.ParseForm()
-	request = append(request, "\n")
-	request = append(request, r.Form.Encode())
+		r.ParseForm()
+		request = append(request, "\n")
+		request = append(request, r.Form.Encode())
 	}
 
-	body,_ := ioutil.ReadAll(r.Body)
-	request = append(request, fmt.Sprintf("Body: %v",string(body)))
+	body, _ := ioutil.ReadAll(r.Body)
+	request = append(request, fmt.Sprintf("Body: %v", string(body)))
 
 	r.Body = ioutil.NopCloser(bytes.NewBuffer(body))
 
@@ -92,8 +122,8 @@ func formatRequest(r *http.Request) string {
 
 /*
 GetServerOpts creates a default server option with an error logger, error encoder and a http request logger.
- */
-func GetServerOpts(logger kitlog.Logger)[]kithttp.ServerOption{
+*/
+func GetServerOpts(logger kitlog.Logger) []kithttp.ServerOption {
 	return []kithttp.ServerOption{
 		kithttp.ServerErrorLogger(logger),
 		kithttp.ServerErrorEncoder(EncodeError),
