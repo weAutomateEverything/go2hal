@@ -22,7 +22,7 @@ type alertKubernetesProxy struct {
 
 /*
 NewKubernetesAlertProxy will return an alert service that is actually a HTTP Proxy into the kubertes service
- */
+*/
 func NewKubernetesAlertProxy(namespace string) Service {
 	e := makeAlertKubernetesHTTPProxy(namespace)
 	e = circuitbreaker.Gobreaker(gobreaker.NewCircuitBreaker(gobreaker.Settings{}))(e)
