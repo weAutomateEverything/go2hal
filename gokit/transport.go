@@ -38,7 +38,7 @@ func DecodeString(_ context.Context, r *http.Request) (interface{}, error) {
 }
 
 /*
-Decode Response will check the
+DecodeResponse will check the response for an error, and if there is, it will set the body to the error message
  */
 func DecodeResponse(_ context.Context, r *http.Response) (interface{}, error) {
 	if r.StatusCode >= 400 {
