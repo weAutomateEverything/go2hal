@@ -19,11 +19,12 @@ type alertKubernetesProxy struct {
 
 	sendAlertEndpoint endpoint.Endpoint
 }
+
 /*
 NewKubernetesAlertProxy will return an alert service that is actually a HTTP Proxy into the kubertes service
  */
 func NewKubernetesAlertProxy(namespace string) Service {
-	e := makeAlertKubernetesHttpProxy(namespace)
+	e := makeAlertKubernetesHTTPProxy(namespace)
 	e = circuitbreaker.Gobreaker(gobreaker.NewCircuitBreaker(gobreaker.Settings{}))(e)
 	e = ratelimit.NewErroringLimiter(rate.NewLimiter(rate.Every(time.Second), 100))(e)
 
