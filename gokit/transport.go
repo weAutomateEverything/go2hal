@@ -12,6 +12,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"encoding/base64"
 )
 
 // EncodeError response back to the client
@@ -73,6 +74,42 @@ func EncodeRequest(_ context.Context, r *http.Request, request interface{}) erro
 		return err
 	}
 	r.Body = ioutil.NopCloser(&buf)
+	return nil
+}
+
+/*
+EncodeToBase64 takes the byte array request and converts it to base64 before adding it to the request body
+ */
+func EncodeToBase64(_ context.Context, r *http.Request, request interface{}) error {
+	req := request.([]byte)
+
+	b := &bytes.Buffer{}
+	e := base64.NewEncoder(base64.StdEncoding, b)
+	e.Write(req)
+	e.Close()
+
+	r.Body = ioutil.NopCloser(b)
+	return nil
+}
+
+func DecodeFromBase64(_ context.Context, r *http.Request) (interface{}, error){
+	base64msg,err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil,err
+	}
+	b := &bytes.Buffer{}
+	e := base64.NewDecoder(base64.StdEncoding,b)
+	e.Read(base64msg)
+
+	return b.Bytes(),nil
+}
+
+/*
+EncodeErrorRequest will extract the string message from the request error and add it to the body
+ */
+func EncodeErrorRequest(_ context.Context, r *http.Request, request interface{}) error {
+	req := request.(error)
+	r.Body = ioutil.NopCloser(bytes.NewReader([]byte(req.Error())))
 	return nil
 }
 
