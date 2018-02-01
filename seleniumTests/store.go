@@ -1,4 +1,4 @@
-package selenium
+package seleniumTests
 
 import (
 	"gopkg.in/mgo.v2/bson"
@@ -8,7 +8,7 @@ import (
 
 type Store interface {
 	/*
-	GetAllSeleniumTests returns all selenium tests
+	GetAllSeleniumTests returns all seleniumTests tests
 	*/
 	GetAllSeleniumTests() ([]Selenium, error)
 
@@ -18,12 +18,12 @@ type Store interface {
 	AddSelenium(selenium Selenium) error
 
 	/*
-	SetSeleniumFailing sets thje selenium test to a failed state
+	SetSeleniumFailing sets thje seleniumTests test to a failed state
 	*/
 	SetSeleniumFailing(selenium *Selenium, err error) error
 
 	/*
-	SetSeleniumPassing sets the selenium test to a passed state
+	SetSeleniumPassing sets the seleniumTests test to a passed state
 	*/
 	SetSeleniumPassing(selenium *Selenium) error
 }
@@ -37,7 +37,7 @@ func NewMongoStore(db *mgo.Database) Store {
 }
 
 /*
-Selenium Object
+halSelenium Object
  */
 type Selenium struct {
 	ID             bson.ObjectId `bson:"_id,omitempty" json:"omitempty"`
@@ -167,11 +167,11 @@ type XPathSelector struct {
 }
 
 /*
-GetAllSeleniumTests returns all selenium tests
+GetAllSeleniumTests returns all seleniumTests tests
  */
 func (s *mongoStore) GetAllSeleniumTests() ([]Selenium, error) {
 	var result []Selenium
-	err := s.mongo.C("Selenium").Find(nil).All(&result)
+	err := s.mongo.C("halSelenium").Find(nil).All(&result)
 	return result, err
 }
 
@@ -179,27 +179,27 @@ func (s *mongoStore) GetAllSeleniumTests() ([]Selenium, error) {
 AddSelenium adds a test to the database
  */
 func (s *mongoStore)AddSelenium(selenium Selenium) error {
-	return s.mongo.C("Selenium").Insert(selenium)
+	return s.mongo.C("halSelenium").Insert(selenium)
 }
 
 /*
-SetSeleniumFailing sets thje selenium test to a failed state
+SetSeleniumFailing sets thje seleniumTests test to a failed state
  */
 func (s *mongoStore)SetSeleniumFailing(selenium *Selenium, err error) error {
 	selenium.Passing = false
 	selenium.ErrorCount++
 	selenium.LastChecked = time.Now()
-	return s.mongo.C("Selenium").UpdateId(selenium.ID, selenium)
+	return s.mongo.C("halSelenium").UpdateId(selenium.ID, selenium)
 }
 
 /*
-SetSeleniumPassing sets the selenium test to a passed state
+SetSeleniumPassing sets the seleniumTests test to a passed state
  */
 func (s *mongoStore)SetSeleniumPassing(selenium *Selenium) error {
 	selenium.Passing = true
 	selenium.ErrorCount = 0
 	selenium.LastChecked = time.Now()
 	selenium.LastSuccess = time.Now()
-	return s.mongo.C("Selenium").UpdateId(selenium.ID, selenium)
+	return s.mongo.C("halSelenium").UpdateId(selenium.ID, selenium)
 
 }

@@ -1,4 +1,4 @@
-package selenium
+package seleniumTests
 
 import (
 	"fmt"
@@ -27,6 +27,13 @@ func NewService(store Store,alertService alert.Service, calloutService callout.S
 		s.runTests()
 	}()
 	return s
+}
+
+func NewChromeClient(seleniumEndpoint string)(selenium.WebDriver, error){
+	caps := selenium.Capabilities(map[string]interface{}{"browserName": "chrome"})
+	caps["chrome.switches"] = []string{"--ignore-certificate-errors"}
+	return selenium.NewRemote(caps, seleniumEndpoint)
+
 }
 
 
@@ -61,16 +68,16 @@ func (s *service)runTests() {
 				image, err := s.doSelenium(test)
 				if err != nil {
 					if error := s.store.SetSeleniumFailing(&test, err); error != nil {
-						s.alert.SendError(fmt.Errorf("error setting selenium test to failed. %s", error.Error()))
+						s.alert.SendError(fmt.Errorf("error setting seleniumTests test to failed. %s", error.Error()))
 						continue
 					}
 					if test.Threshold > 0 {
 						if test.Threshold == test.ErrorCount {
-							s.calloutService.InvokeCallout(fmt.Sprintf("Selenium Error with  test %s", test.Name), err.Error())
+							s.calloutService.InvokeCallout(fmt.Sprintf("halSelenium Error with  test %s", test.Name), err.Error())
 						}
 
 						if test.ErrorCount >= test.Threshold {
-							s.alert.SendAlert(emoji.Sprintf(":computer: :x: Error executing selenium test for %s. error: %s", test.Name, err.Error()))
+							s.alert.SendAlert(emoji.Sprintf(":computer: :x: Error executing seleniumTests test for %s. error: %s", test.Name, err.Error()))
 							if image != nil {
 								s.alert.SendImageToAlertGroup(image)
 							}
@@ -78,11 +85,11 @@ func (s *service)runTests() {
 					}
 				} else {
 					if err := s.store.SetSeleniumPassing(&test); err != nil {
-						s.alert.SendError(fmt.Errorf("error setting selenium test to passed. %s", err.Error()))
+						s.alert.SendError(fmt.Errorf("error setting seleniumTests test to passed. %s", err.Error()))
 						continue
 					}
 					if !test.Passing && test.ErrorCount >= test.Threshold {
-						s.alert.SendAlert(emoji.Sprintf(":computer: :white_check_mark: Selenium Test %s back to normal", test.Name))
+						s.alert.SendAlert(emoji.Sprintf(":computer: :white_check_mark: halSelenium Test %s back to normal", test.Name))
 					}
 				}
 			}
@@ -93,7 +100,7 @@ func (s *service)runTests() {
 
 func (s service)doSelenium(item Selenium) ([]byte, error) {
 	if item.SeleniumServer == "" {
-		return nil, errors.New("no Selenium Server set")
+		return nil, errors.New("no halSelenium Server set")
 	}
 	if item.Name == "" {
 		return nil, errors.New("no script name set")
@@ -244,3 +251,4 @@ func findElement(action SearchOption, driver selenium.WebDriver) ([]selenium.Web
 	return []selenium.WebElement{elem}, err
 
 }
+
