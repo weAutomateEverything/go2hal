@@ -1,10 +1,11 @@
 package chef
+
 import (
-	"net/http"
 	kitlog "github.com/go-kit/kit/log"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
 	"github.com/zamedic/go2hal/gokit"
+	"net/http"
 )
 
 func MakeHandler(service Service, logger kitlog.Logger) http.Handler {
@@ -15,7 +16,6 @@ func MakeHandler(service Service, logger kitlog.Logger) http.Handler {
 	r := mux.NewRouter()
 
 	r.Handle("/delivery", chefDeliveryEndpoint).Methods("POST")
-
 
 	return r
 

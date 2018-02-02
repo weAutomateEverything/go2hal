@@ -1,43 +1,41 @@
 package seleniumTests
 
 import (
+	"errors"
 	"fmt"
 	"github.com/tebeka/selenium"
-	"time"
-	"errors"
-	"gopkg.in/kyokomi/emoji.v1"
-	"runtime/debug"
 	"github.com/zamedic/go2hal/alert"
 	"github.com/zamedic/go2hal/callout"
+	"gopkg.in/kyokomi/emoji.v1"
+	"runtime/debug"
+	"time"
 )
 
-type Service interface{
-
+type Service interface {
 }
 
 type service struct {
-	store Store
-	alert alert.Service
+	store          Store
+	alert          alert.Service
 	calloutService callout.Service
 }
 
-func NewService(store Store,alertService alert.Service, calloutService callout.Service) Service{
-	s :=  &service{store,alertService,calloutService}
+func NewService(store Store, alertService alert.Service, calloutService callout.Service) Service {
+	s := &service{store, alertService, calloutService}
 	go func() {
 		s.runTests()
 	}()
 	return s
 }
 
-func NewChromeClient(seleniumEndpoint string)(selenium.WebDriver, error){
+func NewChromeClient(seleniumEndpoint string) (selenium.WebDriver, error) {
 	caps := selenium.Capabilities(map[string]interface{}{"browserName": "chrome"})
 	caps["chrome.switches"] = []string{"--ignore-certificate-errors"}
 	return selenium.NewRemote(caps, seleniumEndpoint)
 
 }
 
-
-func (s *service)testSelenium(item Selenium) error {
+func (s *service) testSelenium(item Selenium) error {
 	_, err := s.doSelenium(item)
 	if err != nil {
 		return err
@@ -50,7 +48,7 @@ func (s *service)testSelenium(item Selenium) error {
 	return nil
 }
 
-func (s *service)runTests() {
+func (s *service) runTests() {
 	defer func() {
 		if err := recover(); err != nil {
 			fmt.Print(err)
@@ -98,7 +96,7 @@ func (s *service)runTests() {
 	}
 }
 
-func (s service)doSelenium(item Selenium) ([]byte, error) {
+func (s service) doSelenium(item Selenium) ([]byte, error) {
 	if item.SeleniumServer == "" {
 		return nil, errors.New("no halSelenium Server set")
 	}
@@ -197,7 +195,7 @@ func doCheck(check *Check, driver selenium.WebDriver) error {
 			}
 			if dis {
 				if check.Value != nil {
-					s, err := elem.Text();
+					s, err := elem.Text()
 					if err != nil {
 						return false, nil
 					}
@@ -212,7 +210,7 @@ func doCheck(check *Check, driver selenium.WebDriver) error {
 
 }
 
-func (s service)handleSeleniumError(name, page, action string, err error, driver selenium.WebDriver, ) ([]byte, error) {
+func (s service) handleSeleniumError(name, page, action string, err error, driver selenium.WebDriver) ([]byte, error) {
 	bytes, error := driver.Screenshot()
 	if error != nil {
 		s.alert.SendError(error)
@@ -224,7 +222,7 @@ func (s service)handleSeleniumError(name, page, action string, err error, driver
 func findElement(action SearchOption, driver selenium.WebDriver) ([]selenium.WebElement, error) {
 	selector := selenium.ByCSSSelector
 	if action.XPathSelector != nil {
-		selector = selenium.ByXPATH;
+		selector = selenium.ByXPATH
 	}
 	if action.PartialLinkTextSelect != nil {
 		selector = selenium.ByPartialLinkText
@@ -251,4 +249,3 @@ func findElement(action SearchOption, driver selenium.WebDriver) ([]selenium.Web
 	return []selenium.WebElement{elem}, err
 
 }
-

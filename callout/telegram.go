@@ -1,23 +1,21 @@
 package callout
 
 import (
-	"gopkg.in/telegram-bot-api.v4"
 	"fmt"
 	"github.com/zamedic/go2hal/alert"
 	"github.com/zamedic/go2hal/telegram"
+	"gopkg.in/telegram-bot-api.v4"
 )
 
 type whosOnFirstCall struct {
-	alert alert.Service
+	alert    alert.Service
 	telegram telegram.Service
-	service Service
-
+	service  Service
 }
 
-func NewWhosOnFirstCallCommand(alert alert.Service,telegram telegram.Service,service Service) telegram.Command{
-	return &whosOnFirstCall{alert,telegram,service}
+func NewWhosOnFirstCallCommand(alert alert.Service, telegram telegram.Service, service Service) telegram.Command {
+	return &whosOnFirstCall{alert, telegram, service}
 }
-
 
 /* Set Heartbeat group */
 func (s *whosOnFirstCall) CommandIdentifier() string {
@@ -34,5 +32,5 @@ func (s *whosOnFirstCall) Execute(update tgbotapi.Update) {
 		s.alert.SendError(err)
 		return
 	}
-	s.telegram.SendMessage(update.Message.Chat.ID, fmt.Sprintf("%s is on first call",name), update.Message.MessageID)
+	s.telegram.SendMessage(update.Message.Chat.ID, fmt.Sprintf("%s is on first call", name), update.Message.MessageID)
 }

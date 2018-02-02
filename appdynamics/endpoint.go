@@ -1,8 +1,8 @@
 package appdynamics
 
 import (
-	"github.com/go-kit/kit/endpoint"
 	"context"
+	"github.com/go-kit/kit/endpoint"
 )
 
 type AddAppdynamicsQueueEndpointRequest struct {
@@ -18,7 +18,6 @@ type AddAppdynamicsEndpointRequest struct {
 type ExecuteAppDynamicsCommandRequest struct {
 	CommandName, NodeID, ApplicationID string
 }
-
 
 type BusinessAlertRequest struct {
 	Severity, Type, DisplayName, SummaryMessage string
@@ -42,14 +41,13 @@ func makeAddAppdynamicsEndpoint(s Service) endpoint.Endpoint {
 func makeAddAppdynamicsQueueEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(AddAppdynamicsQueueEndpointRequest)
-		return nil, s.addAppDynamicsQueue(req.Name,req.Application,req.Metricpath)
+		return nil, s.addAppDynamicsQueue(req.Name, req.Application, req.Metricpath)
 	}
 }
 func makExecuteCommandFromAppdynamics(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(ExecuteAppDynamicsCommandRequest)
-		return nil, s.executeCommandFromAppd(req.CommandName,req.ApplicationID,req.NodeID)
+		return nil, s.executeCommandFromAppd(req.CommandName, req.ApplicationID, req.NodeID)
 
 	}
 }
-

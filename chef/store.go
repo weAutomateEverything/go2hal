@@ -1,43 +1,43 @@
 package chef
 
 import (
-	"gopkg.in/mgo.v2/bson"
 	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 )
 
 type Store interface {
 	/*
-	GetChefClientDetails returns the chef client details
-	 */
+		GetChefClientDetails returns the chef client details
+	*/
 	GetChefClientDetails() (ChefClient, error)
 
 	/*
-	IsChefConfigured will return true if a chef client is configured.
+		IsChefConfigured will return true if a chef client is configured.
 	*/
 	IsChefConfigured() (bool, error)
 
 	/*
-	AddChefEnvironment Adds a chef environment to alert on
+		AddChefEnvironment Adds a chef environment to alert on
 	*/
 	AddChefEnvironment(environment, friendlyName string)
 
 	/*
-	GetChefEnvironments will return all the chef environments in the database
+		GetChefEnvironments will return all the chef environments in the database
 	*/
 	GetChefEnvironments() ([]ChefEnvironment, error)
 
 	/*
-	GetEnvironmentFromFriendlyName returns the chef environment name based on the user friendly name supplied
+		GetEnvironmentFromFriendlyName returns the chef environment name based on the user friendly name supplied
 	*/
 	GetEnvironmentFromFriendlyName(recipe string) (string, error)
 
 	/*
-	AddRecipe will add a recipe to the watch list for the bot
+		AddRecipe will add a recipe to the watch list for the bot
 	*/
 	AddRecipe(recipeName, friendlyName string) error
 
 	/*
-	GetRecipes returns all the configured chef recipes. 0 length if none exists or there is an error.
+		GetRecipes returns all the configured chef recipes. 0 length if none exists or there is an error.
 	*/
 	GetRecipes() ([]Recipe, error)
 
@@ -50,13 +50,13 @@ type mongoStore struct {
 	mongo *mgo.Database
 }
 
-func NewMongoStore(mongo *mgo.Database)Store{
+func NewMongoStore(mongo *mgo.Database) Store {
 	return &mongoStore{mongo}
 }
 
 /*
 ChefClient contains the name, url and key for HAL to be able to connect to CHEF.
- */
+*/
 type ChefClient struct {
 	ID             bson.ObjectId `bson:"_id,omitempty"`
 	Name, URL, Key string
@@ -64,7 +64,7 @@ type ChefClient struct {
 
 /*
 ChefEnvironment contains the chef environments this bot is allowed to use in CHEF
- */
+*/
 type ChefEnvironment struct {
 	ID           bson.ObjectId `bson:"_id,omitempty"`
 	Environment  string
@@ -73,7 +73,7 @@ type ChefEnvironment struct {
 
 /*
 Recipe are the chef recipes the bot wants to interact with
- */
+*/
 type Recipe struct {
 	ID           bson.ObjectId `bson:"_id,omitempty"`
 	Recipe       string
@@ -124,16 +124,14 @@ func (s *mongoStore) GetEnvironmentFromFriendlyName(recipe string) (string, erro
 	return r.Environment, err
 }
 
-
-func (s *mongoStore)AddRecipe(recipeName, friendlyName string) error {
+func (s *mongoStore) AddRecipe(recipeName, friendlyName string) error {
 	c := s.mongo.C("recipes")
 	recipeItem := Recipe{Recipe: recipeName, FriendlyName: friendlyName}
 	return c.Insert(recipeItem)
 
 }
 
-
-func (s *mongoStore)GetRecipes() ([]Recipe, error) {
+func (s *mongoStore) GetRecipes() ([]Recipe, error) {
 	c := s.mongo.C("recipes")
 	q := c.Find(nil)
 	var recipes []Recipe
@@ -144,8 +142,7 @@ func (s *mongoStore)GetRecipes() ([]Recipe, error) {
 	return recipes, nil
 }
 
-
-func (s *mongoStore)GetRecipeFromFriendlyName(recipe string) (string, error) {
+func (s *mongoStore) GetRecipeFromFriendlyName(recipe string) (string, error) {
 	c := s.mongo.C("recipes")
 	var r Recipe
 	err := c.Find(bson.M{"friendlyname": recipe}).One(&r)

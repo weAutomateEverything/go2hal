@@ -1,14 +1,15 @@
 package halSelenium
 
 import (
+	"fmt"
+	"github.com/pkg/errors"
 	"github.com/tebeka/selenium"
 	"github.com/zamedic/go2hal/alert"
-	"github.com/pkg/errors"
-	"fmt"
 	selenium2 "github.com/zamedic/go2hal/seleniumTests"
 )
 
 type Service interface {
+	NewClient(seleniumServer string) error
 	HandleSeleniumError(internal bool, err error)
 	Driver() selenium.WebDriver
 
@@ -17,6 +18,7 @@ type Service interface {
 	ClickByCSSSelector(cs string)
 
 	WaitFor(findBy, selector string)
+
 }
 
 type chromeService struct {
@@ -27,7 +29,7 @@ type chromeService struct {
 func NewChromeService(service alert.Service, server string) Service {
 
 	s := &chromeService{alert: service}
-	err := s.newClient(server)
+	err := s.NewClient(server)
 	if err != nil {
 		panic(err)
 	}
@@ -38,7 +40,7 @@ func (s *chromeService) Driver() selenium.WebDriver {
 	return s.driver
 }
 
-func (s *chromeService) newClient(seleniumServer string) error {
+func (s *chromeService) NewClient(seleniumServer string) error {
 	driver, err := selenium2.NewChromeClient(seleniumServer)
 	if err != nil {
 		return err

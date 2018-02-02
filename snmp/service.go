@@ -1,19 +1,17 @@
 package snmp
 
 import (
+	"bytes"
+	"errors"
+	"fmt"
+	"github.com/zamedic/go2hal/alert"
+	g "github.com/zamedic/gosnmp"
+	"gopkg.in/kyokomi/emoji.v1"
+	"log"
+	"net"
 	"os"
 	"strconv"
-	"net"
-	"bytes"
-	"fmt"
-	"gopkg.in/kyokomi/emoji.v1"
-	g "github.com/zamedic/gosnmp"
-	"log"
-	"errors"
-	"github.com/zamedic/go2hal/alert"
 )
-
-
 
 type Service interface {
 	SendSNMPMessage()
@@ -24,7 +22,7 @@ type service struct {
 }
 
 func NewService(alert alert.Service) Service {
-	s :=  &service{alert}
+	s := &service{alert}
 	go func() {
 		s.startSnmpServer()
 	}()
@@ -33,11 +31,11 @@ func NewService(alert alert.Service) Service {
 
 }
 
-func (s *service)startSnmpServer() {
+func (s *service) startSnmpServer() {
 	tl := g.NewTrapListener()
 	tl.OnNewTrap = s.handleTrap
 	tl.Params = g.Default
-	tl.Params.Logger = log.New(os.Stdout,"",0)
+	tl.Params.Logger = log.New(os.Stdout, "", 0)
 	err := tl.Listen("0.0.0.0:9162")
 	if err != nil {
 		log.Panicf("error in listen: %s", err)
@@ -45,7 +43,7 @@ func (s *service)startSnmpServer() {
 
 }
 
-func (s service)handleTrap(packet *g.SnmpPacket, addr *net.UDPAddr) {
+func (s service) handleTrap(packet *g.SnmpPacket, addr *net.UDPAddr) {
 	var b bytes.Buffer
 	b.WriteString(fmt.Sprintf("got trapdata from %s\n", addr.IP))
 	b.WriteString("\n")
@@ -64,7 +62,7 @@ func (s service)handleTrap(packet *g.SnmpPacket, addr *net.UDPAddr) {
 	s.alert.SendError(errors.New(b.String()))
 }
 
-func (s *service)SendSNMPMessage() {
+func (s *service) SendSNMPMessage() {
 	if snmpServier() == "" {
 		return
 	}
@@ -104,7 +102,6 @@ func (s *service)SendSNMPMessage() {
 
 }
 
-
 func snmpServier() string {
 	return os.Getenv("SNMP_SERVER")
 }
@@ -113,4 +110,3 @@ func snmpPort() uint16 {
 	i, _ := strconv.ParseInt(os.Getenv("SNMP_PORT"), 10, 16)
 	return uint16(i)
 }
-

@@ -1,20 +1,20 @@
 package skynet
 
 import (
-	"gopkg.in/mgo.v2/bson"
-	"log"
 	"errors"
 	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
+	"log"
 )
 
 type Store interface {
 	/*
-	AddSkynetEndpoint will add a skynet endpoint, or update if it already exists
+		AddSkynetEndpoint will add a skynet endpoint, or update if it already exists
 	*/
 	AddSkynetEndpoint(url, username, password string) error
 
 	/*
-	GetSkynetRecord will return the skynet record in the mongo DB, else throw an error if one doesnt exist.
+		GetSkynetRecord will return the skynet record in the mongo DB, else throw an error if one doesnt exist.
 	*/
 	GetSkynetRecord() (Skynet, error)
 }
@@ -25,7 +25,7 @@ type mongoStore struct {
 
 /*
 Skynet is a storage object for skynet data
- */
+*/
 type Skynet struct {
 	ID       bson.ObjectId `bson:"_id,omitempty"`
 	Address  string
@@ -35,7 +35,7 @@ type Skynet struct {
 
 /*
 AddSkynetEndpoint will add a skynet endpoint, or update if it already exists
- */
+*/
 func (s *mongoStore) AddSkynetEndpoint(url, username, password string) error {
 	c := s.mongo.C("skynet")
 	q := c.Find(nil)
@@ -66,7 +66,7 @@ func (s *mongoStore) AddSkynetEndpoint(url, username, password string) error {
 
 /*
 GetSkynetRecord will return the skynet record in the mongo DB, else throw an error if one doesnt exist.
- */
+*/
 func (s *mongoStore) GetSkynetRecord() (Skynet, error) {
 	c := s.mongo.C("skynet")
 	var skynet Skynet

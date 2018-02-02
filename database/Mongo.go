@@ -1,21 +1,21 @@
 package database
 
 import (
+	"crypto/tls"
+	"errors"
 	"gopkg.in/mgo.v2"
 	"log"
 	"net"
-	"crypto/tls"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
-	"strconv"
-	"errors"
 )
 
 func NewConnection() *mgo.Database {
 	log.Println("Starting Database")
 
-	mongo :=mongoConnectionString()
+	mongo := mongoConnectionString()
 
 	var dialinfo *mgo.DialInfo
 
@@ -38,7 +38,7 @@ func NewConnection() *mgo.Database {
 	return database
 }
 
-func getDialInfoParameters() *mgo.DialInfo{
+func getDialInfoParameters() *mgo.DialInfo {
 	dialinfo := mgo.DialInfo{}
 	dialinfo.Addrs = mongoServers()
 	dialinfo.Database = mongoDB()

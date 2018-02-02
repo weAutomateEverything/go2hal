@@ -1,11 +1,11 @@
 package http
 
 import (
-	"gopkg.in/mgo.v2/bson"
-	"time"
-	"log"
 	"fmt"
 	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
+	"log"
+	"time"
 )
 
 type Store interface {
@@ -22,7 +22,7 @@ type mongoStore struct {
 	mongo *mgo.Database
 }
 
-func NewMongoStore(db *mgo.Database)Store{
+func NewMongoStore(db *mgo.Database) Store {
 	return &mongoStore{db}
 }
 
@@ -45,12 +45,12 @@ type parameters struct {
 	Name, Value string
 }
 
-func (s *mongoStore)addHTMLEndpoint(endpoint httpEndpoint) {
+func (s *mongoStore) addHTMLEndpoint(endpoint httpEndpoint) {
 	c := s.mongo.C("MonitorHtmlEndpoints")
 	c.Insert(endpoint)
 }
 
-func (s *mongoStore)getHTMLEndpoints() []httpEndpoint {
+func (s *mongoStore) getHTMLEndpoints() []httpEndpoint {
 	c := s.mongo.C("MonitorHtmlEndpoints")
 	q := c.Find(nil)
 	i, err := q.Count()
@@ -67,8 +67,7 @@ func (s *mongoStore)getHTMLEndpoints() []httpEndpoint {
 	return r
 }
 
-
-func (s *mongoStore)successfulEndpointTest(endpoint *httpEndpoint) error {
+func (s *mongoStore) successfulEndpointTest(endpoint *httpEndpoint) error {
 	c := s.mongo.C("MonitorHtmlEndpoints")
 
 	endpoint.LastChecked = time.Now()
@@ -84,11 +83,10 @@ func (s *mongoStore)successfulEndpointTest(endpoint *httpEndpoint) error {
 	return nil
 }
 
-
-func (s *mongoStore)failedEndpointTest(endpoint *httpEndpoint, errorMessage string) error {
+func (s *mongoStore) failedEndpointTest(endpoint *httpEndpoint, errorMessage string) error {
 	c := s.mongo.C("MonitorHtmlEndpoints")
 	result := httpEndpoint{}
-	err := c.FindId(endpoint.ID).One(&result);
+	err := c.FindId(endpoint.ID).One(&result)
 	if err != nil {
 		return fmt.Errorf("error retreiving endpoint with success details: %s", err.Error())
 	}

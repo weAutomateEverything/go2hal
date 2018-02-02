@@ -1,21 +1,21 @@
 package chef
 
 import (
-	json2 "encoding/json"
-	"strings"
-	"log"
 	"bytes"
-	"gopkg.in/kyokomi/emoji.v1"
+	json2 "encoding/json"
 	"fmt"
-	"github.com/zamedic/go2hal/alert"
-	"time"
 	"github.com/go-chef/chef"
+	"github.com/zamedic/go2hal/alert"
 	"github.com/zamedic/go2hal/util"
+	"gopkg.in/kyokomi/emoji.v1"
+	"log"
+	"strings"
+	"time"
 )
 
 type Service interface {
 	sendDeliveryAlert(message string)
-	FindNodesFromFriendlyNames(recipe, environment string)[]Node
+	FindNodesFromFriendlyNames(recipe, environment string) []Node
 }
 
 type service struct {
@@ -24,16 +24,15 @@ type service struct {
 	chefStore Store
 }
 
-func NewService(alert alert.Service,chefStore Store) Service{
-	s := &service{alert,chefStore}
+func NewService(alert alert.Service, chefStore Store) Service {
+	s := &service{alert, chefStore}
 	go func() {
 		s.monitorQuarentined()
 	}()
 	return s
 }
 
-
-func (s service)sendDeliveryAlert(message string) {
+func (s service) sendDeliveryAlert(message string) {
 	var dat map[string]interface{}
 
 	message = strings.Replace(message, "\n", "\\n", -1)
@@ -46,7 +45,7 @@ func (s service)sendDeliveryAlert(message string) {
 	attachments := dat["attachments"].([]interface{})
 
 	body := dat["text"].(string)
-	bodies := strings.Split(body, "\n");
+	bodies := strings.Split(body, "\n")
 	url := bodies[0]
 	url = strings.Replace(url, "<", "", -1)
 	url = strings.Replace(url, ">", "", -1)
@@ -59,7 +58,7 @@ func (s service)sendDeliveryAlert(message string) {
 	buffer.WriteString(" ")
 	buffer.WriteString("*chef Delivery*\n")
 
-	if (strings.Contains(bodies[1], "failed")) {
+	if strings.Contains(bodies[1], "failed") {
 		buffer.WriteString(emoji.Sprint(":interrobang:"))
 
 	} else {
@@ -100,8 +99,7 @@ func (s service)sendDeliveryAlert(message string) {
 
 }
 
-
-func (s service)monitorQuarentined() {
+func (s service) monitorQuarentined() {
 	for {
 		checkQuarentined(s)
 		time.Sleep(30 * time.Minute)
@@ -120,12 +118,12 @@ func checkQuarentined(s service) {
 		return
 	}
 
-	for _,r := range recipes {
+	for _, r := range recipes {
 		for _, e := range env {
-			nodes := s.FindNodesFromFriendlyNames(r.FriendlyName,e.FriendlyName)
-			for _,n := range nodes {
-				if strings.Index(n.Environment,"quar") > 0 {
-					s.alert.SendAlert(emoji.Sprintf(":hospital: *Node Quarantined* \n node %v has been placed in environment %v. Application %v ",n.Name,strings.Replace(n.Environment,"_", " ",-1), r.FriendlyName))
+			nodes := s.FindNodesFromFriendlyNames(r.FriendlyName, e.FriendlyName)
+			for _, n := range nodes {
+				if strings.Index(n.Environment, "quar") > 0 {
+					s.alert.SendAlert(emoji.Sprintf(":hospital: *Node Quarantined* \n node %v has been placed in environment %v. Application %v ", n.Name, strings.Replace(n.Environment, "_", " ", -1), r.FriendlyName))
 				}
 			}
 		}
@@ -133,7 +131,7 @@ func checkQuarentined(s service) {
 
 }
 
-func (s service)FindNodesFromFriendlyNames(recipe, environment string) []Node {
+func (s service) FindNodesFromFriendlyNames(recipe, environment string) []Node {
 	chefRecipe, err := s.chefStore.GetRecipeFromFriendlyName(recipe)
 	if err != nil {
 		s.alert.SendError(err)
@@ -175,14 +173,14 @@ func (s service)FindNodesFromFriendlyNames(recipe, environment string) []Node {
 		data := s["data"].(map[string]interface{})
 		name := data["name"].(string)
 		env := data["chef_environment"].(string)
-		result[i] = Node{Name:name,Environment:env}
+		result[i] = Node{Name: name, Environment: env}
 	}
 
 	return result
 
 }
 
-func getChefClient(s service) (client *chef.Client, err error ) {
+func getChefClient(s service) (client *chef.Client, err error) {
 	c, err := s.chefStore.GetChefClientDetails()
 	if err != nil {
 		return nil, err

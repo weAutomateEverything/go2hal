@@ -1,12 +1,11 @@
 package appdynamics
 
-
 import (
-	"net/http"
 	kitlog "github.com/go-kit/kit/log"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
 	"github.com/zamedic/go2hal/gokit"
+	"net/http"
 )
 
 func MakeHandler(service Service, logger kitlog.Logger) http.Handler {
@@ -19,7 +18,7 @@ func MakeHandler(service Service, logger kitlog.Logger) http.Handler {
 
 	r := mux.NewRouter()
 
-	r.Handle("/appdynamics", appDynamicsAlertEndoint).Methods("POST")
+	r.Handle("/appdynamics/", appDynamicsAlertEndoint).Methods("POST")
 	r.Handle("/appdynamics/system/queue", addAppdynamicsEndpoint).Methods("POST")
 	r.Handle("/appdynamics/system", addAppdynamicsQueueEndpoint).Methods("POST")
 	r.Handle("/appdynamics/execute", executeCommandFromAppdynamics).Methods("POST")

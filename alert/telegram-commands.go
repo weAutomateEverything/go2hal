@@ -1,8 +1,8 @@
 package alert
 
 import (
-	"gopkg.in/telegram-bot-api.v4"
 	"github.com/zamedic/go2hal/telegram"
+	"gopkg.in/telegram-bot-api.v4"
 )
 
 type setGroupCommand struct {

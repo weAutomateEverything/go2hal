@@ -1,10 +1,10 @@
 package sensu
 
 import (
-	"strings"
 	"fmt"
-	"gopkg.in/kyokomi/emoji.v1"
 	"github.com/zamedic/go2hal/alert"
+	"gopkg.in/kyokomi/emoji.v1"
+	"strings"
 )
 
 type Service interface {
@@ -15,10 +15,9 @@ type service struct {
 	alert alert.Service
 }
 
-func NewService(alert alert.Service) Service{
-	return &service{alert:alert}
+func NewService(alert alert.Service) Service {
+	return &service{alert: alert}
 }
-
 
 func (s *service) handleSensu(sensu SensuMessageRequest) {
 	for _, msg := range sensu.Attachments {

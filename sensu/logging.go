@@ -14,7 +14,7 @@ func NewLoggingService(logger log.Logger, s Service) Service {
 	return &loggingService{logger, s}
 }
 
-func (s loggingService)handleSensu(sensu SensuMessageRequest){
+func (s loggingService) handleSensu(sensu SensuMessageRequest) {
 	defer func(begin time.Time) {
 		s.logger.Log(
 			"method", "handleSensu",

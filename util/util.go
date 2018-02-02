@@ -4,7 +4,7 @@ import "bytes"
 
 /*
 GetField will loop through a slack message json and return the fields
- */
+*/
 func Getfield(attachments []interface{}, buffer *bytes.Buffer) {
 	for _, attachment := range attachments {
 		attachmentI := attachment.(map[string]interface{})

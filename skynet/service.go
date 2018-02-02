@@ -1,19 +1,19 @@
 package skynet
 
 import (
-	"strings"
-	"fmt"
-	"io/ioutil"
-	"time"
 	"bytes"
-	"gopkg.in/kyokomi/emoji.v1"
-	"log"
 	"encoding/json"
+	"fmt"
 	"github.com/zamedic/go2hal/alert"
+	"github.com/zamedic/go2hal/callout"
 	"github.com/zamedic/go2hal/chef"
+	"gopkg.in/kyokomi/emoji.v1"
+	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
-	"github.com/zamedic/go2hal/callout"
+	"strings"
+	"time"
 )
 
 type Service interface {
@@ -28,9 +28,8 @@ type service struct {
 }
 
 func NewService(alert alert.Service, chefStore chef.Store, calloutService callout.Service) Service {
-	return &service{alert,chefStore,calloutService}
+	return &service{alert, chefStore, calloutService}
 }
-
 
 func (s *service) sendSkynetAlert(message string) {
 	if !s.checkSend(message) {
@@ -110,12 +109,12 @@ func (s *service) checkSend(message string) bool {
 		}
 	}
 	log.Printf("No match found, not sending message")
-	return false;
+	return false
 }
 
 /*
 RecreateNode will find a node, get the details, delete the node, then recreate it
- */
+*/
 func (s service) RecreateNode(nodeName, callerName string) error {
 
 	skynet := getSkynetUrl()

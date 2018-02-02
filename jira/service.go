@@ -1,35 +1,35 @@
 package jira
 
 import (
-	"strings"
 	"bytes"
-	"io/ioutil"
-	"fmt"
-	"gopkg.in/kyokomi/emoji.v1"
-	"github.com/zamedic/go2hal/alert"
-	"log"
-	"text/template"
-	"net/http"
 	"encoding/json"
+	"fmt"
+	"github.com/zamedic/go2hal/alert"
 	"github.com/zamedic/go2hal/user"
+	"gopkg.in/kyokomi/emoji.v1"
+	"io/ioutil"
+	"log"
+	"net/http"
 	"os"
+	"strings"
+	"text/template"
 )
 
 type Service interface {
-	CreateJira(title, description string,name string)
+	CreateJira(title, description string, name string)
 }
 
 type service struct {
-	alert alert.Service
+	alert     alert.Service
 	userStore user.Store
 }
 
-func NewService(alert alert.Service,userStore user.Store) Service{
-	return &service{alert,userStore}
+func NewService(alert alert.Service, userStore user.Store) Service {
+	return &service{alert, userStore}
 
 }
 
-func (s *service)CreateJira(title, description string, username string) {
+func (s *service) CreateJira(title, description string, username string) {
 	title = strings.Replace(title, "\n", "", -1)
 	description = strings.Replace(description, "\n", "", -1)
 	type q struct {
@@ -68,7 +68,7 @@ func (s *service)CreateJira(title, description string, username string) {
 	defer resp.Body.Close()
 
 	response, err := ioutil.ReadAll(resp.Body)
-	log.Printf("JIRA Response: %v",string(response))
+	log.Printf("JIRA Response: %v", string(response))
 	if err != nil {
 		s.alert.SendError(err)
 		return
@@ -85,9 +85,8 @@ func (s *service)CreateJira(title, description string, username string) {
 	s.alert.SendAlert(emoji.Sprintf(":ticket: JIRA Ticket Created. ID: %s assigned to %s. Description %s", key, qr.User, description))
 }
 
-
-func (s *service)jiraUser(username string) string {
-	if username == "DEFAULT"  {
+func (s *service) jiraUser(username string) string {
+	if username == "DEFAULT" {
 		return os.Getenv("JIRA_DEFAULT_USER")
 	}
 	u := s.userStore.FindUserByCalloutName(username).JIRAName

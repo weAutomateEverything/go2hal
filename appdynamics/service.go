@@ -1,21 +1,19 @@
 package appdynamics
 
 import (
-	"fmt"
-	"io/ioutil"
-	"strings"
 	"bytes"
-	"gopkg.in/kyokomi/emoji.v1"
-	"time"
-	"log"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"github.com/zamedic/go2hal/alert"
 	"github.com/zamedic/go2hal/ssh"
-	"errors"
+	"gopkg.in/kyokomi/emoji.v1"
+	"io/ioutil"
+	"log"
 	"net/http"
+	"strings"
+	"time"
 )
-
-
 
 type Service interface {
 	sendAppdynamicsAlert(message string)
@@ -27,17 +25,17 @@ type Service interface {
 type service struct {
 	alert alert.Service
 	store Store
-	ssh ssh.Service
+	ssh   ssh.Service
 }
 
-func NewService(alertService alert.Service, sshservice ssh.Service, store Store ) Service{
+func NewService(alertService alert.Service, sshservice ssh.Service, store Store) Service {
 	go func() {
-		monitorAppdynamicsQueue(store,alertService)
+		monitorAppdynamicsQueue(store, alertService)
 	}()
 	return &service{}
 }
 
-func (s *service)sendAppdynamicsAlert(message string) {
+func (s *service) sendAppdynamicsAlert(message string) {
 
 	var dat map[string]interface{}
 	if err := json.Unmarshal([]byte(message), &dat); err != nil {
@@ -108,14 +106,13 @@ func (s *service)sendAppdynamicsAlert(message string) {
 	}
 }
 
-
-func (s *service)addAppdynamicsEndpoint(endpoint string) error {
+func (s *service) addAppdynamicsEndpoint(endpoint string) error {
 	return s.store.addAppDynamicsEndpoint(endpoint)
 }
 
-func (s *service)addAppDynamicsQueue(name, application, metricPath string) error {
+func (s *service) addAppDynamicsQueue(name, application, metricPath string) error {
 	endpointObject := MqEndpoint{MetricPath: metricPath, Application: application, Name: name}
-	err := checkQueues(endpointObject,s.alert,s.store)
+	err := checkQueues(endpointObject, s.alert, s.store)
 	if err != nil {
 		return err
 	}
@@ -123,8 +120,7 @@ func (s *service)addAppDynamicsQueue(name, application, metricPath string) error
 	return nil
 }
 
-
-func (s *service)executeCommandFromAppd(commandName, applicationID, nodeId string) error {
+func (s *service) executeCommandFromAppd(commandName, applicationID, nodeId string) error {
 	ipaddress, err := s.getIPAddressForNode(applicationID, nodeId)
 	if err != nil {
 		s.alert.SendError(err)
@@ -140,7 +136,7 @@ func monitorAppdynamicsQueue(s Store, a alert.Service) {
 			log.Printf("Error on MQ query: %s", err.Error())
 		} else {
 			for _, endpoint := range endpoints.MqEndpoints {
-				checkQueues(endpoint,a,s)
+				checkQueues(endpoint, a, s)
 			}
 		}
 		time.Sleep(time.Minute * 10)
@@ -149,12 +145,12 @@ func monitorAppdynamicsQueue(s Store, a alert.Service) {
 
 func checkQueues(endpoint MqEndpoint, a alert.Service, s Store) error {
 
-	response, err := doGet(buildQueryString(endpoint),s,a)
+	response, err := doGet(buildQueryString(endpoint), s, a)
 	if err != nil {
 		log.Printf("Unable to query appdynamics: %s", err.Error())
 		a.SendError(fmt.Errorf("we are unable to query app dynamics"))
 		a.SendError(fmt.Errorf(" Queue depths Error: %s", err.Error()))
-		return err;
+		return err
 	}
 
 	if err != nil {
@@ -171,7 +167,7 @@ func checkQueues(endpoint MqEndpoint, a alert.Service, s Store) error {
 	success := false
 	for _, queue := range dat {
 		queue2 := queue.(map[string]interface{})
-		err = checkQueue(endpoint, queue2["name"].(string),a,s)
+		err = checkQueue(endpoint, queue2["name"].(string), a, s)
 		if err == nil {
 			success = true
 		}
@@ -182,13 +178,13 @@ func checkQueues(endpoint MqEndpoint, a alert.Service, s Store) error {
 	}
 	return nil
 }
-func checkQueue(endpoint MqEndpoint, name string,a alert.Service, s Store) error {
-	currDepth, err := getCurrentQueueDepthValue(buildQueryStringQueueDepth(endpoint, name),s,a)
+func checkQueue(endpoint MqEndpoint, name string, a alert.Service, s Store) error {
+	currDepth, err := getCurrentQueueDepthValue(buildQueryStringQueueDepth(endpoint, name), s, a)
 	if err != nil {
 		return err
 	}
 
-	maxDepth, err := getCurrentQueueDepthValue(buildQueryStringMaxQueueDepth(endpoint, name),s,a)
+	maxDepth, err := getCurrentQueueDepthValue(buildQueryStringMaxQueueDepth(endpoint, name), s, a)
 	if err != nil {
 		return err
 	}
@@ -196,7 +192,7 @@ func checkQueue(endpoint MqEndpoint, name string,a alert.Service, s Store) error
 	if maxDepth == 0 {
 		return fmt.Errorf("max depth for queue %s is 0", name)
 	}
-	full := currDepth / maxDepth * 100;
+	full := currDepth / maxDepth * 100
 	if full > 90 {
 		a.SendAlert(emoji.Sprintf(":baggage_claim: :interrobang: %s - Queue %s, is more than 90 percent full. "+
 			"Current Depth %.0f, Max Depth %.0f", endpoint.Name, name, currDepth, maxDepth))
@@ -212,7 +208,7 @@ func checkQueue(endpoint MqEndpoint, name string,a alert.Service, s Store) error
 }
 
 func getCurrentQueueDepthValue(path string, s Store, a alert.Service) (float64, error) {
-	response, err := doGet(path,s,a)
+	response, err := doGet(path, s, a)
 	if err != nil {
 		log.Printf("Error retreiving queue %s", err)
 		return 0, err
@@ -235,7 +231,7 @@ func getCurrentQueueDepthValue(path string, s Store, a alert.Service) (float64, 
 	record := dat[0].(map[string]interface{})
 	values := record["metricValues"].([]interface{})
 	if len(values) == 0 {
-		return 0, nil;
+		return 0, nil
 	}
 	value := values[0].(map[string]interface{})
 	return value["current"].(float64), nil
@@ -287,9 +283,9 @@ func doGet(uri string, s Store, a alert.Service) (string, error) {
 	return res, nil
 }
 
-func (s *service)getIPAddressForNode(application, node string) (string, error) {
+func (s *service) getIPAddressForNode(application, node string) (string, error) {
 	uri := fmt.Sprintf("/controller/rest/applications/%s/nodes/%s?output=json", application, node)
-	response, err := doGet(uri,s.store,s.alert)
+	response, err := doGet(uri, s.store, s.alert)
 	log.Println(response)
 	if err != nil {
 		s.alert.SendError(err)

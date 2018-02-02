@@ -1,15 +1,15 @@
 package appdynamics
 
 import (
-	"gopkg.in/mgo.v2/bson"
 	"errors"
 	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 )
 
 type Store interface {
 	/*
-	GetAppDynamics wll return the app dynamics object in the ob, Else, error if nothing exists.
-	 */
+		GetAppDynamics wll return the app dynamics object in the ob, Else, error if nothing exists.
+	*/
 	GetAppDynamics() (*AppDynamics, error)
 
 	addAppDynamicsEndpoint(endpoint string) error
@@ -33,7 +33,7 @@ type AppDynamics struct {
 
 /*
 MqEndpoint Object
- */
+*/
 type MqEndpoint struct {
 	ID          bson.ObjectId `bson:"_id,omitempty"`
 	Name        string

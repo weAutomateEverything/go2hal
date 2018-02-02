@@ -1,13 +1,11 @@
 package ssh
 
-
 import (
-	"gopkg.in/mgo.v2/bson"
-	"strings"
 	"errors"
 	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
+	"strings"
 )
-
 
 type Store interface {
 	addCommand(name, commandString string) error
@@ -20,9 +18,10 @@ type mongoStore struct {
 	mongo *mgo.Database
 }
 
-func NewMongoStore(db *mgo.Database) Store{
+func NewMongoStore(db *mgo.Database) Store {
 	return &mongoStore{db}
 }
+
 type command struct {
 	ID            bson.ObjectId `bson:"_id,omitempty"`
 	Name, Command string
@@ -33,16 +32,14 @@ type key struct {
 	Username, Key string
 }
 
-
-func (s *mongoStore)addCommand(name, commandString string) error {
+func (s *mongoStore) addCommand(name, commandString string) error {
 	c := s.mongo.C("commands")
 	name = strings.ToUpper(name)
 	com := command{Name: name, Command: commandString}
 	return c.Insert(com)
 }
 
-
-func (s *mongoStore)findCommand(name string) (string, error) {
+func (s *mongoStore) findCommand(name string) (string, error) {
 	c := s.mongo.C("commands")
 	result := command{}
 	err := c.Find(bson.M{"name": strings.ToUpper(name)}).One(&result)
@@ -52,8 +49,7 @@ func (s *mongoStore)findCommand(name string) (string, error) {
 	return result.Command, nil
 }
 
-
-func (s *mongoStore)addKey(username, k string) error {
+func (s *mongoStore) addKey(username, k string) error {
 	c := s.mongo.C("keys")
 	q := c.Find(nil)
 	count, err := q.Count()
@@ -75,8 +71,7 @@ func (s *mongoStore)addKey(username, k string) error {
 
 }
 
-
-func (s *mongoStore)getKey() (*key, error) {
+func (s *mongoStore) getKey() (*key, error) {
 	c := s.mongo.C("keys")
 	q := c.Find(nil)
 	count, err := q.Count()

@@ -1,31 +1,31 @@
 package main
 
 import (
-	"github.com/zamedic/go2hal/telegram"
-	"github.com/zamedic/go2hal/alert"
-	"github.com/zamedic/go2hal/database"
-	"github.com/zamedic/go2hal/analytics"
-	"github.com/zamedic/go2hal/chef"
-	"net/http"
+	"fmt"
 	"github.com/go-kit/kit/log"
-	"os"
+	"github.com/go-kit/kit/log/level"
 	kitprometheus "github.com/go-kit/kit/metrics/prometheus"
 	stdprometheus "github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/zamedic/go2hal/alert"
+	"github.com/zamedic/go2hal/analytics"
 	"github.com/zamedic/go2hal/appdynamics"
 	"github.com/zamedic/go2hal/callout"
+	"github.com/zamedic/go2hal/chef"
+	"github.com/zamedic/go2hal/database"
+	http2 "github.com/zamedic/go2hal/http"
+	"github.com/zamedic/go2hal/jira"
+	"github.com/zamedic/go2hal/seleniumTests"
+	"github.com/zamedic/go2hal/sensu"
+	"github.com/zamedic/go2hal/skynet"
 	"github.com/zamedic/go2hal/snmp"
 	ssh2 "github.com/zamedic/go2hal/ssh"
-	"github.com/zamedic/go2hal/jira"
+	"github.com/zamedic/go2hal/telegram"
 	"github.com/zamedic/go2hal/user"
-	"github.com/zamedic/go2hal/skynet"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"net/http"
+	"os"
 	"os/signal"
 	"syscall"
-	"fmt"
-	"github.com/zamedic/go2hal/sensu"
-	"github.com/go-kit/kit/log/level"
-	"github.com/zamedic/go2hal/seleniumTests"
-	http2 "github.com/zamedic/go2hal/http"
 )
 
 func main() {
@@ -202,8 +202,8 @@ func main() {
 			Help:      "Total duration of requests in microseconds.",
 		}, fieldKeys), sensuService)
 
-	_ = seleniumTests.NewService(seleniumStore,alertService,calloutService)
-	_ = http2.NewService(alertService,httpStore,calloutService)
+	_ = seleniumTests.NewService(seleniumStore, alertService, calloutService)
+	_ = http2.NewService(alertService, httpStore, calloutService)
 
 	//Telegram Commands
 	telegramService.RegisterCommand(alert.NewSetGroupCommand(telegramService, alertStore))
@@ -224,11 +224,11 @@ func main() {
 	httpLogger := log.With(logger, "component", "http")
 
 	mux := http.NewServeMux()
-	mux.Handle("/alert", alert.MakeHandler(alertService, httpLogger))
+	mux.Handle("/alert/", alert.MakeHandler(alertService, httpLogger))
 	mux.Handle("/chefAudit", analytics.MakeHandler(analyticsService, httpLogger))
-	mux.Handle("/appdynamics", appdynamics.MakeHandler(appdynamicsService, httpLogger))
+	mux.Handle("/appdynamics/", appdynamics.MakeHandler(appdynamicsService, httpLogger))
 	mux.Handle("/delivery", chef.MakeHandler(chefService, httpLogger))
-	mux.Handle("/skynet", skynet.MakeHandler(skynetService, httpLogger))
+	mux.Handle("/skynet/", skynet.MakeHandler(skynetService, httpLogger))
 	mux.Handle("/sensu", sensu.MakeHandler(sensuService, httpLogger))
 
 	http.Handle("/", accessControl(mux))
@@ -244,8 +244,6 @@ func main() {
 		signal.Notify(c, syscall.SIGINT)
 		errs <- fmt.Errorf("%s", <-c)
 	}()
-
-
 
 	logger.Log("terminated", <-errs)
 
