@@ -1,15 +1,15 @@
 package ssh
 
 import (
-	"io/ioutil"
-	"os/exec"
-	"fmt"
-	"gopkg.in/kyokomi/emoji.v1"
-	"time"
-	"log"
 	"errors"
-	"runtime/debug"
+	"fmt"
 	"github.com/zamedic/go2hal/alert"
+	"gopkg.in/kyokomi/emoji.v1"
+	"io/ioutil"
+	"log"
+	"os/exec"
+	"runtime/debug"
+	"time"
 )
 
 type Service interface {
@@ -27,7 +27,7 @@ func NewService(alert alert.Service, store Store) Service {
 
 /*
 ExecuteRemoteCommand will run the command against the supplied address
- */
+*/
 func (s *service) ExecuteRemoteCommand(commandName, address string) error {
 	defer func() {
 		if err := recover(); err != nil {

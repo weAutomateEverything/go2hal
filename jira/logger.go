@@ -24,5 +24,5 @@ func (s loggingService) CreateJira(title, description string, name string) {
 			"took", time.Since(begin),
 		)
 	}(time.Now())
-	s.Service.CreateJira(title,description,name)
+	s.Service.CreateJira(title, description, name)
 }

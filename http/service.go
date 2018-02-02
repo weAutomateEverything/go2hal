@@ -1,32 +1,30 @@
 package http
 
-
 import (
-	"time"
-	"net/http"
-	"fmt"
-	"log"
-	"strings"
-	"errors"
 	"bytes"
-	"net/url"
-	"io/ioutil"
-	"gopkg.in/kyokomi/emoji.v1"
+	"errors"
+	"fmt"
 	"github.com/zamedic/go2hal/alert"
 	"github.com/zamedic/go2hal/callout"
+	"gopkg.in/kyokomi/emoji.v1"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"net/url"
+	"strings"
+	"time"
 )
 
 type Service interface {
-
 }
 
 type service struct {
-	alert alert.Service
-	store Store
+	alert   alert.Service
+	store   Store
 	callout callout.Service
 }
 
-func NewService(alertService alert.Service, store Store,callout callout.Service) Service {
+func NewService(alertService alert.Service, store Store, callout callout.Service) Service {
 	s := &service{alertService, store, callout}
 	go func() {
 		s.monitorEndpoints()
@@ -34,8 +32,7 @@ func NewService(alertService alert.Service, store Store,callout callout.Service)
 	return s
 }
 
-
-func (s service)checkEndpoint(endpoint httpEndpoint) error {
+func (s service) checkEndpoint(endpoint httpEndpoint) error {
 	response, err := s.doHTTPEndpoint(endpoint)
 	if response != nil {
 		defer response.Body.Close()
@@ -49,7 +46,7 @@ func (s service)checkEndpoint(endpoint httpEndpoint) error {
 	return nil
 }
 
-func (s service)monitorEndpoints() {
+func (s service) monitorEndpoints() {
 	log.Println("Starting HTTP Endpoint monitor")
 	for true {
 		endpoints := s.store.getHTMLEndpoints()
@@ -62,7 +59,7 @@ func (s service)monitorEndpoints() {
 	}
 }
 
-func (s service)checkHTTP(endpoint httpEndpoint) {
+func (s service) checkHTTP(endpoint httpEndpoint) {
 	response, err := s.doHTTPEndpoint(endpoint)
 	if err != nil {
 		msg := emoji.Sprintf(":smoking: :x: *Smoke Test  Alert*\nName: %s \nEndpoint: %s \nError: %s", endpoint.Name,
@@ -89,14 +86,14 @@ func (s service)checkHTTP(endpoint httpEndpoint) {
 	}
 }
 
-func (s service)checkAlert(endpoint httpEndpoint, msg string) {
+func (s service) checkAlert(endpoint httpEndpoint, msg string) {
 	if err := s.store.failedEndpointTest(&endpoint, msg); err != nil {
 		s.alert.SendError(err)
 	}
 	s.alert.SendError(errors.New(msg))
 	if endpoint.Threshold > 0 {
 		if endpoint.Threshold == endpoint.ErrorCount {
-			s.callout.InvokeCallout(fmt.Sprintf("Some Test failures for %s", endpoint.Name),msg)
+			s.callout.InvokeCallout(fmt.Sprintf("Some Test failures for %s", endpoint.Name), msg)
 		}
 		if endpoint.ErrorCount >= endpoint.Threshold {
 			s.alert.SendAlert(msg)
@@ -104,7 +101,7 @@ func (s service)checkAlert(endpoint httpEndpoint, msg string) {
 	}
 }
 
-func (s service)doHTTPEndpoint(endpoint httpEndpoint) (*http.Response, error) {
+func (s service) doHTTPEndpoint(endpoint httpEndpoint) (*http.Response, error) {
 	switch method := strings.ToUpper(endpoint.Method); method {
 	case "POST":
 		if len(endpoint.Parameters) > 1 {
@@ -126,4 +123,3 @@ func (s service)doHTTPEndpoint(endpoint httpEndpoint) (*http.Response, error) {
 	}
 
 }
-

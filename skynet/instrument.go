@@ -19,11 +19,10 @@ func NewInstrumentService(counter metrics.Counter, latency metrics.Histogram, s 
 	}
 }
 
-func (s *instrumentingService)RecreateNode(nodeName, callerName string) error{
+func (s *instrumentingService) RecreateNode(nodeName, callerName string) error {
 	defer func(begin time.Time) {
 		s.requestCount.With("method", "RecreateNode").Add(1)
 		s.requestLatency.With("method", "RecreateNode").Observe(time.Since(begin).Seconds())
 	}(time.Now())
-	return s.Service.RecreateNode(nodeName,callerName)
+	return s.Service.RecreateNode(nodeName, callerName)
 }
-

@@ -1,13 +1,13 @@
 package telegram
 
 import (
-	"runtime"
-	"io/ioutil"
-	"os"
-	tgbotapi "gopkg.in/telegram-bot-api.v4"
-	"math/rand"
-	"log"
 	"bytes"
+	tgbotapi "gopkg.in/telegram-bot-api.v4"
+	"io/ioutil"
+	"log"
+	"math/rand"
+	"os"
+	"runtime"
 )
 
 type Service interface {
@@ -16,7 +16,6 @@ type Service interface {
 	SendKeyboard(buttons []string, text string, chat int64)
 	RegisterCommand(command Command)
 	RegisterCommandLet(commandlet Commandlet)
-
 }
 
 type Command interface {
@@ -43,12 +42,11 @@ var commandList = []commandCtor{}
 var commandletList = []commandletCtor{}
 var telegramBot *tgbotapi.BotAPI
 
-func NewService(store Store) Service{
-	s :=  &service{store}
+func NewService(store Store) Service {
+	s := &service{store}
 	s.useBot(os.Getenv("BOT_KEY"))
 	return s
 }
-
 
 func (s *service) SendMessage(chatID int64, message string, messageID int) (err error) {
 	return sendMessage(chatID, message, messageID, true)
@@ -79,25 +77,25 @@ func (s *service) SendImageToGroup(image []byte, group int64) error {
 	return nil
 }
 
-func (s *service)RegisterCommand(command Command){
-	register(func() Command{
+func (s *service) RegisterCommand(command Command) {
+	register(func() Command {
 		return command
 	})
 }
-func (s *service)RegisterCommandLet(commandlet  Commandlet){
-	registerCommandlet(func() Commandlet{
+func (s *service) RegisterCommandLet(commandlet Commandlet) {
+	registerCommandlet(func() Commandlet {
 		return commandlet
 	})
 }
 
-func (s *service) SendKeyboard(buttons []string, text string, chat int64){
+func (s *service) SendKeyboard(buttons []string, text string, chat int64) {
 	keyB := tgbotapi.NewReplyKeyboard()
 	keyBRow := tgbotapi.NewKeyboardButtonRow()
 
-	for i,l := range buttons {
-		btn := tgbotapi.KeyboardButton{l,false,false}
-		keyBRow = append(keyBRow,btn)
-		if i > 0 && i % 3 == 0 {
+	for i, l := range buttons {
+		btn := tgbotapi.KeyboardButton{l, false, false}
+		keyBRow = append(keyBRow, btn)
+		if i > 0 && i%3 == 0 {
 			keyB.Keyboard = append(keyB.Keyboard, keyBRow)
 			keyBRow = tgbotapi.NewKeyboardButtonRow()
 		}
@@ -107,12 +105,12 @@ func (s *service) SendKeyboard(buttons []string, text string, chat int64){
 	}
 	keyB.OneTimeKeyboard = true
 
-	msg := tgbotapi.NewMessage(chat,text)
+	msg := tgbotapi.NewMessage(chat, text)
 	msg.ReplyMarkup = keyB
 	telegramBot.Send(msg)
 }
 
-func (s service)useBot(botkey string) error{
+func (s service) useBot(botkey string) error {
 	var err error
 	telegramBot, err = tgbotapi.NewBotAPI(botkey)
 	if err != nil {
@@ -125,7 +123,7 @@ func (s service)useBot(botkey string) error{
 
 }
 
-func (s service)pollMessage(){
+func (s service) pollMessage() {
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60
 	for true {
@@ -150,13 +148,13 @@ func (s service)pollMessage(){
 			}
 
 			if update.Message != nil {
-				if s.executeCommandLet(update){
+				if s.executeCommandLet(update) {
 					continue
 				}
 			}
 
 			log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
-			sendMessage(update.Message.Chat.ID, update.Message.Text, update.Message.MessageID,false)
+			sendMessage(update.Message.Chat.ID, update.Message.Text, update.Message.MessageID, false)
 		}
 	}
 }
@@ -166,7 +164,7 @@ func sendMessage(chatID int64, message string, messageID int, markup bool) (err 
 	log.Printf("Sending Message %s", message)
 
 	msg := tgbotapi.NewMessage(chatID, message)
-	if (markup) {
+	if markup {
 		msg.ParseMode = tgbotapi.ModeMarkdown
 	}
 	if messageID != 0 {
@@ -182,19 +180,19 @@ func sendMessage(chatID int64, message string, messageID int, markup bool) (err 
 func executeCommand(update tgbotapi.Update) bool {
 	command := findCommand(update.Message.Command())
 	if command != nil {
-		go func() {command.Execute(update)}()
+		go func() { command.Execute(update) }()
 		return true
 	}
 	return false
 }
 
-func (s service)executeCommandLet(update tgbotapi.Update) bool {
+func (s service) executeCommandLet(update tgbotapi.Update) bool {
 	state := s.store.getState(update.Message.From.ID)
-	for _, c := range commandletList{
+	for _, c := range commandletList {
 		a := c()
-		if a.CanExecute(update,state) {
-			a.Execute(update,state)
-			s.store.SetState(update.Message.From.ID,a.NextState(update,state),a.Fields(update,state))
+		if a.CanExecute(update, state) {
+			a.Execute(update, state)
+			s.store.SetState(update.Message.From.ID, a.NextState(update, state), a.Fields(update, state))
 			return true
 		}
 	}
@@ -207,7 +205,7 @@ func findCommand(command string) (a Command) {
 		if a.CommandIdentifier() == command {
 			return a
 		}
-	};
+	}
 	return nil
 }
 
@@ -215,8 +213,8 @@ func register(newfunc commandCtor) {
 	commandList = append(commandList, newfunc)
 }
 
-func registerCommandlet(newFunc commandletCtor){
-	commandletList = append(commandletList,newFunc)
+func registerCommandlet(newFunc commandletCtor) {
+	commandletList = append(commandletList, newFunc)
 }
 
 type help struct {
@@ -237,17 +235,15 @@ func (s *help) CommandDescription() string {
 
 func (s *help) Execute(update tgbotapi.Update) {
 	var buffer bytes.Buffer
-	for _, x := range getCommands(){
+	for _, x := range getCommands() {
 		buffer.WriteString("/")
 		buffer.WriteString(x.Name)
 		buffer.WriteString(" - ")
 		buffer.WriteString(x.Description)
 		buffer.WriteString("\n")
 	}
-	s.telegram.SendMessage(update.Message.Chat.ID,buffer.String(),update.Message.MessageID)
+	s.telegram.SendMessage(update.Message.Chat.ID, buffer.String(), update.Message.MessageID)
 }
-
-
 
 func getCommands() []commandDescription {
 	result := make([]commandDescription, len(commandList))
@@ -259,10 +255,7 @@ func getCommands() []commandDescription {
 
 /**
 Basic information about a command
- */
+*/
 type commandDescription struct {
 	Name, Description string
 }
-
-
-

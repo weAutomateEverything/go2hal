@@ -19,18 +19,17 @@ func NewInstrumentService(counter metrics.Counter, latency metrics.Histogram, s 
 	}
 }
 
-func (s *instrumentingService)sendDeliveryAlert(message string){
+func (s *instrumentingService) sendDeliveryAlert(message string) {
 	defer func(begin time.Time) {
 		s.requestCount.With("method", "sendDeliveryAlert").Add(1)
 		s.requestLatency.With("method", "sendDeliveryAlert").Observe(time.Since(begin).Seconds())
 	}(time.Now())
 	s.Service.sendDeliveryAlert(message)
 }
-func (s *instrumentingService)FindNodesFromFriendlyNames(recipe, environment string)[]Node{
+func (s *instrumentingService) FindNodesFromFriendlyNames(recipe, environment string) []Node {
 	defer func(begin time.Time) {
 		s.requestCount.With("method", "findNodesFromFriendlyNames").Add(1)
 		s.requestLatency.With("method", "findNodesFromFriendlyNames").Observe(time.Since(begin).Seconds())
 	}(time.Now())
-	return s.Service.FindNodesFromFriendlyNames(recipe,environment)
+	return s.Service.FindNodesFromFriendlyNames(recipe, environment)
 }
-

@@ -1,22 +1,22 @@
 package skynet
 
 import (
-	"gopkg.in/telegram-bot-api.v4"
-	"fmt"
-	"runtime/debug"
-	"github.com/zamedic/go2hal/alert"
 	"errors"
-	"github.com/zamedic/go2hal/telegram"
+	"fmt"
+	"github.com/zamedic/go2hal/alert"
 	"github.com/zamedic/go2hal/chef"
+	"github.com/zamedic/go2hal/telegram"
+	"gopkg.in/telegram-bot-api.v4"
+	"runtime/debug"
 )
 
 type rebuildNode struct {
-	alertService alert.Service
+	alertService  alert.Service
 	skynetService Service
 }
 
-func NewRebuildNodeCommand(alertService alert.Service,skynetService Service) telegram.Command {
-	return &rebuildNode{alertService,skynetService}
+func NewRebuildNodeCommand(alertService alert.Service, skynetService Service) telegram.Command {
+	return &rebuildNode{alertService, skynetService}
 }
 
 /* Rebuild Node */
@@ -39,6 +39,7 @@ func (s *rebuildNode) Execute(update tgbotapi.Update) {
 	}()
 	s.skynetService.RecreateNode(update.Message.CommandArguments(), update.Message.From.UserName)
 }
+
 /* ------------------- */
 
 /* Rebuild chef Node */
@@ -101,14 +102,14 @@ func (s *rebuildChefNodeRecipeReply) Fields(update tgbotapi.Update, state telegr
 /* ----------------------------- */
 
 type rebuildChefNodeEnvironmentReply struct {
-	telegram telegram.Service
-	service  Service
+	telegram    telegram.Service
+	service     Service
 	chefService chef.Service
 }
 
-func NewRebuildChefNodeEnvironmentReplyCommandlet(telegram telegram.Service,service  Service,
-	chefService chef.Service) telegram.Commandlet{
-	return &rebuildChefNodeEnvironmentReply{telegram,service, chefService}
+func NewRebuildChefNodeEnvironmentReplyCommandlet(telegram telegram.Service, service Service,
+	chefService chef.Service) telegram.Commandlet {
+	return &rebuildChefNodeEnvironmentReply{telegram, service, chefService}
 }
 
 func (s *rebuildChefNodeEnvironmentReply) CanExecute(update tgbotapi.Update, state telegram.State) bool {
@@ -138,8 +139,8 @@ type rebuildChefNodeExecute struct {
 	alert  alert.Service
 }
 
-func NewRebuildChefNodeExecute(skynet Service,alert  alert.Service) telegram.Commandlet{
-	return &rebuildChefNodeExecute{skynet,alert}
+func NewRebuildChefNodeExecute(skynet Service, alert alert.Service) telegram.Commandlet {
+	return &rebuildChefNodeExecute{skynet, alert}
 }
 
 func (s *rebuildChefNodeExecute) CanExecute(update tgbotapi.Update, state telegram.State) bool {
@@ -190,6 +191,3 @@ func sendEnvironemtKeyboard(chat int64, text string, store chef.Store, alert ale
 	}
 	telegram.SendKeyboard(l, text, chat)
 }
-
-
-

@@ -1,13 +1,13 @@
 package skynet
 
 import (
-	"net/http"
+	"context"
+	"encoding/json"
 	kitlog "github.com/go-kit/kit/log"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
 	"github.com/zamedic/go2hal/gokit"
-	"context"
-	"encoding/json"
+	"net/http"
 )
 
 func MakeHandler(service Service, logger kitlog.Logger) http.Handler {
@@ -18,7 +18,7 @@ func MakeHandler(service Service, logger kitlog.Logger) http.Handler {
 
 	r := mux.NewRouter()
 
-	r.Handle("/skynet", skynetAlert).Methods("POST")
+	r.Handle("/skynet/", skynetAlert).Methods("POST")
 	r.Handle("/skynet/rebuild", skynetRebuild).Methods("POST")
 
 	return r

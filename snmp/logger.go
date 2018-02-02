@@ -14,7 +14,7 @@ func NewLoggingService(logger log.Logger, s Service) Service {
 	return &loggingService{logger, s}
 }
 
-func (s *loggingService)SendSNMPMessage(){
+func (s *loggingService) SendSNMPMessage() {
 	defer func(begin time.Time) {
 		s.logger.Log(
 			"method", "SendSNMPMessage",

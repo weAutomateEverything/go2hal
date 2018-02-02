@@ -40,8 +40,8 @@ func (s *loggingService) addAppDynamicsQueue(name, application, metricPath strin
 		s.logger.Log(
 			"method", "add appdynamics queue",
 			"name", name,
-			"application" ,application,
-			"metricPath",metricPath,
+			"application", application,
+			"metricPath", metricPath,
 			"error", err,
 			"took", time.Since(begin),
 		)
@@ -54,8 +54,8 @@ func (s *loggingService) executeCommandFromAppd(commandName, applicationID, node
 			"method", "execute app dynamics command",
 			"command name", commandName,
 			"applicatiom id", applicationID,
-			"node id",nodeId,
-			"error",err,
+			"node id", nodeId,
+			"error", err,
 			"took", time.Since(begin),
 		)
 	}(time.Now())

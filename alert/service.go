@@ -8,7 +8,7 @@ import (
 
 /*
 Service interface
- */
+*/
 type Service interface {
 	SendAlert(message string) error
 	SendNonTechnicalAlert(message string) error
@@ -25,7 +25,7 @@ type service struct {
 
 /*
 NewService returns a new Alert Service
- */
+*/
 func NewService(t telegram.Service, store Store) Service {
 
 	return &service{

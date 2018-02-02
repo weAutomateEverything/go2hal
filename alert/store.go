@@ -1,13 +1,13 @@
 package alert
 
 import (
-	"gopkg.in/mgo.v2/bson"
 	"fmt"
-	"log"
 	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
+	"log"
 )
 
-type Store interface{
+type Store interface {
 	alertGroup() (groupID int64, err error)
 	heartbeatGroup() (groupID int64, err error)
 	nonTechnicalGroup() (groupID int64, err error)
@@ -30,11 +30,11 @@ type alertDB struct {
 
 func NewStore(mongo *mgo.Database) Store {
 	return &mongoStore{
-		mongo:mongo,
+		mongo: mongo,
 	}
 }
 
-func (s * mongoStore)alertGroup() (groupID int64, err error) {
+func (s *mongoStore) alertGroup() (groupID int64, err error) {
 	c := s.mongo.C("Alert")
 	count, _ := c.Count()
 	if count == 0 {
@@ -45,7 +45,7 @@ func (s * mongoStore)alertGroup() (groupID int64, err error) {
 	return result.GroupID, nil
 }
 
-func (s * mongoStore)heartbeatGroup() (groupID int64, err error) {
+func (s *mongoStore) heartbeatGroup() (groupID int64, err error) {
 	c := s.mongo.C("Alert")
 	count, _ := c.Count()
 	if count == 0 {
@@ -56,7 +56,7 @@ func (s * mongoStore)heartbeatGroup() (groupID int64, err error) {
 	return result.HeartbeatGroupID, nil
 }
 
-func (s * mongoStore)nonTechnicalGroup() (groupID int64, err error) {
+func (s *mongoStore) nonTechnicalGroup() (groupID int64, err error) {
 	c := s.mongo.C("Alert")
 	count, _ := c.Count()
 	if count == 0 {
@@ -67,8 +67,7 @@ func (s * mongoStore)nonTechnicalGroup() (groupID int64, err error) {
 	return result.NonTechnicalGroup, nil
 }
 
-
-func (s * mongoStore)setAlertGroup(AlertGroupID int64) {
+func (s *mongoStore) setAlertGroup(AlertGroupID int64) {
 	c := s.mongo.C("Alert")
 	count, _ := c.Count()
 
@@ -90,8 +89,7 @@ func (s * mongoStore)setAlertGroup(AlertGroupID int64) {
 	}
 }
 
-
-func (s * mongoStore)setHeartbeatGroup(groupID int64) {
+func (s *mongoStore) setHeartbeatGroup(groupID int64) {
 	c := s.mongo.C("Alert")
 	count, _ := c.Count()
 
@@ -113,8 +111,7 @@ func (s * mongoStore)setHeartbeatGroup(groupID int64) {
 	}
 }
 
-
-func (s * mongoStore)setNonTechnicalGroup(groupID int64) {
+func (s *mongoStore) setNonTechnicalGroup(groupID int64) {
 	c := s.mongo.C("Alert")
 	count, _ := c.Count()
 

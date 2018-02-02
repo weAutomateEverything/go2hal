@@ -3,6 +3,7 @@ package gokit
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	kitlog "github.com/go-kit/kit/log"
@@ -12,7 +13,6 @@ import (
 	"log"
 	"net/http"
 	"strings"
-	"encoding/base64"
 )
 
 // EncodeError response back to the client
@@ -79,7 +79,7 @@ func EncodeRequest(_ context.Context, r *http.Request, request interface{}) erro
 
 /*
 EncodeToBase64 takes the byte array request and converts it to base64 before adding it to the request body
- */
+*/
 func EncodeToBase64(_ context.Context, r *http.Request, request interface{}) error {
 	req := request.([]byte)
 
@@ -92,21 +92,19 @@ func EncodeToBase64(_ context.Context, r *http.Request, request interface{}) err
 	return nil
 }
 
-func DecodeFromBase64(_ context.Context, r *http.Request) (interface{}, error){
-	base64msg,err := ioutil.ReadAll(r.Body)
+func DecodeFromBase64(_ context.Context, r *http.Request) (interface{}, error) {
+	base64msg, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
-	b := &bytes.Buffer{}
-	e := base64.NewDecoder(base64.StdEncoding,b)
-	e.Read(base64msg)
 
-	return b.Bytes(),nil
+	return  base64.StdEncoding.DecodeString(string(base64msg))
+
 }
 
 /*
 EncodeErrorRequest will extract the string message from the request error and add it to the body
- */
+*/
 func EncodeErrorRequest(_ context.Context, r *http.Request, request interface{}) error {
 	req := request.(error)
 	r.Body = ioutil.NopCloser(bytes.NewReader([]byte(req.Error())))

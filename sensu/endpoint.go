@@ -1,8 +1,8 @@
 package sensu
 
 import (
-	"github.com/go-kit/kit/endpoint"
 	"context"
+	"github.com/go-kit/kit/endpoint"
 )
 
 type SensuMessageRequest struct {
@@ -16,15 +16,10 @@ type sensuAttachment struct {
 	Text  string `json:"text"`
 }
 
-
-
 func makeSensuEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(SensuMessageRequest)
 		s.handleSensu(req)
-		return nil,nil
+		return nil, nil
 	}
 }
-
-
-

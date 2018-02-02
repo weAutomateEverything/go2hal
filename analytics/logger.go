@@ -14,7 +14,7 @@ func NewLoggingService(logger log.Logger, s Service) Service {
 	return &loggingService{logger, s}
 }
 
-func (s loggingService)	SendAnalyticsAlert(message string){
+func (s loggingService) SendAnalyticsAlert(message string) {
 	defer func(begin time.Time) {
 		s.logger.Log(
 			"method", "send non technical alert",

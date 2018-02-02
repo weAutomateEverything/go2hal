@@ -1,13 +1,13 @@
 package analytics
 
 import (
-	"fmt"
 	"bytes"
-	"strings"
-	"github.com/zamedic/go2hal/alert"
 	"encoding/json"
+	"fmt"
+	"github.com/zamedic/go2hal/alert"
 	"github.com/zamedic/go2hal/chef"
 	"github.com/zamedic/go2hal/util"
+	"strings"
 )
 
 type Service interface {
@@ -17,14 +17,13 @@ type Service interface {
 type service struct {
 	alert     alert.Service
 	chefStore chef.Store
-
 }
 
-func NewService(alertService alert.Service, chefStore chef.Store) Service{
-	return &service{alertService,chefStore}
+func NewService(alertService alert.Service, chefStore chef.Store) Service {
+	return &service{alertService, chefStore}
 }
 
-func (s *service) SendAnalyticsAlert(message string){
+func (s *service) SendAnalyticsAlert(message string) {
 	if !s.checkSend(message) {
 		return
 	}
@@ -46,7 +45,7 @@ func (s *service) SendAnalyticsAlert(message string){
 	s.alert.SendAlert(buffer.String())
 }
 
-func (s *service)checkSend(message string) bool {
+func (s *service) checkSend(message string) bool {
 	message = strings.ToUpper(message)
 	recipes, err := s.chefStore.GetRecipes()
 	if err != nil {
@@ -54,11 +53,10 @@ func (s *service)checkSend(message string) bool {
 		return false
 	}
 	for _, recipe := range recipes {
-		check := "RECIPE["+strings.ToUpper(recipe.Recipe)+"]"
-		if strings.Contains(message,check) {
+		check := "RECIPE[" + strings.ToUpper(recipe.Recipe) + "]"
+		if strings.Contains(message, check) {
 			return true
 		}
 	}
-	return false;
+	return false
 }
-

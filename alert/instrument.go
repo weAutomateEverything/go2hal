@@ -19,7 +19,7 @@ func NewInstrumentService(counter metrics.Counter, latency metrics.Histogram, s 
 	}
 }
 
-func (s *instrumentingService)SendAlert(message string) error{
+func (s *instrumentingService) SendAlert(message string) error {
 	defer func(begin time.Time) {
 		s.requestCount.With("method", "send_alert").Add(1)
 		s.requestLatency.With("method", "send_alert").Observe(time.Since(begin).Seconds())
@@ -27,9 +27,7 @@ func (s *instrumentingService)SendAlert(message string) error{
 	return s.Service.SendAlert(message)
 }
 
-
-
-func (s *instrumentingService)SendNonTechnicalAlert(message string) error{
+func (s *instrumentingService) SendNonTechnicalAlert(message string) error {
 	defer func(begin time.Time) {
 		s.requestCount.With("method", "send_technical_alert").Add(1)
 		s.requestLatency.With("method", "send_technical_alert").Observe(time.Since(begin).Seconds())
@@ -37,7 +35,7 @@ func (s *instrumentingService)SendNonTechnicalAlert(message string) error{
 	return s.Service.SendNonTechnicalAlert(message)
 }
 
-func (s *instrumentingService)SendHeartbeatGroupAlert(message string) error{
+func (s *instrumentingService) SendHeartbeatGroupAlert(message string) error {
 	defer func(begin time.Time) {
 		s.requestCount.With("method", "send_heartbeat_alert").Add(1)
 		s.requestLatency.With("method", "send_heartbeat_alert").Observe(time.Since(begin).Seconds())
@@ -45,7 +43,7 @@ func (s *instrumentingService)SendHeartbeatGroupAlert(message string) error{
 	return s.Service.SendHeartbeatGroupAlert(message)
 }
 
-func (s *instrumentingService)SendImageToAlertGroup(image []byte) error{
+func (s *instrumentingService) SendImageToAlertGroup(image []byte) error {
 	defer func(begin time.Time) {
 		s.requestCount.With("method", "send_image_alert").Add(1)
 		s.requestLatency.With("method", "send_image_alert").Observe(time.Since(begin).Seconds())
@@ -53,7 +51,7 @@ func (s *instrumentingService)SendImageToAlertGroup(image []byte) error{
 	return s.Service.SendImageToAlertGroup(image)
 }
 
-func (s *instrumentingService)SendImageToHeartbeatGroup(image []byte) error{
+func (s *instrumentingService) SendImageToHeartbeatGroup(image []byte) error {
 	defer func(begin time.Time) {
 		s.requestCount.With("method", "send_image_heartbeat").Add(1)
 		s.requestLatency.With("method", "send_image_heartbeat").Observe(time.Since(begin).Seconds())
@@ -61,7 +59,7 @@ func (s *instrumentingService)SendImageToHeartbeatGroup(image []byte) error{
 	return s.Service.SendImageToHeartbeatGroup(image)
 }
 
-func (s *instrumentingService)SendError(err error) {
+func (s *instrumentingService) SendError(err error) {
 	defer func(begin time.Time) {
 		s.requestCount.With("method", "send_error").Add(1)
 		s.requestLatency.With("method", "send_error").Observe(time.Since(begin).Seconds())

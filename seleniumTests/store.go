@@ -1,29 +1,29 @@
 package seleniumTests
 
 import (
+	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 	"time"
-	"gopkg.in/mgo.v2"
 )
 
 type Store interface {
 	/*
-	GetAllSeleniumTests returns all seleniumTests tests
+		GetAllSeleniumTests returns all seleniumTests tests
 	*/
 	GetAllSeleniumTests() ([]Selenium, error)
 
 	/*
-	AddSelenium adds a test to the database
+		AddSelenium adds a test to the database
 	*/
 	AddSelenium(selenium Selenium) error
 
 	/*
-	SetSeleniumFailing sets thje seleniumTests test to a failed state
+		SetSeleniumFailing sets thje seleniumTests test to a failed state
 	*/
 	SetSeleniumFailing(selenium *Selenium, err error) error
 
 	/*
-	SetSeleniumPassing sets the seleniumTests test to a passed state
+		SetSeleniumPassing sets the seleniumTests test to a passed state
 	*/
 	SetSeleniumPassing(selenium *Selenium) error
 }
@@ -38,7 +38,7 @@ func NewMongoStore(db *mgo.Database) Store {
 
 /*
 halSelenium Object
- */
+*/
 type Selenium struct {
 	ID             bson.ObjectId `bson:"_id,omitempty" json:"omitempty"`
 	SeleniumServer string
@@ -55,7 +55,7 @@ type Selenium struct {
 
 /*
 Page object
- */
+*/
 type Page struct {
 	Name      string   `json:"name"`
 	PreCheck  *Check   `json:"precheck,omitempty"`
@@ -65,9 +65,9 @@ type Page struct {
 
 /*
 Action object
- */
+*/
 type Action struct {
-	Name string  `json:"name"`
+	Name         string `json:"name"`
 	SearchOption `json:"searchOption"`
 	*InputData   `json:"inputdata,omitempty"`
 	*ClickButton `json:"clickbutton,omitempty"`
@@ -76,10 +76,10 @@ type Action struct {
 
 /*
 SearchOption allows you to specify how you would like to search
- */
+*/
 type SearchOption struct {
-	Multiple      bool     `json:"multiple"`
-	SearchPattern string   `json:"searchPattern"`
+	Multiple               bool   `json:"multiple"`
+	SearchPattern          string `json:"searchPattern"`
 	*CSSSelector           `json:"CSSSelector,omitempty"`
 	*NameSelector          `json:"nameSelector,omitempty"`
 	*TagNameSelector       `json:"tagNameSelector,omitempty"`
@@ -92,83 +92,83 @@ type SearchOption struct {
 
 /*
 InputData Object
- */
+*/
 type InputData struct {
 	Value string `json:"value"`
 }
 
 /*
 ClickButton object
- */
+*/
 type ClickButton struct {
 }
 
 /*
 ClickLink object
- */
+*/
 type ClickLink struct {
 }
 
 /*
 Check object
- */
+*/
 type Check struct {
-	Name  string  `json:"name"`
-	SearchOption  `json:"searchOption"`
-	Value *string `json:"value,omitempty"`
+	Name         string `json:"name"`
+	SearchOption `json:"searchOption"`
+	Value        *string `json:"value,omitempty"`
 }
 
 /*
 CSSSelector Search by CSS
- */
+*/
 type CSSSelector struct {
 }
 
 /*
 NameSelector Search by name
- */
+*/
 type NameSelector struct {
 }
 
 /*
 TagNameSelector search by tag
- */
+*/
 type TagNameSelector struct {
 }
 
 /*
 ClassNameSelector Search by class
- */
+*/
 type ClassNameSelector struct {
 }
 
 /*
 IDSelector Search by ID
- */
+*/
 type IDSelector struct {
 }
 
 /*
 LinkTextSelector search by link text
- */
+*/
 type LinkTextSelector struct {
 }
 
 /*
 PartialLinkTextSelect search by partial link text
- */
+*/
 type PartialLinkTextSelect struct {
 }
 
 /*
 XPathSelector search by xpath
- */
+*/
 type XPathSelector struct {
 }
 
 /*
 GetAllSeleniumTests returns all seleniumTests tests
- */
+*/
 func (s *mongoStore) GetAllSeleniumTests() ([]Selenium, error) {
 	var result []Selenium
 	err := s.mongo.C("halSelenium").Find(nil).All(&result)
@@ -177,15 +177,15 @@ func (s *mongoStore) GetAllSeleniumTests() ([]Selenium, error) {
 
 /*
 AddSelenium adds a test to the database
- */
-func (s *mongoStore)AddSelenium(selenium Selenium) error {
+*/
+func (s *mongoStore) AddSelenium(selenium Selenium) error {
 	return s.mongo.C("halSelenium").Insert(selenium)
 }
 
 /*
 SetSeleniumFailing sets thje seleniumTests test to a failed state
- */
-func (s *mongoStore)SetSeleniumFailing(selenium *Selenium, err error) error {
+*/
+func (s *mongoStore) SetSeleniumFailing(selenium *Selenium, err error) error {
 	selenium.Passing = false
 	selenium.ErrorCount++
 	selenium.LastChecked = time.Now()
@@ -194,8 +194,8 @@ func (s *mongoStore)SetSeleniumFailing(selenium *Selenium, err error) error {
 
 /*
 SetSeleniumPassing sets the seleniumTests test to a passed state
- */
-func (s *mongoStore)SetSeleniumPassing(selenium *Selenium) error {
+*/
+func (s *mongoStore) SetSeleniumPassing(selenium *Selenium) error {
 	selenium.Passing = true
 	selenium.ErrorCount = 0
 	selenium.LastChecked = time.Now()

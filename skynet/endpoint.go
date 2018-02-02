@@ -1,8 +1,8 @@
 package skynet
 
 import (
-	"github.com/go-kit/kit/endpoint"
 	"context"
+	"github.com/go-kit/kit/endpoint"
 )
 
 type SkynetRebuildRequest struct {
@@ -10,12 +10,11 @@ type SkynetRebuildRequest struct {
 	User     string `json:"User"`
 }
 
-
 func makeSkynetRebuildEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(SkynetRebuildRequest)
-		s.RecreateNode(req.NodeName,req.User)
-		return nil,err
+		s.RecreateNode(req.NodeName, req.User)
+		return nil, err
 	}
 }
 
@@ -23,6 +22,6 @@ func makeSkynetAlertEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(string)
 		s.sendSkynetAlert(req)
-		return nil,nil
+		return nil, nil
 	}
 }
