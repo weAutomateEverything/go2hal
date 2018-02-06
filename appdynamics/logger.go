@@ -52,8 +52,8 @@ func (s *loggingService) executeCommandFromAppd(commandName, applicationID, node
 	defer func(begin time.Time) {
 		s.logger.Log(
 			"method", "execute app dynamics command",
-			"command name", commandName,
-			"applicatiom id", applicationID,
+			"command_name", commandName,
+			"applicatiom_id", applicationID,
 			"node id", nodeId,
 			"error", err,
 			"took", time.Since(begin),
