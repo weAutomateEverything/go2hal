@@ -26,9 +26,18 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/service/connect"
+	"github.com/aws/aws-sdk-go/aws"
 )
 
 func main() {
+
+	var logger log.Logger
+	logger = log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
+	logger = level.NewFilter(logger, level.AllowAll())
+	logger = log.With(logger, "ts", log.DefaultTimestamp)
 
 	db := database.NewConnection()
 
@@ -45,10 +54,7 @@ func main() {
 	fieldKeys := []string{"method"}
 
 	//Services
-	var logger log.Logger
-	logger = log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
-	logger = level.NewFilter(logger, level.AllowAll())
-	logger = log.With(logger, "ts", log.DefaultTimestamp)
+
 
 	telegramService := telegram.NewService(telegramStore)
 

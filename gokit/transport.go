@@ -98,7 +98,7 @@ func DecodeFromBase64(_ context.Context, r *http.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	return  base64.StdEncoding.DecodeString(string(base64msg))
+	return base64.StdEncoding.DecodeString(string(base64msg))
 
 }
 

@@ -10,13 +10,13 @@ import (
 	"github.com/zamedic/go2hal/gokit"
 	"golang.org/x/time/rate"
 	"net/url"
-	"time"
 	"os"
+	"time"
 
-	kitprometheus "github.com/go-kit/kit/metrics/prometheus"
-	stdprometheus "github.com/prometheus/client_golang/prometheus"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	kitprometheus "github.com/go-kit/kit/metrics/prometheus"
+	stdprometheus "github.com/prometheus/client_golang/prometheus"
 )
 
 type alertKubernetesProxy struct {
@@ -177,7 +177,7 @@ func getURL(namespace, uri string) *url.URL {
 		u = u + uri
 		ur, err := url.Parse(u)
 		if err != nil {
-			panic (err)
+			panic(err)
 		}
 		return ur
 	}
