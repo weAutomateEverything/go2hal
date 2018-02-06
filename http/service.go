@@ -16,23 +16,26 @@ import (
 )
 
 type Service interface {
+	setTimeOut(minutes int64)
 }
 
 type service struct {
-	alert   alert.Service
-	store   Store
-	callout callout.Service
+	alert      alert.Service
+	store      Store
+	callout    callout.Service
+	timeout    time.Time
+	timeoutSet bool
 }
 
 func NewService(alertService alert.Service, store Store, callout callout.Service) Service {
-	s := &service{alertService, store, callout}
+	s := &service{alert: alertService, store: store, callout: callout}
 	go func() {
 		s.monitorEndpoints()
 	}()
 	return s
 }
 
-func (s service) checkEndpoint(endpoint httpEndpoint) error {
+func (s *service) checkEndpoint(endpoint httpEndpoint) error {
 	response, err := s.doHTTPEndpoint(endpoint)
 	if response != nil {
 		defer response.Body.Close()
@@ -46,7 +49,7 @@ func (s service) checkEndpoint(endpoint httpEndpoint) error {
 	return nil
 }
 
-func (s service) monitorEndpoints() {
+func (s *service) monitorEndpoints() {
 	log.Println("Starting HTTP Endpoint monitor")
 	for true {
 		endpoints := s.store.getHTMLEndpoints()
@@ -59,7 +62,7 @@ func (s service) monitorEndpoints() {
 	}
 }
 
-func (s service) checkHTTP(endpoint httpEndpoint) {
+func (s *service) checkHTTP(endpoint httpEndpoint) {
 	response, err := s.doHTTPEndpoint(endpoint)
 	if err != nil {
 		msg := emoji.Sprintf(":smoking: :x: *Smoke Test  Alert*\nName: %s \nEndpoint: %s \nError: %s", endpoint.Name,
@@ -86,7 +89,7 @@ func (s service) checkHTTP(endpoint httpEndpoint) {
 	}
 }
 
-func (s service) checkAlert(endpoint httpEndpoint, msg string) {
+func (s *service) checkAlert(endpoint httpEndpoint, msg string) {
 	if err := s.store.failedEndpointTest(&endpoint, msg); err != nil {
 		s.alert.SendError(err)
 	}
@@ -96,7 +99,17 @@ func (s service) checkAlert(endpoint httpEndpoint, msg string) {
 			s.callout.InvokeCallout(fmt.Sprintf("Some Test failures for %s", endpoint.Name), msg)
 		}
 		if endpoint.ErrorCount >= endpoint.Threshold {
-			s.alert.SendAlert(msg)
+			s.checkTimeout(msg)
+		}
+	}
+}
+
+func (s *service) checkTimeout(msg string) {
+	if !s.timeoutSet || time.Now().Local().After(s.timeout) {
+		s.alert.SendAlert(msg)
+		if s.timeoutSet {
+			s.alert.SendAlert(emoji.Sprintf(":alarm_clock: - Smoke Alerts expired. The bot will now be sending alerts for smoke failures again"))
+			s.timeoutSet = false
 		}
 	}
 }
@@ -122,4 +135,9 @@ func (s service) doHTTPEndpoint(endpoint httpEndpoint) (*http.Response, error) {
 		return http.Get(endpoint.Endpoint)
 	}
 
+}
+
+func (s *service) setTimeOut(minutes int64) {
+	s.timeout = time.Now().Local().Add(time.Minute * time.Duration(minutes))
+	s.timeoutSet = true
 }
