@@ -25,8 +25,8 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"syscall"
 	"runtime/debug"
+	"syscall"
 )
 
 func main() {
@@ -215,7 +215,7 @@ func main() {
 		}, fieldKeys), sensuService)
 
 	_ = seleniumTests.NewService(seleniumStore, alertService, calloutService)
-	_ = http2.NewService(alertService, httpStore, calloutService)
+	httpService := http2.NewService(alertService, httpStore, calloutService)
 
 	//Telegram Commands
 	telegramService.RegisterCommand(alert.NewSetGroupCommand(telegramService, alertStore))
@@ -226,6 +226,7 @@ func main() {
 	telegramService.RegisterCommand(skynet.NewRebuildCHefNodeCommand(telegramStore, chefStore, telegramService,
 		alertService))
 	telegramService.RegisterCommand(skynet.NewRebuildNodeCommand(alertService, skynetService))
+	telegramService.RegisterCommand(http2.NewQuietHttpAlertCommand(telegramService, httpService))
 
 	telegramService.RegisterCommandLet(skynet.NewRebuildChefNodeEnvironmentReplyCommandlet(telegramService,
 		skynetService, chefService))
