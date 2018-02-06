@@ -54,7 +54,7 @@ func (s *loggingService) SendImageToAlertGroup(image []byte) (err error) {
 	defer func(begin time.Time) {
 		s.logger.Log(
 			"method", "send image to alert group",
-			"image length", len(image),
+			"image_length", len(image),
 			"took", time.Since(begin),
 			"err", err,
 		)
@@ -66,7 +66,7 @@ func (s *loggingService) SendImageToHeartbeatGroup(image []byte) (err error) {
 	defer func(begin time.Time) {
 		s.logger.Log(
 			"method", "send image to heartbeat group",
-			"image length", len(image),
+			"image_length", len(image),
 			"took", time.Since(begin),
 			"err", err,
 		)
