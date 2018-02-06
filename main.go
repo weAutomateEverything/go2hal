@@ -26,10 +26,6 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/service/connect"
-	"github.com/aws/aws-sdk-go/aws"
 )
 
 func main() {
@@ -54,7 +50,6 @@ func main() {
 	fieldKeys := []string{"method"}
 
 	//Services
-
 
 	telegramService := telegram.NewService(telegramStore)
 
