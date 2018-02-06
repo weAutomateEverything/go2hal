@@ -26,6 +26,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"runtime/debug"
 )
 
 func main() {
@@ -67,6 +68,31 @@ func main() {
 			Name:      "request_latency_microseconds",
 			Help:      "Total duration of requests in microseconds.",
 		}, fieldKeys), alertService)
+
+	jiraService := jira.NewService(alertService, userStore)
+	jiraService = jira.NewLoggingService(log.With(logger, "component", "jira"), jiraService)
+	jiraService = jira.NewInstrumentService(kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
+		Namespace: "api",
+		Subsystem: "jira",
+		Name:      "request_count",
+		Help:      "Number of requests received.",
+	}, fieldKeys),
+		kitprometheus.NewSummaryFrom(stdprometheus.SummaryOpts{
+			Namespace: "api",
+			Subsystem: "jira",
+			Name:      "request_latency_microseconds",
+			Help:      "Total duration of requests in microseconds.",
+		}, fieldKeys), jiraService)
+
+	defer func() {
+		if r := recover(); r != nil {
+			err, ok := r.(error)
+			if ok {
+				jiraService.CreateJira(fmt.Sprintf("HAL Panic - %v", err.Error()), string(debug.Stack()), getTechnicalUser())
+			}
+			panic(r)
+		}
+	}()
 
 	analyticsService := analytics.NewService(alertService, chefStore)
 	analyticsService = analytics.NewLoggingService(log.With(logger, "component", "chef_audir"), analyticsService)
@@ -127,21 +153,6 @@ func main() {
 			Name:      "request_latency_microseconds",
 			Help:      "Total duration of requests in microseconds.",
 		}, fieldKeys), snmpService)
-
-	jiraService := jira.NewService(alertService, userStore)
-	jiraService = jira.NewLoggingService(log.With(logger, "component", "jira"), jiraService)
-	jiraService = jira.NewInstrumentService(kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
-		Namespace: "api",
-		Subsystem: "jira",
-		Name:      "request_count",
-		Help:      "Number of requests received.",
-	}, fieldKeys),
-		kitprometheus.NewSummaryFrom(stdprometheus.SummaryOpts{
-			Namespace: "api",
-			Subsystem: "jira",
-			Name:      "request_latency_microseconds",
-			Help:      "Total duration of requests in microseconds.",
-		}, fieldKeys), jiraService)
 
 	calloutService := callout.NewService(alertService, snmpService, jiraService)
 	calloutService = callout.NewLoggingService(log.With(logger, "component", "callout"), calloutService)
@@ -248,6 +259,9 @@ func main() {
 
 	logger.Log("terminated", <-errs)
 
+}
+func getTechnicalUser() string {
+	return os.Getenv("TECH_USER")
 }
 
 func accessControl(h http.Handler) http.Handler {
