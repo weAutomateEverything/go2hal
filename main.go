@@ -259,7 +259,7 @@ func main() {
 
 	logger.Log("terminated", <-errs)
 
-}
+} 
 func getTechnicalUser() string {
 	return os.Getenv("TECH_USER")
 }
