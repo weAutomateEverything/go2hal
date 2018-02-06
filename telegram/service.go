@@ -44,7 +44,10 @@ var telegramBot *tgbotapi.BotAPI
 
 func NewService(store Store) Service {
 	s := &service{store}
-	s.useBot(os.Getenv("BOT_KEY"))
+	err := s.useBot(os.Getenv("BOT_KEY"))
+	if err != nil {
+		panic(err)
+	}
 	return s
 }
 

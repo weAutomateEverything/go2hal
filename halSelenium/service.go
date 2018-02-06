@@ -18,7 +18,6 @@ type Service interface {
 	ClickByCSSSelector(cs string)
 
 	WaitFor(findBy, selector string)
-
 }
 
 type chromeService struct {

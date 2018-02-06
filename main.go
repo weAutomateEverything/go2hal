@@ -30,6 +30,11 @@ import (
 
 func main() {
 
+	var logger log.Logger
+	logger = log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
+	logger = level.NewFilter(logger, level.AllowAll())
+	logger = log.With(logger, "ts", log.DefaultTimestamp)
+
 	db := database.NewConnection()
 
 	//Stores
@@ -45,10 +50,6 @@ func main() {
 	fieldKeys := []string{"method"}
 
 	//Services
-	var logger log.Logger
-	logger = log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
-	logger = level.NewFilter(logger, level.AllowAll())
-	logger = log.With(logger, "ts", log.DefaultTimestamp)
 
 	telegramService := telegram.NewService(telegramStore)
 
