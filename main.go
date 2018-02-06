@@ -244,7 +244,7 @@ func main() {
 	mux.Handle("/skynet/", skynet.MakeHandler(skynetService, httpLogger))
 	mux.Handle("/sensu", sensu.MakeHandler(sensuService, httpLogger))
 
-	http.Handle("/", accessControl(mux))
+	http.Handle("/", panicHandler{accessControl(mux), jiraService})
 	http.Handle("/metrics", promhttp.Handler())
 
 	errs := make(chan error, 2)
@@ -277,4 +277,23 @@ func accessControl(h http.Handler) http.Handler {
 
 		h.ServeHTTP(w, r)
 	})
+}
+
+type panicHandler struct {
+	http.Handler
+	jira.Service
+}
+
+func (h panicHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	defer func() {
+		err := recover()
+		if err != nil {
+
+			err, ok := err.(error)
+			if ok {
+				h.CreateJira(fmt.Sprintf("HAL Panic - %v", err.Error()), string(debug.Stack()), getTechnicalUser())
+			}
+		}
+	}()
+	h.Handler.ServeHTTP(w, r)
 }

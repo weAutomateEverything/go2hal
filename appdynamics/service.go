@@ -32,7 +32,7 @@ func NewService(alertService alert.Service, sshservice ssh.Service, store Store)
 	go func() {
 		monitorAppdynamicsQueue(store, alertService)
 	}()
-	return &service{}
+	return &service{alert: alertService, ssh: sshservice, store: store}
 }
 
 func (s *service) sendAppdynamicsAlert(message string) {
