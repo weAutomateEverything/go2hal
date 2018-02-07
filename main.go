@@ -53,6 +53,19 @@ func main() {
 	//Services
 
 	telegramService := telegram.NewService(telegramStore)
+	telegramService = telegram.NewLoggingService(log.With(logger, "component", "telegram"), telegramService)
+	telegramService = telegram.NewInstrumentService(kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
+		Namespace: "api",
+		Subsystem: "telgram_service",
+		Name:      "request_count",
+		Help:      "Number of requests received.",
+	}, fieldKeys),
+		kitprometheus.NewSummaryFrom(stdprometheus.SummaryOpts{
+			Namespace: "api",
+			Subsystem: "telegram_service",
+			Name:      "request_latency_microseconds",
+			Help:      "Total duration of requests in microseconds.",
+		}, fieldKeys), telegramService)
 
 	alertService := alert.NewService(telegramService, alertStore)
 	alertService = alert.NewLoggingService(log.With(logger, "component", "alert"), alertService)

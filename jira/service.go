@@ -45,6 +45,7 @@ func (s *service) CreateJira(title, description string, username string) {
 	}
 
 	jiraTemplate := os.Getenv("JIRA_TEMPLATE")
+	description = strings.Replace(description, "\n", "\\n", -1)
 
 	qr := q{User: s.jiraUser(username), Description: description, Title: title}
 	tmpl, err := template.New("jira").Parse(jiraTemplate)
