@@ -31,6 +31,6 @@ func MakeHandler(service Service, logger kitlog.Logger) http.Handler {
 
 func decodeExecuteRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	request := ExecuteAppDynamicsCommandRequest{}
-	err := json.NewDecoder(r.Body).Decode(request)
+	err := json.NewDecoder(r.Body).Decode(&request)
 	return request, err
 }
