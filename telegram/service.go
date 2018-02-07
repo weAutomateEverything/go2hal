@@ -12,6 +12,7 @@ import (
 
 type Service interface {
 	SendMessage(chatID int64, message string, messageID int) (err error)
+	SendMessagePlainText(chatID int64, message string, messageID int) (err error)
 	SendImageToGroup(image []byte, group int64) error
 	SendKeyboard(buttons []string, text string, chat int64)
 	RegisterCommand(command Command)
@@ -53,6 +54,10 @@ func NewService(store Store) Service {
 
 func (s *service) SendMessage(chatID int64, message string, messageID int) (err error) {
 	return sendMessage(chatID, message, messageID, true)
+}
+
+func (s *service) SendMessagePlainText(chatID int64, message string, messageID int) (err error) {
+	return sendMessage(chatID, message, messageID, false)
 }
 
 func (s *service) SendImageToGroup(image []byte, group int64) error {
