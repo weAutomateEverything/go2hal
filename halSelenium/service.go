@@ -25,13 +25,8 @@ type chromeService struct {
 	driver selenium.WebDriver
 }
 
-func NewChromeService(service alert.Service, server string) Service {
-
+func NewChromeService(service alert.Service) Service {
 	s := &chromeService{alert: service}
-	err := s.NewClient(server)
-	if err != nil {
-		panic(err)
-	}
 	return s
 }
 
