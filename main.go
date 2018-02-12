@@ -2,6 +2,10 @@ package main
 
 import (
 	"fmt"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/connect"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	kitprometheus "github.com/go-kit/kit/metrics/prometheus"
@@ -35,6 +39,21 @@ func main() {
 	logger = log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
 	logger = level.NewFilter(logger, level.AllowAll())
 	logger = log.With(logger, "ts", log.DefaultTimestamp)
+
+	c := credentials.NewEnvCredentials()
+
+	config := aws.Config{Credentials: c, Region: aws.String("us-east-1"), LogLevel: aws.LogLevel(aws.LogDebugWithRequestErrors)}
+	sess, _ := session.NewSession(&config)
+
+	outbound := connect.New(sess, &config)
+
+	req := connect.StartOutboundVoiceContactInput{
+		InstanceId:             aws.String("cb23092d-681f-49a4-b8f7-ff5c739b6c7c"),
+		ContactFlowId:          aws.String("2c79a426-8194-4acc-95e8-3e67a0616308"),
+		DestinationPhoneNumber: aws.String("+27836670778"),
+		SourcePhoneNumber:      aws.String("+12165391077"),
+	}
+	outbound.StartOutboundVoiceContact(&req)
 
 	db := database.NewConnection()
 
