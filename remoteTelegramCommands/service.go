@@ -4,15 +4,22 @@ import (
 	"github.com/zamedic/go2hal/telegram"
 	"gopkg.in/telegram-bot-api.v4"
 	"strconv"
+	"time"
 )
 
 type service struct {
 	telegram telegram.Service
 }
 
+func NewService(telegram telegram.Service) RemoteCommandServer {
+	return &service{telegram: telegram}
+}
+
 func (s *service) RegisterCommand(request *RemoteCommandRequest, response RemoteCommand_RegisterCommandServer) error {
 	s.telegram.RegisterCommand(newRemoteCommand(request.Name, request.Description, response))
-	return nil
+	for {
+		time.Sleep(10 * time.Minute)
+	}
 }
 
 type remoteCommand struct {

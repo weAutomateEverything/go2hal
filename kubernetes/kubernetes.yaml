@@ -43,6 +43,8 @@ spec:
         ports:
         - containerPort: 8000
           protocol: TCP
+        - containerPort: 8080
+          protocol: TCP
         - containerPort: 9162
           protocol: UDP
         envFrom:
@@ -71,6 +73,10 @@ spec:
     name: http
     port: 80
     targetPort: 8000
+  - protocol: TCP
+    name: grpc
+    port: 8080
+    targetPort: 8080
 ---
 kind: Ingress
 apiVersion: extensions/v1beta1
