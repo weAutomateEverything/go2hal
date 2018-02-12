@@ -6,6 +6,7 @@ import (
 	"github.com/go-kit/kit/log/level"
 	kitprometheus "github.com/go-kit/kit/metrics/prometheus"
 	stdprometheus "github.com/prometheus/client_golang/prometheus"
+
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/zamedic/go2hal/alert"
 	"github.com/zamedic/go2hal/analytics"
@@ -15,6 +16,7 @@ import (
 	"github.com/zamedic/go2hal/database"
 	http2 "github.com/zamedic/go2hal/http"
 	"github.com/zamedic/go2hal/jira"
+	"github.com/zamedic/go2hal/remoteTelegramCommands"
 	"github.com/zamedic/go2hal/seleniumTests"
 	"github.com/zamedic/go2hal/sensu"
 	"github.com/zamedic/go2hal/skynet"
@@ -22,6 +24,8 @@ import (
 	ssh2 "github.com/zamedic/go2hal/ssh"
 	"github.com/zamedic/go2hal/telegram"
 	"github.com/zamedic/go2hal/user"
+	"google.golang.org/grpc"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -227,6 +231,8 @@ func main() {
 			Help:      "Total duration of requests in microseconds.",
 		}, fieldKeys), sensuService)
 
+	remoteTelegramCommand := remoteTelegramCommands.NewService(telegramService)
+
 	_ = seleniumTests.NewService(seleniumStore, alertService, calloutService)
 	httpService := http2.NewService(alertService, httpStore, calloutService)
 
@@ -260,10 +266,23 @@ func main() {
 	http.Handle("/", panicHandler{accessControl(mux), jiraService, alertService})
 	http.Handle("/metrics", promhttp.Handler())
 
+	grpc := grpc.NewServer()
+	remoteTelegramCommands.RegisterRemoteCommandServer(grpc, remoteTelegramCommand)
+
 	errs := make(chan error, 2)
+	ln, err := net.Listen("tcp", ":8080")
+	if err != nil {
+		logger.Log("transport", "grpc", "address", ":8080", "error", err)
+		errs <- err
+		return
+	}
 	go func() {
 		logger.Log("transport", "http", "address", ":8000", "msg", "listening")
 		errs <- http.ListenAndServe(":8000", nil)
+	}()
+	go func() {
+		logger.Log("transport", "http", "address", ":8080", "msg", "listening")
+		errs <- grpc.Serve(ln)
 	}()
 	go func() {
 		c := make(chan os.Signal)

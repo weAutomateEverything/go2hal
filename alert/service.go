@@ -83,6 +83,10 @@ func (s *service) SendHeartbeatGroupAlert(message string) error {
 
 func (s *service) SendError(err error) {
 	log.Println(err.Error())
-	group, err := s.store.heartbeatGroup()
+	group, e := s.store.heartbeatGroup()
+	if e != nil {
+		err = e
+		return
+	}
 	s.telegram.SendMessagePlainText(group, emoji.Sprintf(":poop: %s", err.Error()), 0)
 }
