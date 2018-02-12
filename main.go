@@ -24,6 +24,8 @@ import (
 	ssh2 "github.com/zamedic/go2hal/ssh"
 	"github.com/zamedic/go2hal/telegram"
 	"github.com/zamedic/go2hal/user"
+	"google.golang.org/grpc/reflection"
+
 	"google.golang.org/grpc"
 	"net"
 	"net/http"
@@ -268,6 +270,7 @@ func main() {
 
 	grpc := grpc.NewServer()
 	remoteTelegramCommands.RegisterRemoteCommandServer(grpc, remoteTelegramCommand)
+	reflection.Register(grpc)
 
 	errs := make(chan error, 2)
 	ln, err := net.Listen("tcp", ":8080")
