@@ -32,7 +32,7 @@ func NewService(alert alert.Service, chefStore Store) Service {
 	return s
 }
 
-func (s service) sendDeliveryAlert(message string) {
+func (s *service) sendDeliveryAlert(message string) {
 	var dat map[string]interface{}
 
 	message = strings.Replace(message, "\n", "\\n", -1)
@@ -99,13 +99,13 @@ func (s service) sendDeliveryAlert(message string) {
 
 }
 
-func (s service) monitorQuarentined() {
+func (s *service) monitorQuarentined() {
 	for {
-		checkQuarentined(s)
+		s.checkQuarentined()
 		time.Sleep(30 * time.Minute)
 	}
 }
-func checkQuarentined(s service) {
+func (s *service)checkQuarentined() {
 	recipes, err := s.chefStore.GetRecipes()
 	if err != nil {
 		s.alert.SendError(err)
@@ -131,7 +131,7 @@ func checkQuarentined(s service) {
 
 }
 
-func (s service) FindNodesFromFriendlyNames(recipe, environment string) []Node {
+func (s *service) FindNodesFromFriendlyNames(recipe, environment string) []Node {
 	chefRecipe, err := s.chefStore.GetRecipeFromFriendlyName(recipe)
 	if err != nil {
 		s.alert.SendError(err)
@@ -144,7 +144,7 @@ func (s service) FindNodesFromFriendlyNames(recipe, environment string) []Node {
 		return nil
 	}
 
-	client, err := getChefClient(s)
+	client, err := s.getChefClient()
 	if err != nil {
 		s.alert.SendError(err)
 		return nil
@@ -180,7 +180,7 @@ func (s service) FindNodesFromFriendlyNames(recipe, environment string) []Node {
 
 }
 
-func getChefClient(s service) (client *chef.Client, err error) {
+func (s *service)getChefClient() (client *chef.Client, err error) {
 	c, err := s.chefStore.GetChefClientDetails()
 	if err != nil {
 		return nil, err
