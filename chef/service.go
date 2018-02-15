@@ -105,7 +105,7 @@ func (s *service) monitorQuarentined() {
 		time.Sleep(30 * time.Minute)
 	}
 }
-func (s *service)checkQuarentined() {
+func (s *service) checkQuarentined() {
 	recipes, err := s.chefStore.GetRecipes()
 	if err != nil {
 		s.alert.SendError(err)
@@ -180,7 +180,7 @@ func (s *service) FindNodesFromFriendlyNames(recipe, environment string) []Node 
 
 }
 
-func (s *service)getChefClient() (client *chef.Client, err error) {
+func (s *service) getChefClient() (client *chef.Client, err error) {
 	c, err := s.chefStore.GetChefClientDetails()
 	if err != nil {
 		return nil, err
