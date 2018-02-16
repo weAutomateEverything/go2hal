@@ -44,7 +44,7 @@ func NewKubernetesAlertProxy(namespace string) Service {
 	logger = log.With(logger, "ts", log.DefaultTimestamp)
 
 	service := newKubernetesAlertProxy(namespace)
-	service = NewLoggingService(log.With(logger, "component", "alert"), service)
+	service = NewLoggingService(log.With(logger, "component", "alert_proxy"), service)
 	service = NewInstrumentService(kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
 		Namespace: "proxy",
 		Subsystem: "alert_service",
