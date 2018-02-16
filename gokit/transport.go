@@ -42,7 +42,7 @@ func DecodeString(_ context.Context, r *http.Request) (interface{}, error) {
 DecodeResponse will check the response for an error, and if there is, it will set the body to the error message
 */
 func DecodeResponse(_ context.Context, r *http.Response) (interface{}, error) {
-	if r.StatusCode >= 400 {
+	if r.StatusCode != 200 {
 		s, _ := ioutil.ReadAll(r.Body)
 		return nil, errors.New(string(s))
 	}
