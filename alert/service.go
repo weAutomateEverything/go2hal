@@ -15,7 +15,7 @@ type Service interface {
 	SendHeartbeatGroupAlert(message string) error
 	SendImageToAlertGroup(image []byte) error
 	SendImageToHeartbeatGroup(image []byte) error
-	SendError(err error)
+	SendError(err error) error
 }
 
 type service struct {
@@ -81,12 +81,11 @@ func (s *service) SendHeartbeatGroupAlert(message string) error {
 	return s.telegram.SendMessage(group, message, 0)
 }
 
-func (s *service) SendError(err error) {
+func (s *service) SendError(err error) error {
 	log.Println(err.Error())
 	group, e := s.store.heartbeatGroup()
 	if e != nil {
-		err = e
-		return
+		return e
 	}
-	s.telegram.SendMessagePlainText(group, emoji.Sprintf(":poop: %s", err.Error()), 0)
+	return s.telegram.SendMessagePlainText(group, emoji.Sprintf(":poop: %s", err.Error()), 0)
 }
