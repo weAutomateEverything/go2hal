@@ -51,6 +51,12 @@ func NewKubernetesAlertProxy(namespace string) Service {
 		Name:      "request_count",
 		Help:      "Number of requests received.",
 	}, fieldKeys),
+		kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
+			Namespace: "api",
+			Subsystem: "alert_service",
+			Name:      "error_count",
+			Help:      "Number of errors.",
+		}, fieldKeys),
 		kitprometheus.NewSummaryFrom(stdprometheus.SummaryOpts{
 			Namespace: "api",
 			Subsystem: "alert_service",
