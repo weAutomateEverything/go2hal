@@ -20,14 +20,14 @@ import (
 )
 
 type alertKubernetesProxy struct {
-	ctx context.Context
-
 	sendAlertEndpoint                 endpoint.Endpoint
 	sendNonTechnicalAlertEndpoint     endpoint.Endpoint
 	sendHeartbeatGroupAlertEndpoint   endpoint.Endpoint
 	sendImageToAlertGroupEndpoint     endpoint.Endpoint
 	sendImageToHeartbeatGroupEndpoint endpoint.Endpoint
 	sendErrorEndpoint                 endpoint.Endpoint
+
+	logger log.Logger
 }
 
 /*
@@ -38,8 +38,7 @@ func NewKubernetesAlertProxy(namespace string) Service {
 
 	fieldKeys := []string{"method"}
 
-	var logger log.Logger
-	logger = log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
+	logger := log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
 	logger = level.NewFilter(logger, level.AllowAll())
 	logger = log.With(logger, "ts", log.DefaultTimestamp)
 
@@ -91,34 +90,34 @@ func newKubernetesAlertProxy(namespace string) Service {
 	alertError = circuitbreaker.Gobreaker(gobreaker.NewCircuitBreaker(gobreaker.Settings{}))(alertError)
 	alertError = ratelimit.NewErroringLimiter(rate.NewLimiter(rate.Every(time.Second), 10))(alertError)
 
-	return &alertKubernetesProxy{ctx: context.Background(), sendAlertEndpoint: alert, sendErrorEndpoint: alertError,
+	return &alertKubernetesProxy{sendAlertEndpoint: alert, sendErrorEndpoint: alertError,
 		sendHeartbeatGroupAlertEndpoint: heartbeatAlert, sendImageToAlertGroupEndpoint: alertImage,
 		sendImageToHeartbeatGroupEndpoint: heartbeatImage, sendNonTechnicalAlertEndpoint: nonTechAlert}
 
 }
 func (s *alertKubernetesProxy) SendAlert(message string) error {
-	_, err := s.sendAlertEndpoint(s.ctx, message)
+	_, err := s.sendAlertEndpoint(getContext(), message)
 	return err
 }
 
 func (s *alertKubernetesProxy) SendNonTechnicalAlert(message string) error {
-	_, err := s.sendNonTechnicalAlertEndpoint(s.ctx, message)
+	_, err := s.sendNonTechnicalAlertEndpoint(getContext(), message)
 	return err
 }
 func (s *alertKubernetesProxy) SendHeartbeatGroupAlert(message string) error {
-	_, err := s.sendHeartbeatGroupAlertEndpoint(s.ctx, message)
+	_, err := s.sendHeartbeatGroupAlertEndpoint(getContext(), message)
 	return err
 }
 func (s *alertKubernetesProxy) SendImageToAlertGroup(image []byte) error {
-	_, err := s.sendImageToAlertGroupEndpoint(s.ctx, image)
+	_, err := s.sendImageToAlertGroupEndpoint(getContext(), image)
 	return err
 }
 func (s *alertKubernetesProxy) SendImageToHeartbeatGroup(image []byte) error {
-	_, err := s.sendImageToHeartbeatGroupEndpoint(s.ctx, image)
+	_, err := s.sendImageToHeartbeatGroupEndpoint(getContext(), image)
 	return err
 }
 func (s *alertKubernetesProxy) SendError(err error) error {
-	_, e := s.sendErrorEndpoint(s.ctx, err)
+	_, e := s.sendErrorEndpoint(getContext(), err)
 	return e
 }
 
@@ -205,4 +204,9 @@ func getURL(namespace, uri string) *url.URL {
 
 func getAlertUrl() string {
 	return os.Getenv("ALERT_ENDPOINT")
+}
+
+func getContext() context.Context {
+	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	return ctx
 }
