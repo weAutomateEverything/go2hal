@@ -46,19 +46,19 @@ func NewKubernetesAlertProxy(namespace string) Service {
 	service := newKubernetesAlertProxy(namespace)
 	service = NewLoggingService(log.With(logger, "component", "alert"), service)
 	service = NewInstrumentService(kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
-		Namespace: "api",
+		Namespace: "proxy",
 		Subsystem: "alert_service",
 		Name:      "request_count",
 		Help:      "Number of requests received.",
 	}, fieldKeys),
 		kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
-			Namespace: "api",
+			Namespace: "proxy",
 			Subsystem: "alert_service",
 			Name:      "error_count",
 			Help:      "Number of errors.",
 		}, fieldKeys),
 		kitprometheus.NewSummaryFrom(stdprometheus.SummaryOpts{
-			Namespace: "api",
+			Namespace: "proxy",
 			Subsystem: "alert_service",
 			Name:      "request_latency_microseconds",
 			Help:      "Total duration of requests in microseconds.",
