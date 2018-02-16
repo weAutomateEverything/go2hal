@@ -42,7 +42,7 @@ func NewKubernetesAlertProxy(namespace string) Service {
 	logger = level.NewFilter(logger, level.AllowAll())
 	logger = log.With(logger, "ts", log.DefaultTimestamp)
 
-	service := newKubernetesAlertProxy(namespace)
+	service := newKubernetesAlertProxy(namespace, logger)
 	service = NewLoggingService(log.With(logger, "component", "alert_proxy"), service)
 	service = NewInstrumentService(kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
 		Namespace: "proxy",
@@ -65,28 +65,28 @@ func NewKubernetesAlertProxy(namespace string) Service {
 
 	return service
 }
-func newKubernetesAlertProxy(namespace string) Service {
-	alert := makeAlertKubernetesHTTPProxy(namespace)
+func newKubernetesAlertProxy(namespace string, logger log.Logger) Service {
+	alert := makeAlertKubernetesHTTPProxy(namespace, logger)
 	alert = circuitbreaker.Gobreaker(gobreaker.NewCircuitBreaker(gobreaker.Settings{}))(alert)
 	alert = ratelimit.NewErroringLimiter(rate.NewLimiter(rate.Every(time.Second), 10))(alert)
 
-	alertImage := makeAlertKubernetesSendImageToAlertGroupHTTPProxy(namespace)
+	alertImage := makeAlertKubernetesSendImageToAlertGroupHTTPProxy(namespace, logger)
 	alertImage = circuitbreaker.Gobreaker(gobreaker.NewCircuitBreaker(gobreaker.Settings{}))(alertImage)
 	alertImage = ratelimit.NewErroringLimiter(rate.NewLimiter(rate.Every(time.Second), 10))(alertImage)
 
-	nonTechAlert := makeAlertKubernetesSendNonTechnicalAlertHTTPProxy(namespace)
+	nonTechAlert := makeAlertKubernetesSendNonTechnicalAlertHTTPProxy(namespace, logger)
 	nonTechAlert = circuitbreaker.Gobreaker(gobreaker.NewCircuitBreaker(gobreaker.Settings{}))(nonTechAlert)
 	nonTechAlert = ratelimit.NewErroringLimiter(rate.NewLimiter(rate.Every(time.Second), 10))(nonTechAlert)
 
-	heartbeatAlert := makeAlertKubernetesSendHeartbeatGroupAlertHTTPProxy(namespace)
+	heartbeatAlert := makeAlertKubernetesSendHeartbeatGroupAlertHTTPProxy(namespace, logger)
 	heartbeatAlert = circuitbreaker.Gobreaker(gobreaker.NewCircuitBreaker(gobreaker.Settings{}))(heartbeatAlert)
 	heartbeatAlert = ratelimit.NewErroringLimiter(rate.NewLimiter(rate.Every(time.Second), 10))(heartbeatAlert)
 
-	heartbeatImage := makeAlertKubernetesSendImageToHeartbeatGroupHTTPProxy(namespace)
+	heartbeatImage := makeAlertKubernetesSendImageToHeartbeatGroupHTTPProxy(namespace, logger)
 	heartbeatImage = circuitbreaker.Gobreaker(gobreaker.NewCircuitBreaker(gobreaker.Settings{}))(heartbeatImage)
 	heartbeatImage = ratelimit.NewErroringLimiter(rate.NewLimiter(rate.Every(time.Second), 10))(heartbeatImage)
 
-	alertError := makeAlertKubernetesSendErrorHTTPProxy(namespace)
+	alertError := makeAlertKubernetesSendErrorHTTPProxy(namespace, logger)
 	alertError = circuitbreaker.Gobreaker(gobreaker.NewCircuitBreaker(gobreaker.Settings{}))(alertError)
 	alertError = ratelimit.NewErroringLimiter(rate.NewLimiter(rate.Every(time.Second), 10))(alertError)
 
@@ -121,59 +121,65 @@ func (s *alertKubernetesProxy) SendError(err error) error {
 	return e
 }
 
-func makeAlertKubernetesHTTPProxy(namespace string) endpoint.Endpoint {
+func makeAlertKubernetesHTTPProxy(namespace string, logger log.Logger) endpoint.Endpoint {
 
 	return http.NewClient(
 		"POST",
 		getURL(namespace, "alert/"),
 		gokit.EncodeRequest,
 		gokit.DecodeResponse,
+		gokit.GetClientOpts(logger)...,
 	).Endpoint()
 
 }
 
-func makeAlertKubernetesSendNonTechnicalAlertHTTPProxy(namespace string) endpoint.Endpoint {
+func makeAlertKubernetesSendNonTechnicalAlertHTTPProxy(namespace string, logger log.Logger) endpoint.Endpoint {
 	return http.NewClient(
 		"POST",
 		getURL(namespace, "alert/business"),
 		gokit.EncodeRequest,
 		gokit.DecodeResponse,
+		gokit.GetClientOpts(logger)...,
 	).Endpoint()
 }
 
-func makeAlertKubernetesSendHeartbeatGroupAlertHTTPProxy(namespace string) endpoint.Endpoint {
+func makeAlertKubernetesSendHeartbeatGroupAlertHTTPProxy(namespace string, logger log.Logger) endpoint.Endpoint {
 	return http.NewClient(
 		"POST",
 		getURL(namespace, "alert/heartbeat"),
 		gokit.EncodeRequest,
 		gokit.DecodeResponse,
+		gokit.GetClientOpts(logger)...,
 	).Endpoint()
 }
 
-func makeAlertKubernetesSendImageToAlertGroupHTTPProxy(namespace string) endpoint.Endpoint {
+func makeAlertKubernetesSendImageToAlertGroupHTTPProxy(namespace string, logger log.Logger) endpoint.Endpoint {
 	return http.NewClient(
 		"POST",
 		getURL(namespace, "alert/image"),
 		gokit.EncodeToBase64,
 		gokit.DecodeResponse,
+		gokit.GetClientOpts(logger)...,
 	).Endpoint()
 }
 
-func makeAlertKubernetesSendImageToHeartbeatGroupHTTPProxy(namespace string) endpoint.Endpoint {
+func makeAlertKubernetesSendImageToHeartbeatGroupHTTPProxy(namespace string, logger log.Logger) endpoint.Endpoint {
 	return http.NewClient(
 		"POST",
 		getURL(namespace, "alert/heartbeat/image"),
 		gokit.EncodeToBase64,
 		gokit.DecodeResponse,
+		gokit.GetClientOpts(logger)...,
 	).Endpoint()
 }
 
-func makeAlertKubernetesSendErrorHTTPProxy(namespace string) endpoint.Endpoint {
+func makeAlertKubernetesSendErrorHTTPProxy(namespace string, logger log.Logger) endpoint.Endpoint {
 	return http.NewClient(
 		"POST",
 		getURL(namespace, "alert/error"),
 		gokit.EncodeErrorRequest,
 		gokit.DecodeResponse,
+		gokit.GetClientOpts(logger)...,
 	).Endpoint()
 }
 
