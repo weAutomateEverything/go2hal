@@ -69,27 +69,27 @@ func NewKubernetesAlertProxy(namespace string) Service {
 func newKubernetesAlertProxy(namespace string) Service {
 	alert := makeAlertKubernetesHTTPProxy(namespace)
 	alert = circuitbreaker.Gobreaker(gobreaker.NewCircuitBreaker(gobreaker.Settings{}))(alert)
-	alert = ratelimit.NewErroringLimiter(rate.NewLimiter(rate.Every(time.Second), 100))(alert)
+	alert = ratelimit.NewErroringLimiter(rate.NewLimiter(rate.Every(time.Second), 10))(alert)
 
 	alertImage := makeAlertKubernetesSendImageToAlertGroupHTTPProxy(namespace)
 	alertImage = circuitbreaker.Gobreaker(gobreaker.NewCircuitBreaker(gobreaker.Settings{}))(alertImage)
-	alertImage = ratelimit.NewErroringLimiter(rate.NewLimiter(rate.Every(time.Second), 100))(alertImage)
+	alertImage = ratelimit.NewErroringLimiter(rate.NewLimiter(rate.Every(time.Second), 10))(alertImage)
 
 	nonTechAlert := makeAlertKubernetesSendNonTechnicalAlertHTTPProxy(namespace)
 	nonTechAlert = circuitbreaker.Gobreaker(gobreaker.NewCircuitBreaker(gobreaker.Settings{}))(nonTechAlert)
-	nonTechAlert = ratelimit.NewErroringLimiter(rate.NewLimiter(rate.Every(time.Second), 100))(nonTechAlert)
+	nonTechAlert = ratelimit.NewErroringLimiter(rate.NewLimiter(rate.Every(time.Second), 10))(nonTechAlert)
 
 	heartbeatAlert := makeAlertKubernetesSendHeartbeatGroupAlertHTTPProxy(namespace)
 	heartbeatAlert = circuitbreaker.Gobreaker(gobreaker.NewCircuitBreaker(gobreaker.Settings{}))(heartbeatAlert)
-	heartbeatAlert = ratelimit.NewErroringLimiter(rate.NewLimiter(rate.Every(time.Second), 100))(heartbeatAlert)
+	heartbeatAlert = ratelimit.NewErroringLimiter(rate.NewLimiter(rate.Every(time.Second), 10))(heartbeatAlert)
 
 	heartbeatImage := makeAlertKubernetesSendImageToHeartbeatGroupHTTPProxy(namespace)
 	heartbeatImage = circuitbreaker.Gobreaker(gobreaker.NewCircuitBreaker(gobreaker.Settings{}))(heartbeatImage)
-	heartbeatImage = ratelimit.NewErroringLimiter(rate.NewLimiter(rate.Every(time.Second), 100))(heartbeatImage)
+	heartbeatImage = ratelimit.NewErroringLimiter(rate.NewLimiter(rate.Every(time.Second), 10))(heartbeatImage)
 
 	alertError := makeAlertKubernetesSendErrorHTTPProxy(namespace)
 	alertError = circuitbreaker.Gobreaker(gobreaker.NewCircuitBreaker(gobreaker.Settings{}))(alertError)
-	alertError = ratelimit.NewErroringLimiter(rate.NewLimiter(rate.Every(time.Second), 100))(alertError)
+	alertError = ratelimit.NewErroringLimiter(rate.NewLimiter(rate.Every(time.Second), 10))(alertError)
 
 	return &alertKubernetesProxy{ctx: context.Background(), sendAlertEndpoint: alert, sendErrorEndpoint: alertError,
 		sendHeartbeatGroupAlertEndpoint: heartbeatAlert, sendImageToAlertGroupEndpoint: alertImage,
