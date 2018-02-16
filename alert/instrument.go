@@ -75,10 +75,10 @@ func (s *instrumentingService) SendImageToHeartbeatGroup(image []byte) (err erro
 	return s.Service.SendImageToHeartbeatGroup(image)
 }
 
-func (s *instrumentingService) SendError(err error) {
+func (s *instrumentingService) SendError(err error) error {
 	defer func(begin time.Time) {
 		s.requestCount.With("method", "send_error").Add(1)
 		s.requestLatency.With("method", "send_error").Observe(time.Since(begin).Seconds())
 	}(time.Now())
-	s.Service.SendError(err)
+	return s.Service.SendError(err)
 }

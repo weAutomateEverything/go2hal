@@ -117,8 +117,9 @@ func (s *alertKubernetesProxy) SendImageToHeartbeatGroup(image []byte) error {
 	_, err := s.sendImageToHeartbeatGroupEndpoint(s.ctx, image)
 	return err
 }
-func (s *alertKubernetesProxy) SendError(err error) {
-	s.sendErrorEndpoint(s.ctx, err)
+func (s *alertKubernetesProxy) SendError(err error) error {
+	_, e := s.sendErrorEndpoint(s.ctx, err)
+	return e
 }
 
 func makeAlertKubernetesHTTPProxy(namespace string) endpoint.Endpoint {
