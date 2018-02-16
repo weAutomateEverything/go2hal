@@ -32,19 +32,19 @@ func NewChromeService(service alert.Service) Service {
 	s := newChromeService(service)
 	s = NewInstrumentService(kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
 		Namespace: "api",
-		Subsystem: "cutoffService",
+		Subsystem: "halSelenium",
 		Name:      "request_count",
 		Help:      "Number of requests received.",
 	}, fieldKeys),
 		kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
 			Namespace: "api",
-			Subsystem: "cutoffService",
+			Subsystem: "halSelenium",
 			Name:      "error_count",
 			Help:      "Number of errors encountered.",
 		}, fieldKeys),
 		kitprometheus.NewSummaryFrom(stdprometheus.SummaryOpts{
 			Namespace: "api",
-			Subsystem: "cutoffService",
+			Subsystem: "halSelenium",
 			Name:      "request_latency_microseconds",
 			Help:      "Total duration of requests in microseconds.",
 		}, fieldKeys), s)
