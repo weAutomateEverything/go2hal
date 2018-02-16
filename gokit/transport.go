@@ -122,6 +122,13 @@ func logRequest() kithttp.RequestFunc {
 	}
 }
 
+func logResponse() kithttp.ClientResponseFunc {
+	return func(i context.Context, response *http.Response) context.Context {
+		log.Println(formatResponse(response))
+		return i
+	}
+}
+
 // formatRequest generates ascii representation of a request
 func formatRequest(r *http.Request) string {
 	// Create return string
@@ -155,6 +162,25 @@ func formatRequest(r *http.Request) string {
 	return strings.Join(request, "\n")
 }
 
+func formatResponse(r *http.Response) string {
+	// Create return string
+	var request []string
+	// Loop through headers
+	for name, headers := range r.Header {
+		name = strings.ToLower(name)
+		for _, h := range headers {
+			request = append(request, fmt.Sprintf("%v: %v", name, h))
+		}
+	}
+	body, _ := ioutil.ReadAll(r.Body)
+	request = append(request, fmt.Sprintf("Body: %v", string(body)))
+
+	r.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+
+	// Return the request as a string
+	return strings.Join(request, "\n")
+}
+
 /*
 GetServerOpts creates a default server option with an error logger, error encoder and a http request logger.
 */
@@ -163,5 +189,15 @@ func GetServerOpts(logger kitlog.Logger) []kithttp.ServerOption {
 		kithttp.ServerErrorLogger(logger),
 		kithttp.ServerErrorEncoder(EncodeError),
 		kithttp.ServerBefore(logRequest()),
+	}
+}
+
+/*
+GetServerOpts creates a default server option with an error logger, error encoder and a http request logger.
+*/
+func GetClientOpts(logger kitlog.Logger) []kithttp.ClientOption {
+	return []kithttp.ClientOption{
+		kithttp.ClientBefore(logRequest()),
+		kithttp.ClientAfter(logResponse()),
 	}
 }
