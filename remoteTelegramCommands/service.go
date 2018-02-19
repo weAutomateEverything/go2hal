@@ -41,6 +41,6 @@ func (s remoteCommand) CommandDescription() string {
 }
 
 func (s remoteCommand) Execute(update tgbotapi.Update) {
-	request := RemoteRequest{Message: update.Message.Text, From: strconv.FormatInt(int64(update.Message.From.ID), 10)}
+	request := RemoteRequest{Message: update.Message.CommandArguments(), From: strconv.FormatInt(int64(update.Message.From.ID), 10)}
 	s.remote.Send(&request)
 }

@@ -9,11 +9,11 @@ import (
 	kitlog "github.com/go-kit/kit/log"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/pkg/errors"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"strings"
-	"io"
 )
 
 type nopCloser struct {
