@@ -18,44 +18,6 @@ data:
   JIRA_DEFAULT_USER:
   SKYNET_URL:
   SKYNET_USER:
-
-
----
-apiVersion: extensions/v1beta1
-kind: Deployment
-metadata:
-  labels:
-    app: hal
-  name: hal
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: hal
-  template:
-    metadata:
-      labels:
-        app: hal
-    spec:
-      containers:
-      - image: zamedic/go2hal:1.637.1
-        name: hal
-        ports:
-        - containerPort: 8000
-          protocol: TCP
-        - containerPort: 8080
-          protocol: TCP
-        - containerPort: 9162
-          protocol: UDP
-        envFrom:
-        - configMapRef:
-            name: hal
-        - secretRef:
-            name: hal
-        env:
-        - name: MONGO_DATABASE
-          value:
-
 ---
 kind: Service
 apiVersion: v1

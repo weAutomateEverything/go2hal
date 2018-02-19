@@ -13,7 +13,14 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"io"
 )
+
+type nopCloser struct {
+	io.Reader
+}
+
+func (nopCloser) Close() error { return nil }
 
 // EncodeError response back to the client
 func EncodeError(c context.Context, err error, w http.ResponseWriter) {
@@ -70,11 +77,7 @@ EncodeRequest converts the input request into a json string and adds it to the r
 */
 func EncodeRequest(_ context.Context, r *http.Request, request interface{}) error {
 	req := request.(string)
-	var buf bytes.Buffer
-	if err := json.NewEncoder(&buf).Encode(req); err != nil {
-		return err
-	}
-	r.Body = ioutil.NopCloser(&buf)
+	r.Body = nopCloser{strings.NewReader(req)}
 	return nil
 }
 
