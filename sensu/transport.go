@@ -20,7 +20,7 @@ func MakeHandler(service Service, logger kitlog.Logger) http.Handler {
 
 	r := mux.NewRouter()
 
-	r.Handle("/sensu", sensuAlert).Methods("POST")
+	r.Handle("/sensu/", sensuAlert).Methods("POST")
 
 	return r
 

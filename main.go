@@ -265,11 +265,11 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.Handle("/alert/", alert.MakeHandler(alertService, httpLogger))
-	mux.Handle("/chefAudit", analytics.MakeHandler(analyticsService, httpLogger))
+	mux.Handle("/chefAudit/", analytics.MakeHandler(analyticsService, httpLogger))
 	mux.Handle("/appdynamics/", appdynamics.MakeHandler(appdynamicsService, httpLogger))
 	mux.Handle("/delivery", chef.MakeHandler(chefService, httpLogger))
 	mux.Handle("/skynet/", skynet.MakeHandler(skynetService, httpLogger))
-	mux.Handle("/sensu", sensu.MakeHandler(sensuService, httpLogger))
+	mux.Handle("/sensu/", sensu.MakeHandler(sensuService, httpLogger))
 
 	http.Handle("/", panicHandler{accessControl(mux), jiraService, alertService})
 	http.Handle("/metrics", promhttp.Handler())
