@@ -69,8 +69,9 @@ func EncodeResponse(ctx context.Context, w http.ResponseWriter, response interfa
 EncodeRequest converts the input request into a json string and adds it to the request body
 */
 func EncodeRequest(_ context.Context, r *http.Request, request interface{}) error {
+	req := request.(string)
 	var buf bytes.Buffer
-	if err := json.NewEncoder(&buf).Encode(request); err != nil {
+	if err := json.NewEncoder(&buf).Encode(req); err != nil {
 		return err
 	}
 	r.Body = ioutil.NopCloser(&buf)

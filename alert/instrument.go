@@ -16,7 +16,7 @@ func NewInstrumentService(counter metrics.Counter, errorCount metrics.Counter, l
 	return &instrumentingService{
 		requestCount:   counter,
 		requestLatency: latency,
-		errorCount: errorCount,
+		errorCount:     errorCount,
 		Service:        s,
 	}
 }
