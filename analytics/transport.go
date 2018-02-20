@@ -15,7 +15,7 @@ func MakeHandler(service Service, logger kitlog.Logger) http.Handler {
 
 	r := mux.NewRouter()
 
-	r.Handle("/chefAudit/", analyticsHandler).Methods("POST")
+	r.Handle("/chefAudit", analyticsHandler).Methods("POST")
 
 	return r
 
