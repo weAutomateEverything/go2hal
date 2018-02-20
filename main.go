@@ -66,6 +66,12 @@ func main() {
 		Name:      "request_count",
 		Help:      "Number of requests received.",
 	}, fieldKeys),
+		kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
+			Namespace: "api",
+			Subsystem: "telgram_service",
+			Name:      "error_count",
+			Help:      "Number of errors encountered.",
+		}, fieldKeys),
 		kitprometheus.NewSummaryFrom(stdprometheus.SummaryOpts{
 			Namespace: "api",
 			Subsystem: "telegram_service",

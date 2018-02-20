@@ -7,14 +7,16 @@ import (
 
 type instrumentingService struct {
 	requestCount   metrics.Counter
+	errorCount     metrics.Counter
 	requestLatency metrics.Histogram
 	Service
 }
 
-func NewInstrumentService(counter metrics.Counter, latency metrics.Histogram, s Service) Service {
+func NewInstrumentService(counter metrics.Counter, errorCount metrics.Counter, latency metrics.Histogram, s Service) Service {
 	return &instrumentingService{
 		requestCount:   counter,
 		requestLatency: latency,
+		errorCount:     errorCount,
 		Service:        s,
 	}
 }
@@ -23,6 +25,9 @@ func (s *instrumentingService) SendMessage(chatID int64, message string, message
 	defer func(begin time.Time) {
 		s.requestCount.With("method", "SendMessage").Add(1)
 		s.requestLatency.With("method", "SendMessage").Observe(time.Since(begin).Seconds())
+		if err != nil {
+			s.errorCount.With("method", "SendMessage").Add(1)
+		}
 	}(time.Now())
 	return s.Service.SendMessage(chatID, message, messageID)
 }
@@ -30,13 +35,19 @@ func (s *instrumentingService) SendMessagePlainText(chatID int64, message string
 	defer func(begin time.Time) {
 		s.requestCount.With("method", "SendMessagePlainText").Add(1)
 		s.requestLatency.With("method", "SendMessagePlainText").Observe(time.Since(begin).Seconds())
+		if err != nil {
+			s.errorCount.With("method", "SendMessagePlainText").Add(1)
+		}
 	}(time.Now())
 	return s.Service.SendMessagePlainText(chatID, message, messageID)
 }
-func (s *instrumentingService) SendImageToGroup(image []byte, group int64) error {
+func (s *instrumentingService) SendImageToGroup(image []byte, group int64) (err error) {
 	defer func(begin time.Time) {
 		s.requestCount.With("method", "SendImageToGroup").Add(1)
 		s.requestLatency.With("method", "SendImageToGroup").Observe(time.Since(begin).Seconds())
+		if err != nil {
+			s.errorCount.With("method", "SendImageToGroup").Add(1)
+		}
 	}(time.Now())
 	return s.Service.SendImageToGroup(image, group)
 }
