@@ -66,6 +66,12 @@ func main() {
 		Name:      "request_count",
 		Help:      "Number of requests received.",
 	}, fieldKeys),
+		kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
+			Namespace: "api",
+			Subsystem: "telgram_service",
+			Name:      "error_count",
+			Help:      "Number of errors encountered.",
+		}, fieldKeys),
 		kitprometheus.NewSummaryFrom(stdprometheus.SummaryOpts{
 			Namespace: "api",
 			Subsystem: "telegram_service",
@@ -265,11 +271,11 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.Handle("/alert/", alert.MakeHandler(alertService, httpLogger))
-	mux.Handle("/chefAudit/", analytics.MakeHandler(analyticsService, httpLogger))
+	mux.Handle("/chefAudit", analytics.MakeHandler(analyticsService, httpLogger))
 	mux.Handle("/appdynamics/", appdynamics.MakeHandler(appdynamicsService, httpLogger))
 	mux.Handle("/delivery", chef.MakeHandler(chefService, httpLogger))
 	mux.Handle("/skynet/", skynet.MakeHandler(skynetService, httpLogger))
-	mux.Handle("/sensu/", sensu.MakeHandler(sensuService, httpLogger))
+	mux.Handle("/sensu", sensu.MakeHandler(sensuService, httpLogger))
 
 	http.Handle("/", panicHandler{accessControl(mux), jiraService, alertService})
 	http.Handle("/metrics", promhttp.Handler())
