@@ -1,0 +1,18 @@
+syntax = "proto3";
+package telegram;
+
+
+
+service RemoteCommand {
+ rpc RegisterCommand(RemoteCommandRequest) returns (stream RemoteRequest) {}
+}
+
+message RemoteCommandRequest {
+    string name = 1;
+    string description = 2;
+}
+
+message RemoteRequest {
+    string from = 1;
+    string message = 2;
+}

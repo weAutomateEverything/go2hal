@@ -39,7 +39,7 @@ type service struct {
 type commandCtor func() Command
 type commandletCtor func() Commandlet
 
-var commandList = []commandCtor{}
+var commandList = map[string]commandCtor{}
 var commandletList = []commandletCtor{}
 var telegramBot *tgbotapi.BotAPI
 
@@ -218,7 +218,8 @@ func findCommand(command string) (a Command) {
 }
 
 func register(newfunc commandCtor) {
-	commandList = append(commandList, newfunc)
+	id := newfunc().CommandIdentifier()
+	commandList[id] = newfunc
 }
 
 func registerCommandlet(newFunc commandletCtor) {
@@ -255,8 +256,10 @@ func (s *help) Execute(update tgbotapi.Update) {
 
 func getCommands() []commandDescription {
 	result := make([]commandDescription, len(commandList))
-	for i, x := range commandList {
-		result[i] = commandDescription{x().CommandIdentifier(), x().CommandDescription()}
+	count := 0
+	for _, x := range commandList {
+		result[count] = commandDescription{x().CommandIdentifier(), x().CommandDescription()}
+		count++
 	}
 	return result
 }

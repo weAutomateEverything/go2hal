@@ -2,7 +2,9 @@ package halSelenium
 
 import (
 	"fmt"
+	kitprometheus "github.com/go-kit/kit/metrics/prometheus"
 	"github.com/pkg/errors"
+	stdprometheus "github.com/prometheus/client_golang/prometheus"
 	"github.com/tebeka/selenium"
 	"github.com/zamedic/go2hal/alert"
 	selenium2 "github.com/zamedic/go2hal/seleniumTests"
@@ -25,13 +27,33 @@ type chromeService struct {
 	driver selenium.WebDriver
 }
 
-func NewChromeService(service alert.Service, server string) Service {
+func NewChromeService(service alert.Service) Service {
+	fieldKeys := []string{"method"}
+	s := newChromeService(service)
+	s = NewInstrumentService(kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
+		Namespace: "api",
+		Subsystem: "halSelenium",
+		Name:      "request_count",
+		Help:      "Number of requests received.",
+	}, fieldKeys),
+		kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
+			Namespace: "api",
+			Subsystem: "halSelenium",
+			Name:      "error_count",
+			Help:      "Number of errors encountered.",
+		}, fieldKeys),
+		kitprometheus.NewSummaryFrom(stdprometheus.SummaryOpts{
+			Namespace: "api",
+			Subsystem: "halSelenium",
+			Name:      "request_latency_microseconds",
+			Help:      "Total duration of requests in microseconds.",
+		}, fieldKeys), s)
+	return s
+}
+
+func newChromeService(service alert.Service) Service {
 
 	s := &chromeService{alert: service}
-	err := s.NewClient(server)
-	if err != nil {
-		panic(err)
-	}
 	return s
 }
 

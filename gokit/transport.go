@@ -9,11 +9,18 @@ import (
 	kitlog "github.com/go-kit/kit/log"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/pkg/errors"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"strings"
 )
+
+type nopCloser struct {
+	io.Reader
+}
+
+func (nopCloser) Close() error { return nil }
 
 // EncodeError response back to the client
 func EncodeError(c context.Context, err error, w http.ResponseWriter) {
@@ -42,7 +49,7 @@ func DecodeString(_ context.Context, r *http.Request) (interface{}, error) {
 DecodeResponse will check the response for an error, and if there is, it will set the body to the error message
 */
 func DecodeResponse(_ context.Context, r *http.Response) (interface{}, error) {
-	if r.StatusCode >= 400 {
+	if r.StatusCode != 200 {
 		s, _ := ioutil.ReadAll(r.Body)
 		return nil, errors.New(string(s))
 	}
@@ -69,11 +76,8 @@ func EncodeResponse(ctx context.Context, w http.ResponseWriter, response interfa
 EncodeRequest converts the input request into a json string and adds it to the request body
 */
 func EncodeRequest(_ context.Context, r *http.Request, request interface{}) error {
-	var buf bytes.Buffer
-	if err := json.NewEncoder(&buf).Encode(request); err != nil {
-		return err
-	}
-	r.Body = ioutil.NopCloser(&buf)
+	req := request.(string)
+	r.Body = nopCloser{strings.NewReader(req)}
 	return nil
 }
 
@@ -122,6 +126,13 @@ func logRequest() kithttp.RequestFunc {
 	}
 }
 
+func logResponse() kithttp.ClientResponseFunc {
+	return func(i context.Context, response *http.Response) context.Context {
+		log.Println(formatResponse(response))
+		return i
+	}
+}
+
 // formatRequest generates ascii representation of a request
 func formatRequest(r *http.Request) string {
 	// Create return string
@@ -155,6 +166,25 @@ func formatRequest(r *http.Request) string {
 	return strings.Join(request, "\n")
 }
 
+func formatResponse(r *http.Response) string {
+	// Create return string
+	var request []string
+	// Loop through headers
+	for name, headers := range r.Header {
+		name = strings.ToLower(name)
+		for _, h := range headers {
+			request = append(request, fmt.Sprintf("%v: %v", name, h))
+		}
+	}
+	body, _ := ioutil.ReadAll(r.Body)
+	request = append(request, fmt.Sprintf("Body: %v", string(body)))
+
+	r.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+
+	// Return the request as a string
+	return strings.Join(request, "\n")
+}
+
 /*
 GetServerOpts creates a default server option with an error logger, error encoder and a http request logger.
 */
@@ -163,5 +193,15 @@ func GetServerOpts(logger kitlog.Logger) []kithttp.ServerOption {
 		kithttp.ServerErrorLogger(logger),
 		kithttp.ServerErrorEncoder(EncodeError),
 		kithttp.ServerBefore(logRequest()),
+	}
+}
+
+/*
+GetServerOpts creates a default server option with an error logger, error encoder and a http request logger.
+*/
+func GetClientOpts(logger kitlog.Logger) []kithttp.ClientOption {
+	return []kithttp.ClientOption{
+		kithttp.ClientBefore(logRequest()),
+		kithttp.ClientAfter(logResponse()),
 	}
 }

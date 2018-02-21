@@ -74,14 +74,15 @@ func (s *loggingService) SendImageToHeartbeatGroup(image []byte) (err error) {
 	return s.Service.SendImageToHeartbeatGroup(image)
 
 }
-func (s *loggingService) SendError(err error) {
+func (s *loggingService) SendError(err error) (e error) {
 	defer func(begin time.Time) {
 		s.logger.Log(
 			"method", "send error",
 			"took", time.Since(begin),
-			"err", err,
+			"send_err", err,
+			"response_err", e,
 		)
 	}(time.Now())
-	s.Service.SendError(err)
+	return s.Service.SendError(err)
 
 }
