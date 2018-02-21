@@ -7,7 +7,6 @@ import (
 	"github.com/zamedic/go2hal/alert"
 	"github.com/zamedic/go2hal/database"
 	"github.com/zamedic/go2hal/telegram"
-	"net"
 	"net/http"
 	"os"
 	"os/signal"
