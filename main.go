@@ -48,16 +48,17 @@ func main() {
 
 	c := credentials.NewEnvCredentials()
 
-	config := aws.Config{Credentials: c, Region: aws.String("us-east-1"), LogLevel: aws.LogLevel(aws.LogDebugWithRequestErrors)}
+	config := aws.Config{Credentials: c, Region: aws.String("us-east-1"), LogLevel: aws.LogLevel(aws.LogDebugWithHTTPBody)}
 	sess, _ := session.NewSession(&config)
 
 	outbound := connect.New(sess, &config)
 
 	req := connect.StartOutboundVoiceContactInput{
 		InstanceId:             aws.String("cb23092d-681f-49a4-b8f7-ff5c739b6c7c"),
-		ContactFlowId:          aws.String("2c79a426-8194-4acc-95e8-3e67a0616308"),
+		ContactFlowId:          aws.String("f470c790-8018-4bfe-8d43-c46b45dc1d90"),
+		QueueId: aws.String("0e7f76b7-19bf-4406-8931-9522f08afacf"),
 		DestinationPhoneNumber: aws.String("+27836670778"),
-		SourcePhoneNumber:      aws.String("+12165391077"),
+		Attributes: &map[string]string{},
 	}
 	outbound.StartOutboundVoiceContact(&req)
 
