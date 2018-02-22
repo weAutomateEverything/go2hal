@@ -45,6 +45,18 @@ func (mr *MockServiceMockRecorder) SendMessage(chatID, message, messageID interf
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendMessage", reflect.TypeOf((*MockService)(nil).SendMessage), chatID, message, messageID)
 }
 
+// SendMessagePlainText mocks base method
+func (m *MockService) SendMessagePlainText(chatID int64, message string, messageID int) error {
+	ret := m.ctrl.Call(m, "SendMessagePlainText", chatID, message, messageID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SendMessagePlainText indicates an expected call of SendMessagePlainText
+func (mr *MockServiceMockRecorder) SendMessagePlainText(chatID, message, messageID interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendMessagePlainText", reflect.TypeOf((*MockService)(nil).SendMessagePlainText), chatID, message, messageID)
+}
+
 // SendImageToGroup mocks base method
 func (m *MockService) SendImageToGroup(image []byte, group int64) error {
 	ret := m.ctrl.Call(m, "SendImageToGroup", image, group)

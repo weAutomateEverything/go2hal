@@ -20,6 +20,7 @@ import (
 )
 
 type alertKubernetesProxy struct {
+	url                               string
 	sendAlertEndpoint                 endpoint.Endpoint
 	sendNonTechnicalAlertEndpoint     endpoint.Endpoint
 	sendHeartbeatGroupAlertEndpoint   endpoint.Endpoint
@@ -31,9 +32,25 @@ type alertKubernetesProxy struct {
 }
 
 /*
+NewAlertProxy will return an alert service that is actually a HTTP Proxy into the alert service as defined by the ALERT_ENDPOINT
+environment variable.
+
+If the environment variable ALERT_ENDPOINT is blank, then a panic will be raised.
+*/
+func NewAlertProxy() Service {
+	if getAlertUrl() == "" {
+		panic("No Alert Endpoint set. Please set the environment variable ALERT_ENDPOINT with the http address of the alert service")
+	}
+	logger := log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
+	logger = level.NewFilter(logger, level.AllowAll())
+	logger = log.With(logger, "ts", log.DefaultTimestamp)
+
+	return newKubernetesAlertProxy("", logger)
+}
+
+/*
 NewKubernetesAlertProxy will return an alert service that is actually a HTTP Proxy into the kubertes service
 */
-
 func NewKubernetesAlertProxy(namespace string) Service {
 
 	fieldKeys := []string{"method"}
