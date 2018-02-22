@@ -2,7 +2,7 @@
 // Source: service.go
 
 // Package mock_alert is a generated GoMock package.
-package alert
+package mock_alert
 
 import (
 	gomock "github.com/golang/mock/gomock"
@@ -93,8 +93,10 @@ func (mr *MockServiceMockRecorder) SendImageToHeartbeatGroup(image interface{}) 
 }
 
 // SendError mocks base method
-func (m *MockService) SendError(err error) {
-	m.ctrl.Call(m, "SendError", err)
+func (m *MockService) SendError(err error) error {
+	ret := m.ctrl.Call(m, "SendError", err)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // SendError indicates an expected call of SendError
