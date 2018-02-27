@@ -81,7 +81,11 @@ func (s *service) CreateJira(title, description string, username string) {
 		return
 	}
 
-	key := dat["key"].(string)
+	key, ok := dat["key"].(string)
+
+	if !ok {
+		s.alert.SendError(fmt.Errorf("JIRA Response dat key not a string: %s", response))
+	}
 
 	s.alert.SendAlert(emoji.Sprintf(":ticket: JIRA Ticket Created. ID: %s assigned to %s. Description %s", key, qr.User, description))
 }
