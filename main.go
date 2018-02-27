@@ -245,6 +245,27 @@ func main() {
 			Help:      "Total duration of requests in microseconds.",
 		}, fieldKeys), sensuService)
 
+	userService := user.NewService(userStore)
+	userService = user.NewLoggingService(log.With(logger, "component", "userService"), userService)
+	userService = user.NewInstrumentService(kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
+		Namespace: "api",
+		Subsystem: "user_service",
+		Name:      "request_count",
+		Help:      "Number of requests received.",
+	}, fieldKeys),
+		kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
+			Namespace: "api",
+			Subsystem: "user_service",
+			Name:      "error_count",
+			Help:      "Number of errors encountered.",
+		}, fieldKeys),
+		kitprometheus.NewSummaryFrom(stdprometheus.SummaryOpts{
+			Namespace: "api",
+			Subsystem: "user_service",
+			Name:      "request_latency_microseconds",
+			Help:      "Total duration of requests in microseconds.",
+		}, fieldKeys), userService)
+
 	remoteTelegramCommand := remoteTelegramCommands.NewService(telegramService)
 
 	_ = seleniumTests.NewService(seleniumStore, alertService, calloutService)
@@ -276,6 +297,7 @@ func main() {
 	mux.Handle("/delivery", chef.MakeHandler(chefService, httpLogger))
 	mux.Handle("/skynet/", skynet.MakeHandler(skynetService, httpLogger))
 	mux.Handle("/sensu", sensu.MakeHandler(sensuService, httpLogger))
+	mux.Handle("/users/", user.MakeHandler(userService, httpLogger))
 
 	http.Handle("/", panicHandler{accessControl(mux), jiraService, alertService})
 	http.Handle("/metrics", promhttp.Handler())

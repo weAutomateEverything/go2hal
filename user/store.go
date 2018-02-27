@@ -7,9 +7,9 @@ import (
 
 type Store interface {
 	/*
-		AddUser alows for a new user to be added to the database
+		AddUpdateUser will verify if the employee number already exists in the DB. If it does, its updated, else added
 	*/
-	AddUser(employeeNumber, CalloutName, JiraName string)
+	AddUpdateUser(employeeNumber, CalloutName, JiraName string)
 
 	/*
 		FindUserByCalloutName Return a user whos details matches the callout
@@ -29,15 +29,24 @@ func NewMongoStore(db *mgo.Database) Store {
 User Json object
 */
 type User struct {
-	EmployeeNumber string `json:"employeeNumber"`
-	CallOutName    string `json:"calloutName"`
-	JIRAName       string `json:"jiraName"`
+	ID             bson.ObjectId `bson:"_id,omitempty"`
+	EmployeeNumber string        `json:"employeeNumber"`
+	CallOutName    string        `json:"calloutName"`
+	JIRAName       string        `json:"jiraName"`
 }
 
-func (s *mongoStore) AddUser(employeeNumber, CalloutName, JiraName string) {
+func (s *mongoStore) AddUpdateUser(employeeNumber, CalloutName, JiraName string) {
 	c := s.mongo.C("Users")
-	u := User{CallOutName: CalloutName, EmployeeNumber: employeeNumber, JIRAName: JiraName}
-	c.Insert(u)
+	var r User
+	err := c.Find(bson.M{"employeeNumber": employeeNumber}).One(&r)
+	if err == nil {
+		r.CallOutName = CalloutName
+		r.JIRAName = JiraName
+		c.Update(r.ID, r)
+	} else {
+		u := User{CallOutName: CalloutName, EmployeeNumber: employeeNumber, JIRAName: JiraName}
+		c.Insert(u)
+	}
 }
 
 func (s *mongoStore) FindUserByCalloutName(name string) User {
