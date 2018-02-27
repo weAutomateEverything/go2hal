@@ -2,7 +2,7 @@
 // Source: service.go
 
 // Package mock_alert is a generated GoMock package.
-package mock_alert
+package alert
 
 import (
 	gomock "github.com/golang/mock/gomock"
