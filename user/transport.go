@@ -8,6 +8,9 @@ import (
 	"net/http"
 )
 
+/*
+MakeHandler returns a HTTP Restul endpoint to handle user requests
+*/
 func MakeHandler(service Service, logger kitlog.Logger) http.Handler {
 	opts := gokit.GetServerOpts(logger)
 

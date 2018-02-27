@@ -12,6 +12,9 @@ type instrumentingService struct {
 	Service
 }
 
+/*
+NewInstrumentService creates a prometheus service that will log request count, error count and latency
+*/
 func NewInstrumentService(counter metrics.Counter, errorCount metrics.Counter, latency metrics.Histogram, s Service) Service {
 	return &instrumentingService{
 		requestCount:   counter,

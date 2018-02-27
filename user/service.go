@@ -5,6 +5,9 @@ import (
 	"strings"
 )
 
+/*
+Service interface to mamage users on HAL
+*/
 type Service interface {
 	parseInputRequest(in string) error
 }
@@ -13,6 +16,9 @@ type service struct {
 	store Store
 }
 
+/*
+NewService returns a new User Service
+*/
 func NewService(store Store) Service {
 	return &service{store: store}
 }
@@ -24,9 +30,9 @@ func (s *service) parseInputRequest(in string) error {
 		tokens := strings.Split(line, ";")
 		employeeNumber := tokens[0]
 		name := tokens[1]
-		jiraId := tokens[2]
+		jiraID := tokens[2]
 
-		s.store.AddUpdateUser(employeeNumber, name, jiraId)
+		s.store.AddUpdateUser(employeeNumber, name, jiraID)
 	}
 	return nil
 }

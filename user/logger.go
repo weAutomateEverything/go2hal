@@ -10,6 +10,9 @@ type loggingService struct {
 	Service
 }
 
+/*
+NewLoggingService creates a loggng service to log the request and response from the service
+*/
 func NewLoggingService(logger log.Logger, s Service) Service {
 	return &loggingService{logger, s}
 }
