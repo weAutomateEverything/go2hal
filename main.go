@@ -14,7 +14,6 @@ import (
 	"github.com/zamedic/go2hal/callout"
 	"github.com/zamedic/go2hal/chef"
 	"github.com/zamedic/go2hal/database"
-	http2 "github.com/zamedic/go2hal/http"
 	"github.com/zamedic/go2hal/jira"
 	"github.com/zamedic/go2hal/remoteTelegramCommands"
 	"github.com/zamedic/go2hal/seleniumTests"
@@ -26,6 +25,7 @@ import (
 	"github.com/zamedic/go2hal/user"
 	"google.golang.org/grpc/reflection"
 
+	"github.com/zamedic/go2hal/httpSmoke"
 	"google.golang.org/grpc"
 	"net"
 	"net/http"
@@ -52,7 +52,7 @@ func main() {
 	sshStore := ssh2.NewMongoStore(db)
 	userStore := user.NewMongoStore(db)
 	seleniumStore := seleniumTests.NewMongoStore(db)
-	httpStore := http2.NewMongoStore(db)
+	httpStore := httpSmoke.NewMongoStore(db)
 
 	fieldKeys := []string{"method"}
 
@@ -269,7 +269,7 @@ func main() {
 	remoteTelegramCommand := remoteTelegramCommands.NewService(telegramService)
 
 	_ = seleniumTests.NewService(seleniumStore, alertService, calloutService)
-	httpService := http2.NewService(alertService, httpStore, calloutService)
+	httpService := httpSmoke.NewService(alertService, httpStore, calloutService)
 
 	//Telegram Commands
 	telegramService.RegisterCommand(alert.NewSetGroupCommand(telegramService, alertStore))
@@ -280,7 +280,7 @@ func main() {
 	telegramService.RegisterCommand(skynet.NewRebuildCHefNodeCommand(telegramStore, chefStore, telegramService,
 		alertService))
 	telegramService.RegisterCommand(skynet.NewRebuildNodeCommand(alertService, skynetService))
-	telegramService.RegisterCommand(http2.NewQuietHttpAlertCommand(telegramService, httpService))
+	telegramService.RegisterCommand(httpSmoke.NewQuietHttpAlertCommand(telegramService, httpService))
 
 	telegramService.RegisterCommandLet(skynet.NewRebuildChefNodeEnvironmentReplyCommandlet(telegramService,
 		skynetService, chefService))

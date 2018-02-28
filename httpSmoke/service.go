@@ -1,4 +1,4 @@
-package http
+package httpSmoke
 
 import (
 	"bytes"
@@ -93,7 +93,6 @@ func (s *service) checkAlert(endpoint httpEndpoint, msg string) {
 	if err := s.store.failedEndpointTest(&endpoint, msg); err != nil {
 		s.alert.SendError(err)
 	}
-	s.alert.SendError(errors.New(msg))
 	if endpoint.Threshold > 0 {
 		if endpoint.Threshold == endpoint.ErrorCount {
 			s.callout.InvokeCallout(fmt.Sprintf("Some Test failures for %s", endpoint.Name), msg)
