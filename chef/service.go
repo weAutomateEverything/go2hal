@@ -60,7 +60,7 @@ func (s *service) sendDeliveryAlert(message string) {
 	if len(bodies) > 1 {
 		buildDeliveryEnent(&buffer, bodies[1])
 	} else {
-		buffer.WriteString(emoji.Sprintf(":question: New Code Review \n"))
+		buffer.WriteString(emoji.Sprintf(":rage1: New Code Review \n"))
 	}
 
 	util.Getfield(attachments, &buffer)
