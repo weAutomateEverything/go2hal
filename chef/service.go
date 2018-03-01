@@ -8,7 +8,6 @@ import (
 	"github.com/zamedic/go2hal/alert"
 	"github.com/zamedic/go2hal/util"
 	"gopkg.in/kyokomi/emoji.v1"
-	"log"
 	"strings"
 	"time"
 )
@@ -58,11 +57,31 @@ func (s *service) sendDeliveryAlert(message string) {
 	buffer.WriteString(" ")
 	buffer.WriteString("*chef Delivery*\n")
 
-	if strings.Contains(bodies[1], "failed") {
+	if len(bodies) > 1 {
+		buildDeliveryEnent(&buffer, bodies[1])
+	} else {
+		buffer.WriteString(emoji.Sprintf(":rage1: New Code Review \n"))
+	}
+
+	util.Getfield(attachments, &buffer)
+
+	buffer.WriteString("[")
+	buffer.WriteString(parts[1])
+
+	buffer.WriteString("](")
+	buffer.WriteString(parts[0])
+	buffer.WriteString(")")
+
+	s.alert.SendAlert(buffer.String())
+
+}
+
+func buildDeliveryEnent(buffer *bytes.Buffer, body string) {
+	if strings.Contains(body, "failed") {
 		buffer.WriteString(emoji.Sprint(":interrobang:"))
 
 	} else {
-		switch bodies[1] {
+		switch body {
 		case "Delivered stage has completed for this change.":
 			buffer.WriteString(emoji.Sprint(":+1:"))
 
@@ -81,22 +100,8 @@ func (s *service) sendDeliveryAlert(message string) {
 	}
 	buffer.WriteString(" ")
 
-	buffer.WriteString(bodies[1])
+	buffer.WriteString(body)
 	buffer.WriteString("\n")
-
-	util.Getfield(attachments, &buffer)
-
-	buffer.WriteString("[")
-	buffer.WriteString(parts[1])
-
-	buffer.WriteString("](")
-	buffer.WriteString(parts[0])
-	buffer.WriteString(")")
-
-	log.Printf("Sending Alert: %s", buffer.String())
-
-	s.alert.SendAlert(buffer.String())
-
 }
 
 func (s *service) monitorQuarentined() {
