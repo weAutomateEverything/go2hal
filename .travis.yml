@@ -19,7 +19,7 @@ before_script:
 
 
 script:
- - bin/test.sh
+ - go test -coverprofile=c.out ./...
  - go build
 
 after_success:
