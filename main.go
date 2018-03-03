@@ -33,6 +33,7 @@ import (
 	"os/signal"
 	"runtime/debug"
 	"syscall"
+	"github.com/zamedic/go2hal/machineLearning"
 )
 
 func main() {
@@ -53,10 +54,13 @@ func main() {
 	userStore := user.NewMongoStore(db)
 	seleniumStore := seleniumTests.NewMongoStore(db)
 	httpStore := httpSmoke.NewMongoStore(db)
+	machingLearningStore := machineLearning.NewMongoStore(db)
 
 	fieldKeys := []string{"method"}
 
 	//Services
+
+	machineLearning.NewServce(machingLearningStore)
 
 	telegramService := telegram.NewService(telegramStore)
 	telegramService = telegram.NewLoggingService(log.With(logger, "component", "telegram"), telegramService)

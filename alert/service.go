@@ -4,18 +4,19 @@ import (
 	"github.com/zamedic/go2hal/telegram"
 	"gopkg.in/kyokomi/emoji.v1"
 	"log"
+	"golang.org/x/net/context"
 )
 
 /*
 Service interface
 */
 type Service interface {
-	SendAlert(message string) error
-	SendNonTechnicalAlert(message string) error
-	SendHeartbeatGroupAlert(message string) error
-	SendImageToAlertGroup(image []byte) error
-	SendImageToHeartbeatGroup(image []byte) error
-	SendError(err error) error
+	SendAlert(ctx context.Context, message string) error
+	SendNonTechnicalAlert(ctx context.Context,message string) error
+	SendHeartbeatGroupAlert(ctx context.Context,message string) error
+	SendImageToAlertGroup(ctx context.Context,image []byte) error
+	SendImageToHeartbeatGroup(ctx context.Context,image []byte) error
+	SendError(ctx context.Context,err error) error
 }
 
 type service struct {
@@ -36,7 +37,7 @@ func NewService(t telegram.Service, store Store) Service {
 
 //IMPL
 
-func (s *service) SendAlert(message string) error {
+func (s *service) SendAlert(ctx context.Context,message string) error {
 	alertGroup, err := s.store.alertGroup()
 	if err != nil {
 		return err
@@ -45,25 +46,25 @@ func (s *service) SendAlert(message string) error {
 	return err
 }
 
-func (s *service) SendNonTechnicalAlert(message string) error {
+func (s *service) SendNonTechnicalAlert(ctx context.Context,message string) error {
 	return nil
 }
 
-func (s *service) SendImageToAlertGroup(image []byte) error {
+func (s *service) SendImageToAlertGroup(ctx context.Context,image []byte) error {
 
 	alertGroup, err := s.store.alertGroup()
 	if err != nil {
-		s.SendError(err)
+		s.SendError(ctx,err)
 		return err
 	}
 
 	return s.telegram.SendImageToGroup(image, alertGroup)
 }
 
-func (s *service) SendImageToHeartbeatGroup(image []byte) error {
+func (s *service) SendImageToHeartbeatGroup(ctx context.Context,image []byte) error {
 	group, err := s.store.heartbeatGroup()
 	if err != nil {
-		s.SendError(err)
+		s.SendError(ctx,err)
 		return err
 	}
 
@@ -71,17 +72,17 @@ func (s *service) SendImageToHeartbeatGroup(image []byte) error {
 
 }
 
-func (s *service) SendHeartbeatGroupAlert(message string) error {
+func (s *service) SendHeartbeatGroupAlert(ctx context.Context,message string) error {
 	group, err := s.store.heartbeatGroup()
 	if err != nil {
-		s.SendError(err)
+		s.SendError(ctx,err)
 		return err
 	}
 
 	return s.telegram.SendMessage(group, message, 0)
 }
 
-func (s *service) SendError(err error) error {
+func (s *service) SendError(ctx context.Context,err error) error {
 	log.Println(err.Error())
 	group, e := s.store.heartbeatGroup()
 	if e != nil {
