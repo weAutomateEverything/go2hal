@@ -1,6 +1,7 @@
 package chef
 
 import (
+	"context"
 	"github.com/go-kit/kit/metrics"
 	"time"
 )
@@ -19,12 +20,12 @@ func NewInstrumentService(counter metrics.Counter, latency metrics.Histogram, s 
 	}
 }
 
-func (s *instrumentingService) sendDeliveryAlert(message string) {
+func (s *instrumentingService) sendDeliveryAlert(ctx context.Context, message string) {
 	defer func(begin time.Time) {
 		s.requestCount.With("method", "sendDeliveryAlert").Add(1)
 		s.requestLatency.With("method", "sendDeliveryAlert").Observe(time.Since(begin).Seconds())
 	}(time.Now())
-	s.Service.sendDeliveryAlert(message)
+	s.Service.sendDeliveryAlert(ctx, message)
 }
 func (s *instrumentingService) FindNodesFromFriendlyNames(recipe, environment string) []Node {
 	defer func(begin time.Time) {

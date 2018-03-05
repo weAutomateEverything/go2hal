@@ -2,6 +2,7 @@ package ssh
 
 import (
 	"github.com/go-kit/kit/metrics"
+	"golang.org/x/net/context"
 	"time"
 )
 
@@ -19,10 +20,10 @@ func NewInstrumentService(counter metrics.Counter, latency metrics.Histogram, s 
 	}
 }
 
-func (s *instrumentingService) parseInputRequest(commandName, address string) error {
+func (s *instrumentingService) parseInputRequest(ctx context.Context, commandName, address string) error {
 	defer func(begin time.Time) {
 		s.requestCount.With("method", "parseInputRequest").Add(1)
 		s.requestLatency.With("method", "parseInputRequest").Observe(time.Since(begin).Seconds())
 	}(time.Now())
-	return s.Service.ExecuteRemoteCommand(commandName, address)
+	return s.Service.ExecuteRemoteCommand(ctx, commandName, address)
 }

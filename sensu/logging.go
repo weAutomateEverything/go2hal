@@ -2,6 +2,7 @@ package sensu
 
 import (
 	"github.com/go-kit/kit/log"
+	"golang.org/x/net/context"
 	"time"
 )
 
@@ -14,7 +15,7 @@ func NewLoggingService(logger log.Logger, s Service) Service {
 	return &loggingService{logger, s}
 }
 
-func (s loggingService) handleSensu(sensu SensuMessageRequest) {
+func (s loggingService) handleSensu(ctx context.Context, sensu SensuMessageRequest) {
 	defer func(begin time.Time) {
 		s.logger.Log(
 			"method", "handleSensu",
@@ -22,5 +23,5 @@ func (s loggingService) handleSensu(sensu SensuMessageRequest) {
 			"took", time.Since(begin),
 		)
 	}(time.Now())
-	s.Service.handleSensu(sensu)
+	s.Service.handleSensu(ctx, sensu)
 }

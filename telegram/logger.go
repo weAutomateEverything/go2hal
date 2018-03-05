@@ -1,6 +1,7 @@
 package telegram
 
 import (
+	"context"
 	"github.com/go-kit/kit/log"
 	"time"
 )
@@ -14,7 +15,7 @@ func NewLoggingService(logger log.Logger, s Service) Service {
 	return &loggingService{logger, s}
 }
 
-func (s *loggingService) SendMessage(chatID int64, message string, messageID int) (err error) {
+func (s *loggingService) SendMessage(ctx context.Context, chatID int64, message string, messageID int) (err error) {
 	defer func(begin time.Time) {
 		s.logger.Log(
 			"method", "SendMessage",
@@ -25,9 +26,9 @@ func (s *loggingService) SendMessage(chatID int64, message string, messageID int
 			"took", time.Since(begin),
 		)
 	}(time.Now())
-	return s.Service.SendMessage(chatID, message, messageID)
+	return s.Service.SendMessage(ctx, chatID, message, messageID)
 }
-func (s *loggingService) SendMessagePlainText(chatID int64, message string, messageID int) (err error) {
+func (s *loggingService) SendMessagePlainText(ctx context.Context, chatID int64, message string, messageID int) (err error) {
 	defer func(begin time.Time) {
 		s.logger.Log(
 			"method", "SendMessagePlainText",
@@ -38,9 +39,9 @@ func (s *loggingService) SendMessagePlainText(chatID int64, message string, mess
 			"took", time.Since(begin),
 		)
 	}(time.Now())
-	return s.Service.SendMessagePlainText(chatID, message, messageID)
+	return s.Service.SendMessagePlainText(ctx, chatID, message, messageID)
 }
-func (s *loggingService) SendImageToGroup(image []byte, group int64) (err error) {
+func (s *loggingService) SendImageToGroup(ctx context.Context, image []byte, group int64) (err error) {
 	defer func(begin time.Time) {
 		s.logger.Log(
 			"method", "SendImageToGroup",
@@ -50,9 +51,9 @@ func (s *loggingService) SendImageToGroup(image []byte, group int64) (err error)
 			"took", time.Since(begin),
 		)
 	}(time.Now())
-	return s.Service.SendImageToGroup(image, group)
+	return s.Service.SendImageToGroup(ctx, image, group)
 }
-func (s *loggingService) SendKeyboard(buttons []string, text string, chat int64) {
+func (s *loggingService) SendKeyboard(ctx context.Context, buttons []string, text string, chat int64) {
 	defer func(begin time.Time) {
 		s.logger.Log(
 			"method", "SendKeyboard",
@@ -62,7 +63,7 @@ func (s *loggingService) SendKeyboard(buttons []string, text string, chat int64)
 			"took", time.Since(begin),
 		)
 	}(time.Now())
-	s.Service.SendKeyboard(buttons, text, chat)
+	s.Service.SendKeyboard(ctx, buttons, text, chat)
 }
 func (s *loggingService) RegisterCommand(command Command) {
 	defer func(begin time.Time) {

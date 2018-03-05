@@ -6,6 +6,7 @@ import (
 	"github.com/tebeka/selenium"
 	"github.com/zamedic/go2hal/alert"
 	"github.com/zamedic/go2hal/callout"
+	"golang.org/x/net/context"
 	"gopkg.in/kyokomi/emoji.v1"
 	"runtime/debug"
 	"time"
@@ -52,42 +53,42 @@ func (s *service) runTests() {
 	defer func() {
 		if err := recover(); err != nil {
 			fmt.Print(err)
-			s.alert.SendError(errors.New(fmt.Sprint(err)))
-			s.alert.SendError(errors.New(string(debug.Stack())))
+			s.alert.SendError(context.TODO(), errors.New(fmt.Sprint(err)))
+			s.alert.SendError(context.TODO(), errors.New(string(debug.Stack())))
 		}
 	}()
 
 	for true {
 		tests, err := s.store.GetAllSeleniumTests()
 		if err != nil {
-			s.alert.SendError(err)
+			s.alert.SendError(context.TODO(), err)
 		} else {
 			for _, test := range tests {
 				image, err := s.doSelenium(test)
 				if err != nil {
 					if error := s.store.SetSeleniumFailing(&test, err); error != nil {
-						s.alert.SendError(fmt.Errorf("error setting seleniumTests test to failed. %s", error.Error()))
+						s.alert.SendError(context.TODO(), fmt.Errorf("error setting seleniumTests test to failed. %s", error.Error()))
 						continue
 					}
 					if test.Threshold > 0 {
 						if test.Threshold == test.ErrorCount {
-							s.calloutService.InvokeCallout(fmt.Sprintf("halSelenium Error with  test %s", test.Name), err.Error())
+							s.calloutService.InvokeCallout(context.TODO(), fmt.Sprintf("halSelenium Error with  test %s", test.Name), err.Error())
 						}
 
 						if test.ErrorCount >= test.Threshold {
-							s.alert.SendAlert(emoji.Sprintf(":computer: :x: Error executing seleniumTests test for %s. error: %s", test.Name, err.Error()))
+							s.alert.SendAlert(context.TODO(), emoji.Sprintf(":computer: :x: Error executing seleniumTests test for %s. error: %s", test.Name, err.Error()))
 							if image != nil {
-								s.alert.SendImageToAlertGroup(image)
+								s.alert.SendImageToAlertGroup(context.TODO(), image)
 							}
 						}
 					}
 				} else {
 					if err := s.store.SetSeleniumPassing(&test); err != nil {
-						s.alert.SendError(fmt.Errorf("error setting seleniumTests test to passed. %s", err.Error()))
+						s.alert.SendError(context.TODO(), fmt.Errorf("error setting seleniumTests test to passed. %s", err.Error()))
 						continue
 					}
 					if !test.Passing && test.ErrorCount >= test.Threshold {
-						s.alert.SendAlert(emoji.Sprintf(":computer: :white_check_mark: halSelenium Test %s back to normal", test.Name))
+						s.alert.SendAlert(context.TODO(), emoji.Sprintf(":computer: :white_check_mark: halSelenium Test %s back to normal", test.Name))
 					}
 				}
 			}
@@ -213,7 +214,7 @@ func doCheck(check *Check, driver selenium.WebDriver) error {
 func (s service) handleSeleniumError(name, page, action string, err error, driver selenium.WebDriver) ([]byte, error) {
 	bytes, error := driver.Screenshot()
 	if error != nil {
-		s.alert.SendError(error)
+		s.alert.SendError(context.TODO(), error)
 		return nil, err
 	}
 	return bytes, fmt.Errorf("application: %s,page: %s, action %s, Error: %s", name, page, action, err.Error())

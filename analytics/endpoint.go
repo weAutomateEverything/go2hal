@@ -8,7 +8,7 @@ import (
 func makeAnalyticsEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(string)
-		s.SendAnalyticsAlert(req)
+		s.SendAnalyticsAlert(ctx, req)
 		return nil, nil
 	}
 }

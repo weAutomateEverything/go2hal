@@ -12,7 +12,7 @@ type AddChefClientRequest struct {
 func makeChefDeliveryAlertEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(string)
-		s.sendDeliveryAlert(req)
+		s.sendDeliveryAlert(ctx, req)
 		return nil, nil
 	}
 }

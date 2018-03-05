@@ -1,6 +1,7 @@
 package appdynamics
 
 import (
+	"context"
 	"github.com/go-kit/kit/log"
 	"time"
 )
@@ -14,7 +15,7 @@ func NewLoggingService(logger log.Logger, s Service) Service {
 	return &loggingService{logger, s}
 }
 
-func (s *loggingService) sendAppdynamicsAlert(message string) {
+func (s *loggingService) sendAppdynamicsAlert(ctx context.Context, message string) {
 	defer func(begin time.Time) {
 		s.logger.Log(
 			"method", "send appdynamics alert",
@@ -22,7 +23,7 @@ func (s *loggingService) sendAppdynamicsAlert(message string) {
 			"took", time.Since(begin),
 		)
 	}(time.Now())
-	s.Service.sendAppdynamicsAlert(message)
+	s.Service.sendAppdynamicsAlert(ctx, message)
 }
 func (s *loggingService) addAppdynamicsEndpoint(endpoint string) (err error) {
 	defer func(begin time.Time) {
@@ -48,7 +49,7 @@ func (s *loggingService) addAppDynamicsQueue(name, application, metricPath strin
 	}(time.Now())
 	return s.Service.addAppDynamicsQueue(name, application, metricPath)
 }
-func (s *loggingService) executeCommandFromAppd(commandName, applicationID, nodeId string) (err error) {
+func (s *loggingService) executeCommandFromAppd(ctx context.Context, commandName, applicationID, nodeId string) (err error) {
 	defer func(begin time.Time) {
 		s.logger.Log(
 			"method", "execute app dynamics command",
@@ -59,5 +60,5 @@ func (s *loggingService) executeCommandFromAppd(commandName, applicationID, node
 			"took", time.Since(begin),
 		)
 	}(time.Now())
-	return s.Service.executeCommandFromAppd(commandName, applicationID, nodeId)
+	return s.Service.executeCommandFromAppd(ctx, commandName, applicationID, nodeId)
 }

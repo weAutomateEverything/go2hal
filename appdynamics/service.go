@@ -2,6 +2,7 @@ package appdynamics
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -16,10 +17,10 @@ import (
 )
 
 type Service interface {
-	sendAppdynamicsAlert(message string)
+	sendAppdynamicsAlert(ctx context.Context, message string)
 	addAppdynamicsEndpoint(endpoint string) error
 	addAppDynamicsQueue(name, application, metricPath string) error
-	executeCommandFromAppd(commandName, applicationID, nodeId string) error
+	executeCommandFromAppd(ctx context.Context, commandName, applicationID, nodeId string) error
 }
 
 type service struct {
@@ -35,11 +36,11 @@ func NewService(alertService alert.Service, sshservice ssh.Service, store Store)
 	return &service{alert: alertService, ssh: sshservice, store: store}
 }
 
-func (s *service) sendAppdynamicsAlert(message string) {
+func (s *service) sendAppdynamicsAlert(ctx context.Context, message string) {
 
 	var dat map[string]interface{}
 	if err := json.Unmarshal([]byte(message), &dat); err != nil {
-		s.alert.SendError(fmt.Errorf("error unmarshalling App Dynamics Message: %s", message))
+		s.alert.SendError(ctx, fmt.Errorf("error unmarshalling App Dynamics Message: %s", message))
 		return
 	}
 
@@ -54,7 +55,7 @@ func (s *service) sendAppdynamicsAlert(message string) {
 		NonTechBuffer.WriteString(businessMessage)
 
 		log.Printf("Sending Non-Technical Alert %s", NonTechBuffer.String())
-		s.alert.SendNonTechnicalAlert(NonTechBuffer.String())
+		s.alert.SendNonTechnicalAlert(ctx, NonTechBuffer.String())
 	}
 
 	events := dat["events"].([]interface{})
@@ -102,7 +103,7 @@ func (s *service) sendAppdynamicsAlert(message string) {
 		}
 
 		log.Printf("Sending Alert %s", buffer.String())
-		s.alert.SendAlert(buffer.String())
+		s.alert.SendAlert(ctx, buffer.String())
 	}
 }
 
@@ -120,13 +121,13 @@ func (s *service) addAppDynamicsQueue(name, application, metricPath string) erro
 	return nil
 }
 
-func (s *service) executeCommandFromAppd(commandName, applicationID, nodeId string) error {
+func (s *service) executeCommandFromAppd(ctx context.Context, commandName, applicationID, nodeId string) error {
 	ipaddress, err := s.getIPAddressForNode(applicationID, nodeId)
 	if err != nil {
-		s.alert.SendError(err)
+		s.alert.SendError(ctx, err)
 		return err
 	}
-	return s.ssh.ExecuteRemoteCommand(commandName, ipaddress)
+	return s.ssh.ExecuteRemoteCommand(ctx, commandName, ipaddress)
 }
 
 func monitorAppdynamicsQueue(s Store, a alert.Service) {
@@ -148,19 +149,19 @@ func checkQueues(endpoint MqEndpoint, a alert.Service, s Store) error {
 	response, err := doGet(buildQueryString(endpoint), s, a)
 	if err != nil {
 		log.Printf("Unable to query appdynamics: %s", err.Error())
-		a.SendError(fmt.Errorf("we are unable to query app dynamics"))
-		a.SendError(fmt.Errorf(" Queue depths Error: %s", err.Error()))
+		a.SendError(context.TODO(), fmt.Errorf("we are unable to query app dynamics"))
+		a.SendError(context.TODO(), fmt.Errorf(" Queue depths Error: %s", err.Error()))
 		return err
 	}
 
 	if err != nil {
-		a.SendError(fmt.Errorf("queue - error parsing body %s", err))
+		a.SendError(context.TODO(), fmt.Errorf("queue - error parsing body %s", err))
 		return err
 	}
 
 	var dat []interface{}
 	if err := json.Unmarshal([]byte(response), &dat); err != nil {
-		a.SendError(fmt.Errorf("error unmarshalling: %s", err))
+		a.SendError(context.TODO(), fmt.Errorf("error unmarshalling: %s", err))
 		return err
 	}
 
@@ -174,7 +175,7 @@ func checkQueues(endpoint MqEndpoint, a alert.Service, s Store) error {
 
 	}
 	if !success {
-		a.SendError(errors.New("no queues had any data. please check the machine agents are sending the data"))
+		a.SendError(context.TODO(), errors.New("no queues had any data. please check the machine agents are sending the data"))
 	}
 	return nil
 }
@@ -194,13 +195,13 @@ func checkQueue(endpoint MqEndpoint, name string, a alert.Service, s Store) erro
 	}
 	full := currDepth / maxDepth * 100
 	if full > 90 {
-		a.SendAlert(emoji.Sprintf(":baggage_claim: :interrobang: %s - Queue %s, is more than 90 percent full. "+
+		a.SendAlert(context.TODO(), emoji.Sprintf(":baggage_claim: :interrobang: %s - Queue %s, is more than 90 percent full. "+
 			"Current Depth %.0f, Max Depth %.0f", endpoint.Name, name, currDepth, maxDepth))
 		return nil
 	}
 
 	if full > 75 {
-		a.SendAlert(emoji.Sprintf(":baggage_claim: :warning: %s - Queue %s, is more than 75 percent full. Current "+
+		a.SendAlert(context.TODO(), emoji.Sprintf(":baggage_claim: :warning: %s - Queue %s, is more than 75 percent full. Current "+
 			"Depth %.0f, Max Depth %.0f", endpoint.Name, name, currDepth, maxDepth))
 		return nil
 	}
@@ -255,7 +256,7 @@ func doGet(uri string, s Store, a alert.Service) (string, error) {
 
 	appd, err := s.GetAppDynamics()
 	if err != nil {
-		a.SendError(err)
+		a.SendError(context.TODO(), err)
 		return "", err
 	}
 
@@ -263,20 +264,20 @@ func doGet(uri string, s Store, a alert.Service) (string, error) {
 	url := appd.Endpoint + uri
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		a.SendError(err)
+		a.SendError(context.TODO(), err)
 		return "", err
 	}
 
 	resp, err := client.Do(req)
 	if err != nil {
-		a.SendError(err)
+		a.SendError(context.TODO(), err)
 		return "", err
 	}
 	defer resp.Body.Close()
 	bodyText, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Println(err.Error())
-		a.SendError(err)
+		a.SendError(context.TODO(), err)
 		return "", err
 	}
 	res := string(bodyText)
@@ -288,14 +289,14 @@ func (s *service) getIPAddressForNode(application, node string) (string, error) 
 	response, err := doGet(uri, s.store, s.alert)
 	log.Println(response)
 	if err != nil {
-		s.alert.SendError(err)
+		s.alert.SendError(context.TODO(), err)
 		return "", err
 	}
 
 	var dat []interface{}
 	err = json.Unmarshal([]byte(response), &dat)
 	if err != nil {
-		s.alert.SendError(err)
+		s.alert.SendError(context.TODO(), err)
 		return "", err
 	}
 	v := dat[0].(map[string]interface{})

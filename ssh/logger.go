@@ -2,6 +2,7 @@ package ssh
 
 import (
 	"github.com/go-kit/kit/log"
+	"golang.org/x/net/context"
 	"time"
 )
 
@@ -14,7 +15,7 @@ func NewLoggingService(logger log.Logger, s Service) Service {
 	return &loggingService{logger, s}
 }
 
-func (s *loggingService) ExecuteRemoteCommand(commandName, address string) error {
+func (s *loggingService) ExecuteRemoteCommand(ctx context.Context, commandName, address string) error {
 	defer func(begin time.Time) {
 		s.logger.Log(
 			"method", "SendSNMPMessage",
@@ -23,5 +24,5 @@ func (s *loggingService) ExecuteRemoteCommand(commandName, address string) error
 			"took", time.Since(begin),
 		)
 	}(time.Now())
-	return s.Service.ExecuteRemoteCommand(commandName, address)
+	return s.Service.ExecuteRemoteCommand(ctx, commandName, address)
 }

@@ -2,6 +2,7 @@ package chef
 
 import (
 	"bytes"
+	"context"
 	json2 "encoding/json"
 	"fmt"
 	"github.com/go-chef/chef"
@@ -13,7 +14,7 @@ import (
 )
 
 type Service interface {
-	sendDeliveryAlert(message string)
+	sendDeliveryAlert(ctx context.Context, message string)
 	FindNodesFromFriendlyNames(recipe, environment string) []Node
 }
 
@@ -31,13 +32,13 @@ func NewService(alert alert.Service, chefStore Store) Service {
 	return s
 }
 
-func (s *service) sendDeliveryAlert(message string) {
+func (s *service) sendDeliveryAlert(ctx context.Context, message string) {
 	var dat map[string]interface{}
 
 	message = strings.Replace(message, "\n", "\\n", -1)
 
 	if err := json2.Unmarshal([]byte(message), &dat); err != nil {
-		s.alert.SendError(fmt.Errorf("delivery - error unmarshalling: %s", message))
+		s.alert.SendError(ctx, fmt.Errorf("delivery - error unmarshalling: %s", message))
 		return
 	}
 
@@ -72,7 +73,7 @@ func (s *service) sendDeliveryAlert(message string) {
 	buffer.WriteString(parts[0])
 	buffer.WriteString(")")
 
-	s.alert.SendAlert(buffer.String())
+	s.alert.SendAlert(ctx, buffer.String())
 
 }
 
@@ -113,13 +114,13 @@ func (s *service) monitorQuarentined() {
 func (s *service) checkQuarentined() {
 	recipes, err := s.chefStore.GetRecipes()
 	if err != nil {
-		s.alert.SendError(err)
+		s.alert.SendError(context.TODO(), err)
 		return
 	}
 
 	env, err := s.chefStore.GetChefEnvironments()
 	if err != nil {
-		s.alert.SendError(err)
+		s.alert.SendError(context.TODO(), err)
 		return
 	}
 
@@ -128,7 +129,7 @@ func (s *service) checkQuarentined() {
 			nodes := s.FindNodesFromFriendlyNames(r.FriendlyName, e.FriendlyName)
 			for _, n := range nodes {
 				if strings.Index(n.Environment, "quar") > 0 {
-					s.alert.SendAlert(emoji.Sprintf(":hospital: *Node Quarantined* \n node %v has been placed in environment %v. Application %v ", n.Name, strings.Replace(n.Environment, "_", " ", -1), r.FriendlyName))
+					s.alert.SendAlert(context.TODO(), emoji.Sprintf(":hospital: *Node Quarantined* \n node %v has been placed in environment %v. Application %v ", n.Name, strings.Replace(n.Environment, "_", " ", -1), r.FriendlyName))
 				}
 			}
 		}
@@ -139,25 +140,25 @@ func (s *service) checkQuarentined() {
 func (s *service) FindNodesFromFriendlyNames(recipe, environment string) []Node {
 	chefRecipe, err := s.chefStore.GetRecipeFromFriendlyName(recipe)
 	if err != nil {
-		s.alert.SendError(err)
+		s.alert.SendError(context.TODO(), err)
 		return nil
 	}
 
 	chefEnv, err := s.chefStore.GetEnvironmentFromFriendlyName(environment)
 	if err != nil {
-		s.alert.SendError(err)
+		s.alert.SendError(context.TODO(), err)
 		return nil
 	}
 
 	client, err := s.getChefClient()
 	if err != nil {
-		s.alert.SendError(err)
+		s.alert.SendError(context.TODO(), err)
 		return nil
 	}
 
 	query, err := client.Search.NewQuery("node", fmt.Sprintf("recipe:%s AND chef_environment:%s", chefRecipe, chefEnv))
 	if err != nil {
-		s.alert.SendError(err)
+		s.alert.SendError(context.TODO(), err)
 		return nil
 	}
 
@@ -167,7 +168,7 @@ func (s *service) FindNodesFromFriendlyNames(recipe, environment string) []Node 
 
 	res, err := query.DoPartial(client, part)
 	if err != nil {
-		s.alert.SendError(err)
+		s.alert.SendError(context.TODO(), err)
 		return nil
 	}
 

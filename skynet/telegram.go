@@ -6,6 +6,7 @@ import (
 	"github.com/zamedic/go2hal/alert"
 	"github.com/zamedic/go2hal/chef"
 	"github.com/zamedic/go2hal/telegram"
+	"golang.org/x/net/context"
 	"gopkg.in/telegram-bot-api.v4"
 	"runtime/debug"
 )
@@ -32,12 +33,12 @@ func (s *rebuildNode) Execute(update tgbotapi.Update) {
 	defer func() {
 		if err := recover(); err != nil {
 			fmt.Print(err)
-			s.alertService.SendError(errors.New(fmt.Sprint(err)))
-			s.alertService.SendError(errors.New(string(debug.Stack())))
+			s.alertService.SendError(context.TODO(), errors.New(fmt.Sprint(err)))
+			s.alertService.SendError(context.TODO(), errors.New(string(debug.Stack())))
 
 		}
 	}()
-	s.skynetService.RecreateNode(update.Message.CommandArguments(), update.Message.From.UserName)
+	s.skynetService.RecreateNode(context.TODO(), update.Message.CommandArguments(), update.Message.From.UserName)
 }
 
 /* ------------------- */
@@ -122,7 +123,7 @@ func (s *rebuildChefNodeEnvironmentReply) Execute(update tgbotapi.Update, state 
 	for i, x := range nodes {
 		res[i] = x.Name
 	}
-	s.telegram.SendKeyboard(res, "Select node to rebuild", update.Message.Chat.ID)
+	s.telegram.SendKeyboard(context.TODO(), res, "Select node to rebuild", update.Message.Chat.ID)
 }
 
 func (s *rebuildChefNodeEnvironmentReply) NextState(update tgbotapi.Update, state telegram.State) string {
@@ -149,9 +150,9 @@ func (s *rebuildChefNodeExecute) CanExecute(update tgbotapi.Update, state telegr
 
 func (s *rebuildChefNodeExecute) Execute(update tgbotapi.Update, state telegram.State) {
 	go func() {
-		err := s.skynet.RecreateNode(update.Message.Text, update.Message.From.FirstName)
+		err := s.skynet.RecreateNode(context.TODO(), update.Message.Text, update.Message.From.FirstName)
 		if err != nil {
-			s.alert.SendError(err)
+			s.alert.SendError(context.TODO(), err)
 		}
 	}()
 }
@@ -167,7 +168,7 @@ func (s *rebuildChefNodeExecute) Fields(update tgbotapi.Update, state telegram.S
 func sendRecipeKeyboard(chat int64, text string, alert alert.Service, chefStore chef.Store, telegram telegram.Service) {
 	recipes, err := chefStore.GetRecipes()
 	if err != nil {
-		alert.SendError(err)
+		alert.SendError(context.TODO(), err)
 		return
 	}
 
@@ -175,13 +176,13 @@ func sendRecipeKeyboard(chat int64, text string, alert alert.Service, chefStore 
 	for x, i := range recipes {
 		l[x] = i.FriendlyName
 	}
-	telegram.SendKeyboard(l, text, chat)
+	telegram.SendKeyboard(context.TODO(), l, text, chat)
 }
 
 func sendEnvironemtKeyboard(chat int64, text string, store chef.Store, alert alert.Service, telegram telegram.Service) {
 	e, err := store.GetChefEnvironments()
 	if err != nil {
-		alert.SendError(err)
+		alert.SendError(context.TODO(), err)
 		return
 	}
 
@@ -189,5 +190,5 @@ func sendEnvironemtKeyboard(chat int64, text string, store chef.Store, alert ale
 	for x, i := range e {
 		l[x] = i.FriendlyName
 	}
-	telegram.SendKeyboard(l, text, chat)
+	telegram.SendKeyboard(context.TODO(), l, text, chat)
 }
