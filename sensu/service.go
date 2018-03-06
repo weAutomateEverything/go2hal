@@ -2,7 +2,7 @@ package sensu
 
 import (
 	"fmt"
-	"github.com/zamedic/go2hal/alert"
+	"github.com/weAutomateEverything/go2hal/alert"
 	"golang.org/x/net/context"
 	"gopkg.in/kyokomi/emoji.v1"
 	"strings"

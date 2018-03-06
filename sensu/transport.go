@@ -8,8 +8,8 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/gorilla/mux"
-	"github.com/zamedic/go2hal/gokit"
-	"github.com/zamedic/go2hal/machineLearning"
+	"github.com/weAutomateEverything/go2hal/gokit"
+	"github.com/weAutomateEverything/go2hal/machineLearning"
 )
 
 //MakeHandler retuns a http rest request handler for sensu

@@ -1,7 +1,7 @@
 package examples
 
 import (
-	"github.com/zamedic/go2hal/alert"
+	"github.com/weAutomateEverything/go2hal/alert"
 	"os"
 )
 

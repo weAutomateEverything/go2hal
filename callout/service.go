@@ -8,9 +8,9 @@ import (
 	"fmt"
 
 	"errors"
-	"github.com/zamedic/go2hal/alert"
-	"github.com/zamedic/go2hal/jira"
-	"github.com/zamedic/go2hal/snmp"
+	"github.com/weAutomateEverything/go2hal/alert"
+	"github.com/weAutomateEverything/go2hal/jira"
+	"github.com/weAutomateEverything/go2hal/snmp"
 	"golang.org/x/net/context"
 	"os"
 )

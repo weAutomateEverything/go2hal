@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/zamedic/go2hal/alert"
-	"github.com/zamedic/go2hal/chef"
-	"github.com/zamedic/go2hal/util"
+	"github.com/weAutomateEverything/go2hal/alert"
+	"github.com/weAutomateEverything/go2hal/chef"
+	"github.com/weAutomateEverything/go2hal/util"
 	"golang.org/x/net/context"
 	"strings"
 )

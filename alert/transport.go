@@ -6,8 +6,8 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/zamedic/go2hal/gokit"
-	"github.com/zamedic/go2hal/machineLearning"
+	"github.com/weAutomateEverything/go2hal/gokit"
+	"github.com/weAutomateEverything/go2hal/machineLearning"
 )
 
 /*

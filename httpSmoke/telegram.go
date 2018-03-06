@@ -2,7 +2,7 @@ package httpSmoke
 
 import (
 	"fmt"
-	"github.com/zamedic/go2hal/telegram"
+	"github.com/weAutomateEverything/go2hal/telegram"
 	"golang.org/x/net/context"
 	"gopkg.in/kyokomi/emoji.v1"
 	"gopkg.in/telegram-bot-api.v4"

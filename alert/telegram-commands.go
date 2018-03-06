@@ -1,7 +1,7 @@
 package alert
 
 import (
-	"github.com/zamedic/go2hal/telegram"
+	"github.com/weAutomateEverything/go2hal/telegram"
 	"golang.org/x/net/context"
 	"gopkg.in/telegram-bot-api.v4"
 )

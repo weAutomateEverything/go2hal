@@ -3,7 +3,7 @@ package alert
 import (
 	"github.com/golang/mock/gomock"
 	"github.com/pkg/errors"
-	"github.com/zamedic/go2hal/telegram"
+	"github.com/weAutomateEverything/go2hal/telegram"
 	"golang.org/x/net/context"
 	"testing"
 )

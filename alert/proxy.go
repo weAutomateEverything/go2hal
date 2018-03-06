@@ -7,7 +7,7 @@ import (
 	"github.com/go-kit/kit/ratelimit"
 	"github.com/go-kit/kit/transport/http"
 	"github.com/sony/gobreaker"
-	"github.com/zamedic/go2hal/gokit"
+	"github.com/weAutomateEverything/go2hal/gokit"
 	"golang.org/x/time/rate"
 	"net/url"
 	"os"

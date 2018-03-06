@@ -3,9 +3,9 @@ package skynet
 import (
 	"errors"
 	"fmt"
-	"github.com/zamedic/go2hal/alert"
-	"github.com/zamedic/go2hal/chef"
-	"github.com/zamedic/go2hal/telegram"
+	"github.com/weAutomateEverything/go2hal/alert"
+	"github.com/weAutomateEverything/go2hal/chef"
+	"github.com/weAutomateEverything/go2hal/telegram"
 	"golang.org/x/net/context"
 	"gopkg.in/telegram-bot-api.v4"
 	"runtime/debug"

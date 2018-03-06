@@ -2,7 +2,7 @@ package telegram
 
 import (
 	"context"
-	"github.com/zamedic/go2hal/machineLearning"
+	"github.com/weAutomateEverything/go2hal/machineLearning"
 )
 
 type ml struct {

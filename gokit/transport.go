@@ -9,7 +9,7 @@ import (
 	kitlog "github.com/go-kit/kit/log"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/pkg/errors"
-	"github.com/zamedic/go2hal/machineLearning"
+	"github.com/weAutomateEverything/go2hal/machineLearning"
 	"io"
 	"io/ioutil"
 	"log"

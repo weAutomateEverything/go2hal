@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
-	"github.com/zamedic/go2hal/alert"
-	"github.com/zamedic/go2hal/chef"
+	"github.com/weAutomateEverything/go2hal/alert"
+	"github.com/weAutomateEverything/go2hal/chef"
 	"golang.org/x/net/context"
 )
 

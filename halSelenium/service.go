@@ -6,8 +6,8 @@ import (
 	"github.com/pkg/errors"
 	stdprometheus "github.com/prometheus/client_golang/prometheus"
 	"github.com/tebeka/selenium"
-	"github.com/zamedic/go2hal/alert"
-	selenium2 "github.com/zamedic/go2hal/seleniumTests"
+	"github.com/weAutomateEverything/go2hal/alert"
+	selenium2 "github.com/weAutomateEverything/go2hal/seleniumTests"
 	"golang.org/x/net/context"
 )
 

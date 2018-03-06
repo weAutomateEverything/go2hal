@@ -4,8 +4,8 @@ import (
 	kitlog "github.com/go-kit/kit/log"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
-	"github.com/zamedic/go2hal/gokit"
-	"github.com/zamedic/go2hal/machineLearning"
+	"github.com/weAutomateEverything/go2hal/gokit"
+	"github.com/weAutomateEverything/go2hal/machineLearning"
 	"net/http"
 )
 
