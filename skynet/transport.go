@@ -11,6 +11,8 @@ import (
 	"net/http"
 )
 
+//MakeHandler returns a rest http handler.
+//machine learning service can be set to nil if you do not want to store the requests
 func MakeHandler(service Service, logger kitlog.Logger, ml machineLearning.Service) http.Handler {
 	opts := gokit.GetServerOpts(logger, ml)
 
