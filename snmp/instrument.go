@@ -2,6 +2,7 @@ package snmp
 
 import (
 	"github.com/go-kit/kit/metrics"
+	"golang.org/x/net/context"
 	"time"
 )
 
@@ -19,10 +20,10 @@ func NewInstrumentService(counter metrics.Counter, latency metrics.Histogram, s 
 	}
 }
 
-func (s *instrumentingService) SendSNMPMessage() {
+func (s *instrumentingService) SendSNMPMessage(ctx context.Context) {
 	defer func(begin time.Time) {
 		s.requestCount.With("method", "SendSNMPMessage").Add(1)
 		s.requestLatency.With("method", "SendSNMPMessage").Observe(time.Since(begin).Seconds())
 	}(time.Now())
-	s.Service.SendSNMPMessage()
+	s.Service.SendSNMPMessage(ctx)
 }

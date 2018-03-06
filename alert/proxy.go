@@ -112,29 +112,29 @@ func newKubernetesAlertProxy(namespace string, logger log.Logger) Service {
 		sendImageToHeartbeatGroupEndpoint: heartbeatImage, sendNonTechnicalAlertEndpoint: nonTechAlert}
 
 }
-func (s *alertKubernetesProxy) SendAlert(message string) error {
-	_, err := s.sendAlertEndpoint(getContext(), message)
+func (s *alertKubernetesProxy) SendAlert(ctx context.Context, message string) error {
+	_, err := s.sendAlertEndpoint(getContext(ctx), message)
 	return err
 }
 
-func (s *alertKubernetesProxy) SendNonTechnicalAlert(message string) error {
-	_, err := s.sendNonTechnicalAlertEndpoint(getContext(), message)
+func (s *alertKubernetesProxy) SendNonTechnicalAlert(ctx context.Context, message string) error {
+	_, err := s.sendNonTechnicalAlertEndpoint(getContext(ctx), message)
 	return err
 }
-func (s *alertKubernetesProxy) SendHeartbeatGroupAlert(message string) error {
-	_, err := s.sendHeartbeatGroupAlertEndpoint(getContext(), message)
+func (s *alertKubernetesProxy) SendHeartbeatGroupAlert(ctx context.Context, message string) error {
+	_, err := s.sendHeartbeatGroupAlertEndpoint(getContext(ctx), message)
 	return err
 }
-func (s *alertKubernetesProxy) SendImageToAlertGroup(image []byte) error {
-	_, err := s.sendImageToAlertGroupEndpoint(getContext(), image)
+func (s *alertKubernetesProxy) SendImageToAlertGroup(ctx context.Context, image []byte) error {
+	_, err := s.sendImageToAlertGroupEndpoint(getContext(ctx), image)
 	return err
 }
-func (s *alertKubernetesProxy) SendImageToHeartbeatGroup(image []byte) error {
-	_, err := s.sendImageToHeartbeatGroupEndpoint(getContext(), image)
+func (s *alertKubernetesProxy) SendImageToHeartbeatGroup(ctx context.Context, image []byte) error {
+	_, err := s.sendImageToHeartbeatGroupEndpoint(getContext(ctx), image)
 	return err
 }
-func (s *alertKubernetesProxy) SendError(err error) error {
-	_, e := s.sendErrorEndpoint(getContext(), err)
+func (s *alertKubernetesProxy) SendError(ctx context.Context, err error) error {
+	_, e := s.sendErrorEndpoint(getContext(ctx), err)
 	return e
 }
 
@@ -229,7 +229,7 @@ func getAlertUrl() string {
 	return os.Getenv("ALERT_ENDPOINT")
 }
 
-func getContext() context.Context {
-	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+func getContext(ctx context.Context) context.Context {
+	ctx, _ = context.WithTimeout(ctx, 10*time.Second)
 	return ctx
 }

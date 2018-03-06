@@ -2,6 +2,7 @@ package alert
 
 import (
 	"github.com/zamedic/go2hal/telegram"
+	"golang.org/x/net/context"
 	"gopkg.in/telegram-bot-api.v4"
 )
 
@@ -24,7 +25,7 @@ func (s *setGroupCommand) CommandDescription() string {
 
 func (s *setGroupCommand) Execute(update tgbotapi.Update) {
 	s.store.setAlertGroup(update.Message.Chat.ID)
-	s.telegram.SendMessage(update.Message.Chat.ID, "group updated", update.Message.MessageID)
+	s.telegram.SendMessage(context.TODO(), update.Message.Chat.ID, "group updated", update.Message.MessageID)
 }
 
 type setNonTechnicalGroupCommand struct {
@@ -46,7 +47,7 @@ func (s *setNonTechnicalGroupCommand) CommandDescription() string {
 
 func (s *setNonTechnicalGroupCommand) Execute(update tgbotapi.Update) {
 	s.store.setNonTechnicalGroup(update.Message.Chat.ID)
-	s.telegram.SendMessage(update.Message.Chat.ID, "non technical group updated", update.Message.MessageID)
+	s.telegram.SendMessage(context.TODO(), update.Message.Chat.ID, "non technical group updated", update.Message.MessageID)
 }
 
 type setHeartbeatGroupCommand struct {
@@ -69,5 +70,5 @@ func (s *setHeartbeatGroupCommand) CommandDescription() string {
 
 func (s *setHeartbeatGroupCommand) Execute(update tgbotapi.Update) {
 	s.store.setHeartbeatGroup(update.Message.Chat.ID)
-	s.telegram.SendMessage(update.Message.Chat.ID, "heartbeat group updated", update.Message.MessageID)
+	s.telegram.SendMessage(context.TODO(), update.Message.Chat.ID, "heartbeat group updated", update.Message.MessageID)
 }

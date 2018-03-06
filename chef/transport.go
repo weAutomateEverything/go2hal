@@ -5,11 +5,14 @@ import (
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
 	"github.com/zamedic/go2hal/gokit"
+	"github.com/zamedic/go2hal/machineLearning"
 	"net/http"
 )
 
-func MakeHandler(service Service, logger kitlog.Logger) http.Handler {
-	opts := gokit.GetServerOpts(logger)
+//MakeHandler returns a restful http handler for the chef delivery service
+//the Machine Learning service can be set to nil if you do not wish to log the http requests
+func MakeHandler(service Service, logger kitlog.Logger, ml machineLearning.Service) http.Handler {
+	opts := gokit.GetServerOpts(logger, ml)
 
 	chefDeliveryEndpoint := kithttp.NewServer(makeChefDeliveryAlertEndpoint(service), gokit.DecodeString, gokit.EncodeResponse, opts...)
 

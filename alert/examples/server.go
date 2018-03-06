@@ -33,7 +33,7 @@ func server() {
 	httpLogger := log.With(logger, "component", "http")
 
 	mux := http.NewServeMux()
-	mux.Handle("/alert/", alert.MakeHandler(alertService, httpLogger))
+	mux.Handle("/alert/", alert.MakeHandler(alertService, httpLogger, nil))
 	http.Handle("/", accessControl(mux))
 
 	errs := make(chan error, 2)

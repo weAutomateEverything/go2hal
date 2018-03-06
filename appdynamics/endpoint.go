@@ -26,7 +26,7 @@ type BusinessAlertRequest struct {
 func makeAppDynamicsAlertEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(string)
-		s.sendAppdynamicsAlert(req)
+		s.sendAppdynamicsAlert(ctx, req)
 		return nil, nil
 	}
 }
@@ -47,7 +47,7 @@ func makeAddAppdynamicsQueueEndpoint(s Service) endpoint.Endpoint {
 func makExecuteCommandFromAppdynamics(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(ExecuteAppDynamicsCommandRequest)
-		return nil, s.executeCommandFromAppd(req.CommandName, req.ApplicationID, req.NodeID)
+		return nil, s.executeCommandFromAppd(ctx, req.CommandName, req.ApplicationID, req.NodeID)
 
 	}
 }

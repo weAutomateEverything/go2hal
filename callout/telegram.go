@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/zamedic/go2hal/alert"
 	"github.com/zamedic/go2hal/telegram"
+	"golang.org/x/net/context"
 	"gopkg.in/telegram-bot-api.v4"
 )
 
@@ -27,10 +28,10 @@ func (s *whosOnFirstCall) CommandDescription() string {
 }
 
 func (s *whosOnFirstCall) Execute(update tgbotapi.Update) {
-	name, err := s.service.getFirstCallName()
+	name, err := s.service.getFirstCallName(context.TODO())
 	if err != nil {
-		s.alert.SendError(err)
+		s.alert.SendError(context.TODO(), err)
 		return
 	}
-	s.telegram.SendMessage(update.Message.Chat.ID, fmt.Sprintf("%s is on first call", name), update.Message.MessageID)
+	s.telegram.SendMessage(context.TODO(), update.Message.Chat.ID, fmt.Sprintf("%s is on first call", name), update.Message.MessageID)
 }

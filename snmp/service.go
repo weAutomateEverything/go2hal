@@ -5,7 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/zamedic/go2hal/alert"
+	"github.com/zamedic/go2hal/machineLearning"
 	g "github.com/zamedic/gosnmp"
+	"golang.org/x/net/context"
 	"gopkg.in/kyokomi/emoji.v1"
 	"log"
 	"net"
@@ -14,15 +16,18 @@ import (
 )
 
 type Service interface {
-	SendSNMPMessage()
+	SendSNMPMessage(ctx context.Context)
 }
 
 type service struct {
 	alert alert.Service
+	ml    machineLearning.Service
 }
 
-func NewService(alert alert.Service) Service {
-	s := &service{alert}
+//NewService returns a new SNMP service for sending SNMP messages.
+//A SNMP server is also started on port 9162
+func NewService(alert alert.Service, ml machineLearning.Service) Service {
+	s := &service{alert: alert, ml: ml}
 	go func() {
 		s.startSnmpServer()
 	}()
@@ -59,10 +64,10 @@ func (s service) handleTrap(packet *g.SnmpPacket, addr *net.UDPAddr) {
 
 		}
 	}
-	s.alert.SendError(errors.New(b.String()))
+	s.alert.SendError(context.TODO(), errors.New(b.String()))
 }
 
-func (s *service) SendSNMPMessage() {
+func (s *service) SendSNMPMessage(ctx context.Context) {
 	if snmpServier() == "" {
 		return
 	}
@@ -98,7 +103,7 @@ func (s *service) SendSNMPMessage() {
 
 	log.Printf("Error: %d", result.Error)
 	log.Printf("Request ID %d", result.RequestID)
-	s.alert.SendAlert(emoji.Sprint(":telephone_receiver: Invoked callout"))
+	s.alert.SendAlert(ctx, emoji.Sprint(":telephone_receiver: Invoked callout"))
 
 }
 
