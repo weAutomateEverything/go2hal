@@ -49,16 +49,16 @@ func (s *loggingService) addAppDynamicsQueue(name, application, metricPath strin
 	}(time.Now())
 	return s.Service.addAppDynamicsQueue(name, application, metricPath)
 }
-func (s *loggingService) executeCommandFromAppd(ctx context.Context, commandName, applicationID, nodeId string) (err error) {
+func (s *loggingService) executeCommandFromAppd(ctx context.Context, commandName, applicationID, nodeID string) (err error) {
 	defer func(begin time.Time) {
 		s.logger.Log(
 			"method", "execute app dynamics command",
 			"command_name", commandName,
 			"applicatiom_id", applicationID,
-			"node id", nodeId,
+			"node id", nodeID,
 			"error", err,
 			"took", time.Since(begin),
 		)
 	}(time.Now())
-	return s.Service.executeCommandFromAppd(ctx, commandName, applicationID, nodeId)
+	return s.Service.executeCommandFromAppd(ctx, commandName, applicationID, nodeID)
 }

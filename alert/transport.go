@@ -10,6 +10,11 @@ import (
 	"github.com/zamedic/go2hal/machineLearning"
 )
 
+/*
+MakeHandler returns a rest http handler to send alerts.
+
+The machine learning service can be set to nil if you do not wish to save the requests.
+*/
 func MakeHandler(service Service, logger kitlog.Logger, ml machineLearning.Service) http.Handler {
 	opts := gokit.GetServerOpts(logger, ml)
 

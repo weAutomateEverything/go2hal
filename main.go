@@ -61,7 +61,7 @@ func main() {
 
 	//Services
 
-	machineLearningService := machineLearning.NewServce(machingLearningStore)
+	machineLearningService := machineLearning.NewService(machingLearningStore)
 
 	telegramService := telegram.NewService(telegramStore)
 	telegramService = telegram.NewLoggingService(log.With(logger, "component", "telegram"), telegramService)

@@ -66,34 +66,42 @@ func (s *service) runTests() {
 			for _, test := range tests {
 				image, err := s.doSelenium(test)
 				if err != nil {
-					if error := s.store.SetSeleniumFailing(&test, err); error != nil {
-						s.alert.SendError(context.TODO(), fmt.Errorf("error setting seleniumTests test to failed. %s", error.Error()))
-						continue
-					}
-					if test.Threshold > 0 {
-						if test.Threshold == test.ErrorCount {
-							s.calloutService.InvokeCallout(context.TODO(), fmt.Sprintf("halSelenium Error with  test %s", test.Name), err.Error())
-						}
-
-						if test.ErrorCount >= test.Threshold {
-							s.alert.SendAlert(context.TODO(), emoji.Sprintf(":computer: :x: Error executing seleniumTests test for %s. error: %s", test.Name, err.Error()))
-							if image != nil {
-								s.alert.SendImageToAlertGroup(context.TODO(), image)
-							}
-						}
-					}
+					s.handleError(test, image, err)
 				} else {
-					if err := s.store.SetSeleniumPassing(&test); err != nil {
-						s.alert.SendError(context.TODO(), fmt.Errorf("error setting seleniumTests test to passed. %s", err.Error()))
-						continue
-					}
-					if !test.Passing && test.ErrorCount >= test.Threshold {
-						s.alert.SendAlert(context.TODO(), emoji.Sprintf(":computer: :white_check_mark: halSelenium Test %s back to normal", test.Name))
-					}
+					s.handleSuccess(test)
 				}
 			}
 		}
 		time.Sleep(5 * time.Minute)
+	}
+}
+
+func (s service) handleError(test Selenium, image []byte, err error) {
+	if error := s.store.SetSeleniumFailing(&test, err); error != nil {
+		s.alert.SendError(context.TODO(), fmt.Errorf("error setting seleniumTests test to failed. %s", error.Error()))
+		return
+	}
+	if test.Threshold > 0 {
+		if test.Threshold == test.ErrorCount {
+			s.calloutService.InvokeCallout(context.TODO(), fmt.Sprintf("halSelenium Error with  test %s", test.Name), err.Error())
+		}
+
+		if test.ErrorCount >= test.Threshold {
+			s.alert.SendAlert(context.TODO(), emoji.Sprintf(":computer: :x: Error executing seleniumTests test for %s. error: %s", test.Name, err.Error()))
+			if image != nil {
+				s.alert.SendImageToAlertGroup(context.TODO(), image)
+			}
+		}
+	}
+}
+
+func (s service) handleSuccess(test Selenium) {
+	if err := s.store.SetSeleniumPassing(&test); err != nil {
+		s.alert.SendError(context.TODO(), fmt.Errorf("error setting seleniumTests test to passed. %s", err.Error()))
+		return
+	}
+	if !test.Passing && test.ErrorCount >= test.Threshold {
+		s.alert.SendAlert(context.TODO(), emoji.Sprintf(":computer: :white_check_mark: halSelenium Test %s back to normal", test.Name))
 	}
 }
 

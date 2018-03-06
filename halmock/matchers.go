@@ -1,4 +1,4 @@
-package gomock
+package halmock
 
 import (
 	"github.com/golang/mock/gomock"

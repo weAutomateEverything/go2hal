@@ -20,7 +20,7 @@ type Service interface {
 	sendAppdynamicsAlert(ctx context.Context, message string)
 	addAppdynamicsEndpoint(endpoint string) error
 	addAppDynamicsQueue(name, application, metricPath string) error
-	executeCommandFromAppd(ctx context.Context, commandName, applicationID, nodeId string) error
+	executeCommandFromAppd(ctx context.Context, commandName, applicationID, nodeID string) error
 }
 
 type service struct {
@@ -121,8 +121,8 @@ func (s *service) addAppDynamicsQueue(name, application, metricPath string) erro
 	return nil
 }
 
-func (s *service) executeCommandFromAppd(ctx context.Context, commandName, applicationID, nodeId string) error {
-	ipaddress, err := s.getIPAddressForNode(applicationID, nodeId)
+func (s *service) executeCommandFromAppd(ctx context.Context, commandName, applicationID, nodeID string) error {
+	ipaddress, err := s.getIPAddressForNode(applicationID, nodeID)
 	if err != nil {
 		s.alert.SendError(ctx, err)
 		return err
