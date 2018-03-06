@@ -11,11 +11,8 @@ import (
 	"net/http"
 )
 
-/*
-MakeHandler returns a restful http handler for the appdynamics service
-
-the Machine Learning service can be set to nil if you do not wish to log the http requests
-*/
+//MakeHandler returns a restful http handler for the appdynamics service
+//the Machine Learning service can be set to nil if you do not wish to log the http requests
 func MakeHandler(service Service, logger kitlog.Logger, ml machineLearning.Service) http.Handler {
 	opts := gokit.GetServerOpts(logger, ml)
 

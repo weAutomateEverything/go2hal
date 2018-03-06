@@ -9,6 +9,8 @@ import (
 	"net/http"
 )
 
+//MakeHandler returns a Rest HTTP endpoint for chef alerts
+//Machine learning can be left as nil if you do not wish to store the request
 func MakeHandler(service Service, logger kitlog.Logger, ml machineLearning.Service) http.Handler {
 	opts := gokit.GetServerOpts(logger, ml)
 

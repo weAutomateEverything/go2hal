@@ -10,6 +10,8 @@ type ml struct {
 	s  Service
 }
 
+//NewMachineLearning returns a decorated Service object that will log the telegram actions executed to the machine
+//learning database
 func NewMachineLearning(service machineLearning.Service, s Service) Service {
 	return &ml{service, s}
 }

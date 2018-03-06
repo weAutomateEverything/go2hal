@@ -24,6 +24,8 @@ type service struct {
 	ml    machineLearning.Service
 }
 
+//NewService returns a new SNMP service for sending SNMP messages.
+//A SNMP server is also started on port 9162
 func NewService(alert alert.Service, ml machineLearning.Service) Service {
 	s := &service{alert: alert, ml: ml}
 	go func() {

@@ -9,7 +9,7 @@ import (
 //Store will save the Machine Learning information to a database
 type Store interface {
 	SaveInputRecord(reqType string, date time.Time, fields map[string]interface{}) string
-	SaveAction(requestId string, action string, date time.Time, fields map[string]interface{})
+	SaveAction(requestID string, action string, date time.Time, fields map[string]interface{})
 }
 
 type mongoStore struct {
@@ -52,7 +52,7 @@ func (s *mongoStore) SaveInputRecord(reqType string, date time.Time, fields map[
 //actionType - the action taken (Telegram, HTTP, File, ect...)
 //date - the date and time the action was taken
 //fields - any additional information to be saved for the action taken
-func (s *mongoStore) SaveAction(requestId string, actionType string, date time.Time, fields map[string]interface{}) {
-	r := action{Date: date, Fields: fields, Action: actionType, RequestID: requestId}
+func (s *mongoStore) SaveAction(requestID string, actionType string, date time.Time, fields map[string]interface{}) {
+	r := action{Date: date, Fields: fields, Action: actionType, RequestID: requestID}
 	s.db.C("ml_action").Insert(&r)
 }
