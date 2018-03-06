@@ -10,6 +10,15 @@ the main.go provided here uses all the modules, wrapped in gokit proetheus instr
 
 Refer to the readme.md for each Module
 
+## Getting Started
+Install a mongo DB locally. By Default, HAL will look for a mongo database on localhost.
+
+Run the HAL executable
+
+Below is an example of the Environment variables I have setup on GoLand. The only one thats really important is the BOT_KEY, the rest are used within the submodules of HAL. Reffer to each sub modules README.md for more details.
+![golang env](docs/golang-env.png "Golang Environment Variables")
+
+
 ## Modules
 
 ### Telegram Service
