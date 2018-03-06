@@ -1,6 +1,7 @@
 package chef
 
 import (
+	"context"
 	"github.com/go-kit/kit/log"
 	"time"
 )
@@ -14,7 +15,7 @@ func NewLoggingService(logger log.Logger, s Service) Service {
 	return &loggingService{logger, s}
 }
 
-func (s *loggingService) sendDeliveryAlert(message string) {
+func (s *loggingService) sendDeliveryAlert(ctx context.Context, message string) {
 	defer func(begin time.Time) {
 		s.logger.Log(
 			"method", "sendDeliveryAlert",
@@ -22,7 +23,7 @@ func (s *loggingService) sendDeliveryAlert(message string) {
 			"took", time.Since(begin),
 		)
 	}(time.Now())
-	s.Service.sendDeliveryAlert(message)
+	s.Service.sendDeliveryAlert(ctx, message)
 
 }
 func (s *loggingService) FindNodesFromFriendlyNames(recipe, environment string) []Node {

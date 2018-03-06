@@ -1,11 +1,12 @@
-package http
+package httpSmoke
 
 import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/zamedic/go2hal/alert"
-	"github.com/zamedic/go2hal/callout"
+	"github.com/weAutomateEverything/go2hal/alert"
+	"github.com/weAutomateEverything/go2hal/callout"
+	"golang.org/x/net/context"
 	"gopkg.in/kyokomi/emoji.v1"
 	"io/ioutil"
 	"log"
@@ -81,22 +82,21 @@ func (s *service) checkHTTP(endpoint httpEndpoint) {
 		return
 	}
 	if !endpoint.Passing && endpoint.ErrorCount >= endpoint.Threshold {
-		s.alert.SendAlert(emoji.Sprintf(":smoking: :white_check_mark: smoke test %s back to normal", endpoint.Name))
+		s.alert.SendAlert(context.TODO(), emoji.Sprintf(":smoking: :white_check_mark: smoke test %s back to normal", endpoint.Name))
 	}
 
 	if err := s.store.successfulEndpointTest(&endpoint); err != nil {
-		s.alert.SendError(err)
+		s.alert.SendError(context.TODO(), err)
 	}
 }
 
 func (s *service) checkAlert(endpoint httpEndpoint, msg string) {
 	if err := s.store.failedEndpointTest(&endpoint, msg); err != nil {
-		s.alert.SendError(err)
+		s.alert.SendError(context.TODO(), err)
 	}
-	s.alert.SendError(errors.New(msg))
 	if endpoint.Threshold > 0 {
 		if endpoint.Threshold == endpoint.ErrorCount {
-			s.callout.InvokeCallout(fmt.Sprintf("Some Test failures for %s", endpoint.Name), msg)
+			s.callout.InvokeCallout(context.TODO(), fmt.Sprintf("Some Test failures for %s", endpoint.Name), msg)
 		}
 		if endpoint.ErrorCount >= endpoint.Threshold {
 			s.checkTimeout(msg)
@@ -106,9 +106,9 @@ func (s *service) checkAlert(endpoint httpEndpoint, msg string) {
 
 func (s *service) checkTimeout(msg string) {
 	if !s.timeoutSet || time.Now().Local().After(s.timeout) {
-		s.alert.SendAlert(msg)
+		s.alert.SendAlert(context.TODO(), msg)
 		if s.timeoutSet {
-			s.alert.SendAlert(emoji.Sprintf(":alarm_clock: - Smoke Alerts expired. The bot will now be sending alerts for smoke failures again"))
+			s.alert.SendAlert(context.TODO(), emoji.Sprintf(":alarm_clock: - Smoke Alerts expired. The bot will now be sending alerts for smoke failures again"))
 			s.timeoutSet = false
 		}
 	}

@@ -7,7 +7,7 @@ import (
 	"github.com/go-kit/kit/ratelimit"
 	"github.com/go-kit/kit/transport/http"
 	"github.com/sony/gobreaker"
-	"github.com/zamedic/go2hal/gokit"
+	"github.com/weAutomateEverything/go2hal/gokit"
 	"golang.org/x/time/rate"
 	"net/url"
 	"os"
@@ -20,6 +20,7 @@ import (
 )
 
 type alertKubernetesProxy struct {
+	url                               string
 	sendAlertEndpoint                 endpoint.Endpoint
 	sendNonTechnicalAlertEndpoint     endpoint.Endpoint
 	sendHeartbeatGroupAlertEndpoint   endpoint.Endpoint
@@ -31,9 +32,25 @@ type alertKubernetesProxy struct {
 }
 
 /*
+NewAlertProxy will return an alert service that is actually a HTTP Proxy into the alert service as defined by the ALERT_ENDPOINT
+environment variable.
+
+If the environment variable ALERT_ENDPOINT is blank, then a panic will be raised.
+*/
+func NewAlertProxy() Service {
+	if getAlertUrl() == "" {
+		panic("No Alert Endpoint set. Please set the environment variable ALERT_ENDPOINT with the http address of the alert service")
+	}
+	logger := log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
+	logger = level.NewFilter(logger, level.AllowAll())
+	logger = log.With(logger, "ts", log.DefaultTimestamp)
+
+	return newKubernetesAlertProxy("", logger)
+}
+
+/*
 NewKubernetesAlertProxy will return an alert service that is actually a HTTP Proxy into the kubertes service
 */
-
 func NewKubernetesAlertProxy(namespace string) Service {
 
 	fieldKeys := []string{"method"}
@@ -95,29 +112,29 @@ func newKubernetesAlertProxy(namespace string, logger log.Logger) Service {
 		sendImageToHeartbeatGroupEndpoint: heartbeatImage, sendNonTechnicalAlertEndpoint: nonTechAlert}
 
 }
-func (s *alertKubernetesProxy) SendAlert(message string) error {
-	_, err := s.sendAlertEndpoint(getContext(), message)
+func (s *alertKubernetesProxy) SendAlert(ctx context.Context, message string) error {
+	_, err := s.sendAlertEndpoint(getContext(ctx), message)
 	return err
 }
 
-func (s *alertKubernetesProxy) SendNonTechnicalAlert(message string) error {
-	_, err := s.sendNonTechnicalAlertEndpoint(getContext(), message)
+func (s *alertKubernetesProxy) SendNonTechnicalAlert(ctx context.Context, message string) error {
+	_, err := s.sendNonTechnicalAlertEndpoint(getContext(ctx), message)
 	return err
 }
-func (s *alertKubernetesProxy) SendHeartbeatGroupAlert(message string) error {
-	_, err := s.sendHeartbeatGroupAlertEndpoint(getContext(), message)
+func (s *alertKubernetesProxy) SendHeartbeatGroupAlert(ctx context.Context, message string) error {
+	_, err := s.sendHeartbeatGroupAlertEndpoint(getContext(ctx), message)
 	return err
 }
-func (s *alertKubernetesProxy) SendImageToAlertGroup(image []byte) error {
-	_, err := s.sendImageToAlertGroupEndpoint(getContext(), image)
+func (s *alertKubernetesProxy) SendImageToAlertGroup(ctx context.Context, image []byte) error {
+	_, err := s.sendImageToAlertGroupEndpoint(getContext(ctx), image)
 	return err
 }
-func (s *alertKubernetesProxy) SendImageToHeartbeatGroup(image []byte) error {
-	_, err := s.sendImageToHeartbeatGroupEndpoint(getContext(), image)
+func (s *alertKubernetesProxy) SendImageToHeartbeatGroup(ctx context.Context, image []byte) error {
+	_, err := s.sendImageToHeartbeatGroupEndpoint(getContext(ctx), image)
 	return err
 }
-func (s *alertKubernetesProxy) SendError(err error) error {
-	_, e := s.sendErrorEndpoint(getContext(), err)
+func (s *alertKubernetesProxy) SendError(ctx context.Context, err error) error {
+	_, e := s.sendErrorEndpoint(getContext(ctx), err)
 	return e
 }
 
@@ -212,7 +229,7 @@ func getAlertUrl() string {
 	return os.Getenv("ALERT_ENDPOINT")
 }
 
-func getContext() context.Context {
-	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+func getContext(ctx context.Context) context.Context {
+	ctx, _ = context.WithTimeout(ctx, 10*time.Second)
 	return ctx
 }

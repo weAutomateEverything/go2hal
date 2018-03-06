@@ -4,14 +4,15 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/zamedic/go2hal/alert"
-	"github.com/zamedic/go2hal/chef"
-	"github.com/zamedic/go2hal/util"
+	"github.com/weAutomateEverything/go2hal/alert"
+	"github.com/weAutomateEverything/go2hal/chef"
+	"github.com/weAutomateEverything/go2hal/util"
+	"golang.org/x/net/context"
 	"strings"
 )
 
 type Service interface {
-	SendAnalyticsAlert(message string)
+	SendAnalyticsAlert(ctx context.Context, message string)
 }
 
 type service struct {
@@ -23,13 +24,13 @@ func NewService(alertService alert.Service, chefStore chef.Store) Service {
 	return &service{alertService, chefStore}
 }
 
-func (s *service) SendAnalyticsAlert(message string) {
-	if !s.checkSend(message) {
+func (s *service) SendAnalyticsAlert(ctx context.Context, message string) {
+	if !s.checkSend(ctx, message) {
 		return
 	}
 	var dat map[string]interface{}
 	if err := json.Unmarshal([]byte(message), &dat); err != nil {
-		s.alert.SendError(fmt.Errorf("Error unmarshalling: %s", message))
+		s.alert.SendError(ctx, fmt.Errorf("Error unmarshalling: %s", message))
 		return
 	}
 
@@ -42,14 +43,14 @@ func (s *service) SendAnalyticsAlert(message string) {
 	buffer.WriteString("\n")
 	util.Getfield(attachments, &buffer)
 
-	s.alert.SendAlert(buffer.String())
+	s.alert.SendAlert(ctx, buffer.String())
 }
 
-func (s *service) checkSend(message string) bool {
+func (s *service) checkSend(ctx context.Context, message string) bool {
 	message = strings.ToUpper(message)
 	recipes, err := s.chefStore.GetRecipes()
 	if err != nil {
-		s.alert.SendError(err)
+		s.alert.SendError(ctx, err)
 		return false
 	}
 	for _, recipe := range recipes {

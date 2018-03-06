@@ -1,8 +1,9 @@
-package http
+package httpSmoke
 
 import (
 	"fmt"
-	"github.com/zamedic/go2hal/telegram"
+	"github.com/weAutomateEverything/go2hal/telegram"
+	"golang.org/x/net/context"
 	"gopkg.in/kyokomi/emoji.v1"
 	"gopkg.in/telegram-bot-api.v4"
 	"strconv"
@@ -34,9 +35,9 @@ func (s *quietHttpAlertsCommand) Execute(update tgbotapi.Update) {
 
 	interval, err := strconv.ParseInt(arg, 10, 16)
 	if err != nil {
-		s.telegramService.SendMessage(update.Message.Chat.ID, fmt.Sprintf("unable to use %v as an integer value", arg), update.Message.MessageID)
+		s.telegramService.SendMessage(context.TODO(), update.Message.Chat.ID, fmt.Sprintf("unable to use %v as an integer value", arg), update.Message.MessageID)
 		return
 	}
 	s.service.setTimeOut(interval)
-	s.telegramService.SendMessage(update.Message.Chat.ID, emoji.Sprintf(":zzz: smoke tests will now sleep for %v minutes", arg), update.Message.MessageID)
+	s.telegramService.SendMessage(context.TODO(), update.Message.Chat.ID, emoji.Sprintf(":zzz: smoke tests will now sleep for %v minutes", arg), update.Message.MessageID)
 }

@@ -4,8 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/zamedic/go2hal/alert"
-	"github.com/zamedic/go2hal/user"
+	"github.com/weAutomateEverything/go2hal/alert"
+	"github.com/weAutomateEverything/go2hal/user"
+	"golang.org/x/net/context"
 	"gopkg.in/kyokomi/emoji.v1"
 	"io/ioutil"
 	"log"
@@ -16,7 +17,7 @@ import (
 )
 
 type Service interface {
-	CreateJira(title, description string, name string)
+	CreateJira(ctx context.Context, title, description string, name string)
 }
 
 type service struct {
@@ -29,7 +30,7 @@ func NewService(alert alert.Service, userStore user.Store) Service {
 
 }
 
-func (s *service) CreateJira(title, description string, username string) {
+func (s *service) CreateJira(ctx context.Context, title, description string, username string) {
 	title = strings.Replace(title, "\n", "", -1)
 	description = strings.Replace(description, "\n", "", -1)
 	type q struct {
@@ -50,20 +51,20 @@ func (s *service) CreateJira(title, description string, username string) {
 	qr := q{User: s.jiraUser(username), Description: description, Title: title}
 	tmpl, err := template.New("jira").Parse(jiraTemplate)
 	if err != nil {
-		s.alert.SendError(err)
+		s.alert.SendError(ctx, err)
 		return
 	}
 	buf := new(bytes.Buffer)
 
 	err = tmpl.Execute(buf, qr)
 	if err != nil {
-		s.alert.SendError(err)
+		s.alert.SendError(ctx, err)
 		return
 	}
 
 	resp, err := http.Post(jiraUrl, "application/json", buf)
 	if err != nil {
-		s.alert.SendError(err)
+		s.alert.SendError(ctx, err)
 		return
 	}
 	defer resp.Body.Close()
@@ -71,19 +72,23 @@ func (s *service) CreateJira(title, description string, username string) {
 	response, err := ioutil.ReadAll(resp.Body)
 	log.Printf("JIRA Response: %v", string(response))
 	if err != nil {
-		s.alert.SendError(err)
+		s.alert.SendError(ctx, err)
 		return
 	}
 
 	var dat map[string]interface{}
 	if err := json.Unmarshal([]byte(response), &dat); err != nil {
-		s.alert.SendError(fmt.Errorf("JIRA Response failed to unmarshall: %s, %s", err, response))
+		s.alert.SendError(ctx, fmt.Errorf("JIRA Response failed to unmarshall: %s, %s", err, response))
 		return
 	}
 
-	key := dat["key"].(string)
+	key, ok := dat["key"].(string)
 
-	s.alert.SendAlert(emoji.Sprintf(":ticket: JIRA Ticket Created. ID: %s assigned to %s. Description %s", key, qr.User, description))
+	if !ok {
+		s.alert.SendError(ctx, fmt.Errorf("JIRA Response dat key not a string: %s", response))
+	}
+
+	s.alert.SendAlert(ctx, emoji.Sprintf(":ticket: JIRA Ticket Created. ID: %s assigned to %s. Description %s", key, qr.User, description))
 }
 
 func (s *service) jiraUser(username string) string {

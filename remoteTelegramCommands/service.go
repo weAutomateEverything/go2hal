@@ -1,7 +1,7 @@
 package remoteTelegramCommands
 
 import (
-	"github.com/zamedic/go2hal/telegram"
+	"github.com/weAutomateEverything/go2hal/telegram"
 	"gopkg.in/telegram-bot-api.v4"
 	"strconv"
 	"time"

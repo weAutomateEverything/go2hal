@@ -2,6 +2,7 @@ package analytics
 
 import (
 	"github.com/go-kit/kit/log"
+	"golang.org/x/net/context"
 	"time"
 )
 
@@ -14,7 +15,7 @@ func NewLoggingService(logger log.Logger, s Service) Service {
 	return &loggingService{logger, s}
 }
 
-func (s loggingService) SendAnalyticsAlert(message string) {
+func (s loggingService) SendAnalyticsAlert(ctx context.Context, message string) {
 	defer func(begin time.Time) {
 		s.logger.Log(
 			"method", "send non technical alert",
@@ -22,5 +23,5 @@ func (s loggingService) SendAnalyticsAlert(message string) {
 			"took", time.Since(begin),
 		)
 	}(time.Now())
-	s.Service.SendAnalyticsAlert(message)
+	s.Service.SendAnalyticsAlert(ctx, message)
 }

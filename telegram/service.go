@@ -2,6 +2,7 @@ package telegram
 
 import (
 	"bytes"
+	"context"
 	tgbotapi "gopkg.in/telegram-bot-api.v4"
 	"io/ioutil"
 	"log"
@@ -11,10 +12,10 @@ import (
 )
 
 type Service interface {
-	SendMessage(chatID int64, message string, messageID int) (err error)
-	SendMessagePlainText(chatID int64, message string, messageID int) (err error)
-	SendImageToGroup(image []byte, group int64) error
-	SendKeyboard(buttons []string, text string, chat int64)
+	SendMessage(ctx context.Context, chatID int64, message string, messageID int) (err error)
+	SendMessagePlainText(ctx context.Context, chatID int64, message string, messageID int) (err error)
+	SendImageToGroup(ctx context.Context, image []byte, group int64) error
+	SendKeyboard(ctx context.Context, buttons []string, text string, chat int64)
 	RegisterCommand(command Command)
 	RegisterCommandLet(commandlet Commandlet)
 }
@@ -52,15 +53,15 @@ func NewService(store Store) Service {
 	return s
 }
 
-func (s *service) SendMessage(chatID int64, message string, messageID int) (err error) {
+func (s *service) SendMessage(ctx context.Context, chatID int64, message string, messageID int) (err error) {
 	return sendMessage(chatID, message, messageID, true)
 }
 
-func (s *service) SendMessagePlainText(chatID int64, message string, messageID int) (err error) {
+func (s *service) SendMessagePlainText(ctx context.Context, chatID int64, message string, messageID int) (err error) {
 	return sendMessage(chatID, message, messageID, false)
 }
 
-func (s *service) SendImageToGroup(image []byte, group int64) error {
+func (s *service) SendImageToGroup(ctx context.Context, image []byte, group int64) error {
 	path := ""
 
 	if runtime.GOOS == "windows" {
@@ -96,7 +97,7 @@ func (s *service) RegisterCommandLet(commandlet Commandlet) {
 	})
 }
 
-func (s *service) SendKeyboard(buttons []string, text string, chat int64) {
+func (s *service) SendKeyboard(ctx context.Context, buttons []string, text string, chat int64) {
 	keyB := tgbotapi.NewReplyKeyboard()
 	keyBRow := tgbotapi.NewKeyboardButtonRow()
 
@@ -251,7 +252,7 @@ func (s *help) Execute(update tgbotapi.Update) {
 		buffer.WriteString(x.Description)
 		buffer.WriteString("\n")
 	}
-	s.telegram.SendMessage(update.Message.Chat.ID, buffer.String(), update.Message.MessageID)
+	s.telegram.SendMessage(context.TODO(), update.Message.Chat.ID, buffer.String(), update.Message.MessageID)
 }
 
 func getCommands() []commandDescription {

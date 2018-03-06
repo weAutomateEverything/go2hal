@@ -9,6 +9,7 @@ import (
 	kitlog "github.com/go-kit/kit/log"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/pkg/errors"
+	"github.com/weAutomateEverything/go2hal/machineLearning"
 	"io"
 	"io/ioutil"
 	"log"
@@ -119,9 +120,12 @@ type errorer interface {
 	error() error
 }
 
-func logRequest() kithttp.RequestFunc {
+func logRequest(s machineLearning.Service) kithttp.RequestFunc {
 	return func(i context.Context, request *http.Request) context.Context {
 		log.Print(formatRequest(request))
+		if s != nil {
+			i = s.StoreHTTPRequest(i, request)
+		}
 		return i
 	}
 }
@@ -188,11 +192,11 @@ func formatResponse(r *http.Response) string {
 /*
 GetServerOpts creates a default server option with an error logger, error encoder and a http request logger.
 */
-func GetServerOpts(logger kitlog.Logger) []kithttp.ServerOption {
+func GetServerOpts(logger kitlog.Logger, service machineLearning.Service) []kithttp.ServerOption {
 	return []kithttp.ServerOption{
 		kithttp.ServerErrorLogger(logger),
 		kithttp.ServerErrorEncoder(EncodeError),
-		kithttp.ServerBefore(logRequest()),
+		kithttp.ServerBefore(logRequest(service)),
 	}
 }
 
@@ -201,7 +205,6 @@ GetServerOpts creates a default server option with an error logger, error encode
 */
 func GetClientOpts(logger kitlog.Logger) []kithttp.ClientOption {
 	return []kithttp.ClientOption{
-		kithttp.ClientBefore(logRequest()),
 		kithttp.ClientAfter(logResponse()),
 	}
 }

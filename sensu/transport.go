@@ -8,11 +8,14 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/gorilla/mux"
-	"github.com/zamedic/go2hal/gokit"
+	"github.com/weAutomateEverything/go2hal/gokit"
+	"github.com/weAutomateEverything/go2hal/machineLearning"
 )
 
-func MakeHandler(service Service, logger kitlog.Logger) http.Handler {
-	opts := gokit.GetServerOpts(logger)
+//MakeHandler retuns a http rest request handler for sensu
+//the machine learning service can be nil if you do not wish to save the request message
+func MakeHandler(service Service, logger kitlog.Logger, ml machineLearning.Service) http.Handler {
+	opts := gokit.GetServerOpts(logger, ml)
 
 	endpoint := makeSensuEndpoint(service)
 

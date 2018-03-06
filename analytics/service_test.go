@@ -4,8 +4,9 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
-	"github.com/zamedic/go2hal/alert"
-	"github.com/zamedic/go2hal/chef"
+	"github.com/weAutomateEverything/go2hal/alert"
+	"github.com/weAutomateEverything/go2hal/chef"
+	"golang.org/x/net/context"
 )
 
 func TestService_SendAnalyticsAlert(t *testing.T) {
@@ -21,9 +22,10 @@ func TestService_SendAnalyticsAlert(t *testing.T) {
 
 	recipes := []chef.Recipe{chef.Recipe{Recipe: "puff-base-server"}}
 	mockStore.EXPECT().GetRecipes().Return(recipes, nil)
+	ctx := context.TODO()
 
 	expected := "*analytics Event*\nChef Converge success - legion-minion-s3\n*Chef Server* pchfsvr1v.standardbank.co.za\n*Organisation* chopchop\n*Resources* Updated: 1, Total: 330\n*Run List* [recipe[puff-base-server], recipe[legion::worker], recipe[trevor]]\n"
-	mockAlert.EXPECT().SendAlert(expected)
-	service.SendAnalyticsAlert(msg)
+	mockAlert.EXPECT().SendAlert(ctx, expected)
+	service.SendAnalyticsAlert(ctx, msg)
 
 }

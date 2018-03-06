@@ -6,11 +6,17 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/zamedic/go2hal/gokit"
+	"github.com/weAutomateEverything/go2hal/gokit"
+	"github.com/weAutomateEverything/go2hal/machineLearning"
 )
 
-func MakeHandler(service Service, logger kitlog.Logger) http.Handler {
-	opts := gokit.GetServerOpts(logger)
+/*
+MakeHandler returns a rest http handler to send alerts.
+
+The machine learning service can be set to nil if you do not wish to save the requests.
+*/
+func MakeHandler(service Service, logger kitlog.Logger, ml machineLearning.Service) http.Handler {
+	opts := gokit.GetServerOpts(logger, ml)
 
 	alertHandler := kithttp.NewServer(makeAlertEndpoint(service), gokit.DecodeString, gokit.EncodeResponse, opts...)
 	imageAlertHandler := kithttp.NewServer(makeImageAlertEndpoint(service), gokit.DecodeFromBase64, gokit.EncodeResponse, opts...)

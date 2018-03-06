@@ -5,6 +5,7 @@
 package telegram
 
 import (
+	context "context"
 	gomock "github.com/golang/mock/gomock"
 	telegram_bot_api_v4 "gopkg.in/telegram-bot-api.v4"
 	reflect "reflect"
@@ -34,37 +35,49 @@ func (m *MockService) EXPECT() *MockServiceMockRecorder {
 }
 
 // SendMessage mocks base method
-func (m *MockService) SendMessage(chatID int64, message string, messageID int) error {
-	ret := m.ctrl.Call(m, "SendMessage", chatID, message, messageID)
+func (m *MockService) SendMessage(ctx context.Context, chatID int64, message string, messageID int) error {
+	ret := m.ctrl.Call(m, "SendMessage", ctx, chatID, message, messageID)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // SendMessage indicates an expected call of SendMessage
-func (mr *MockServiceMockRecorder) SendMessage(chatID, message, messageID interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendMessage", reflect.TypeOf((*MockService)(nil).SendMessage), chatID, message, messageID)
+func (mr *MockServiceMockRecorder) SendMessage(ctx, chatID, message, messageID interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendMessage", reflect.TypeOf((*MockService)(nil).SendMessage), ctx, chatID, message, messageID)
+}
+
+// SendMessagePlainText mocks base method
+func (m *MockService) SendMessagePlainText(ctx context.Context, chatID int64, message string, messageID int) error {
+	ret := m.ctrl.Call(m, "SendMessagePlainText", ctx, chatID, message, messageID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SendMessagePlainText indicates an expected call of SendMessagePlainText
+func (mr *MockServiceMockRecorder) SendMessagePlainText(ctx, chatID, message, messageID interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendMessagePlainText", reflect.TypeOf((*MockService)(nil).SendMessagePlainText), ctx, chatID, message, messageID)
 }
 
 // SendImageToGroup mocks base method
-func (m *MockService) SendImageToGroup(image []byte, group int64) error {
-	ret := m.ctrl.Call(m, "SendImageToGroup", image, group)
+func (m *MockService) SendImageToGroup(ctx context.Context, image []byte, group int64) error {
+	ret := m.ctrl.Call(m, "SendImageToGroup", ctx, image, group)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // SendImageToGroup indicates an expected call of SendImageToGroup
-func (mr *MockServiceMockRecorder) SendImageToGroup(image, group interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendImageToGroup", reflect.TypeOf((*MockService)(nil).SendImageToGroup), image, group)
+func (mr *MockServiceMockRecorder) SendImageToGroup(ctx, image, group interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendImageToGroup", reflect.TypeOf((*MockService)(nil).SendImageToGroup), ctx, image, group)
 }
 
 // SendKeyboard mocks base method
-func (m *MockService) SendKeyboard(buttons []string, text string, chat int64) {
-	m.ctrl.Call(m, "SendKeyboard", buttons, text, chat)
+func (m *MockService) SendKeyboard(ctx context.Context, buttons []string, text string, chat int64) {
+	m.ctrl.Call(m, "SendKeyboard", ctx, buttons, text, chat)
 }
 
 // SendKeyboard indicates an expected call of SendKeyboard
-func (mr *MockServiceMockRecorder) SendKeyboard(buttons, text, chat interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendKeyboard", reflect.TypeOf((*MockService)(nil).SendKeyboard), buttons, text, chat)
+func (mr *MockServiceMockRecorder) SendKeyboard(ctx, buttons, text, chat interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendKeyboard", reflect.TypeOf((*MockService)(nil).SendKeyboard), ctx, buttons, text, chat)
 }
 
 // RegisterCommand mocks base method

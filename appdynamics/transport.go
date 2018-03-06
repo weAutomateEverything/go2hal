@@ -6,12 +6,15 @@ import (
 	kitlog "github.com/go-kit/kit/log"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
-	"github.com/zamedic/go2hal/gokit"
+	"github.com/weAutomateEverything/go2hal/gokit"
+	"github.com/weAutomateEverything/go2hal/machineLearning"
 	"net/http"
 )
 
-func MakeHandler(service Service, logger kitlog.Logger) http.Handler {
-	opts := gokit.GetServerOpts(logger)
+//MakeHandler returns a restful http handler for the appdynamics service
+//the Machine Learning service can be set to nil if you do not wish to log the http requests
+func MakeHandler(service Service, logger kitlog.Logger, ml machineLearning.Service) http.Handler {
+	opts := gokit.GetServerOpts(logger, ml)
 
 	appDynamicsAlertEndoint := kithttp.NewServer(makeAppDynamicsAlertEndpoint(service), gokit.DecodeString, gokit.EncodeResponse, opts...)
 	addAppdynamicsEndpoint := kithttp.NewServer(makeAddAppdynamicsEndpoint(service), gokit.DecodeString, gokit.EncodeResponse, opts...)

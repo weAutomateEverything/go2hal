@@ -12,24 +12,26 @@ import (
 	stdprometheus "github.com/prometheus/client_golang/prometheus"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/zamedic/go2hal/alert"
-	"github.com/zamedic/go2hal/analytics"
-	"github.com/zamedic/go2hal/appdynamics"
-	"github.com/zamedic/go2hal/callout"
-	"github.com/zamedic/go2hal/chef"
-	"github.com/zamedic/go2hal/database"
-	http2 "github.com/zamedic/go2hal/http"
-	"github.com/zamedic/go2hal/jira"
-	"github.com/zamedic/go2hal/remoteTelegramCommands"
-	"github.com/zamedic/go2hal/seleniumTests"
-	"github.com/zamedic/go2hal/sensu"
-	"github.com/zamedic/go2hal/skynet"
-	"github.com/zamedic/go2hal/snmp"
-	ssh2 "github.com/zamedic/go2hal/ssh"
-	"github.com/zamedic/go2hal/telegram"
-	"github.com/zamedic/go2hal/user"
+	"github.com/weAutomateEverything/go2hal/alert"
+	"github.com/weAutomateEverything/go2hal/analytics"
+	"github.com/weAutomateEverything/go2hal/appdynamics"
+	"github.com/weAutomateEverything/go2hal/callout"
+	"github.com/weAutomateEverything/go2hal/chef"
+	"github.com/weAutomateEverything/go2hal/database"
+	"github.com/weAutomateEverything/go2hal/jira"
+	"github.com/weAutomateEverything/go2hal/remoteTelegramCommands"
+	"github.com/weAutomateEverything/go2hal/seleniumTests"
+	"github.com/weAutomateEverything/go2hal/sensu"
+	"github.com/weAutomateEverything/go2hal/skynet"
+	"github.com/weAutomateEverything/go2hal/snmp"
+	ssh2 "github.com/weAutomateEverything/go2hal/ssh"
+	"github.com/weAutomateEverything/go2hal/telegram"
+	"github.com/weAutomateEverything/go2hal/user"
 	"google.golang.org/grpc/reflection"
 
+	"github.com/weAutomateEverything/go2hal/httpSmoke"
+	"github.com/weAutomateEverything/go2hal/machineLearning"
+	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"net"
 	"net/http"
@@ -72,14 +74,18 @@ func main() {
 	sshStore := ssh2.NewMongoStore(db)
 	userStore := user.NewMongoStore(db)
 	seleniumStore := seleniumTests.NewMongoStore(db)
-	httpStore := http2.NewMongoStore(db)
+	httpStore := httpSmoke.NewMongoStore(db)
+	machingLearningStore := machineLearning.NewMongoStore(db)
 
 	fieldKeys := []string{"method"}
 
 	//Services
 
+	machineLearningService := machineLearning.NewService(machingLearningStore)
+
 	telegramService := telegram.NewService(telegramStore)
 	telegramService = telegram.NewLoggingService(log.With(logger, "component", "telegram"), telegramService)
+	telegramService = telegram.NewMachineLearning(machineLearningService, telegramService)
 	telegramService = telegram.NewInstrumentService(kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
 		Namespace: "api",
 		Subsystem: "telgram_service",
@@ -139,7 +145,7 @@ func main() {
 		if r := recover(); r != nil {
 			err, ok := r.(error)
 			if ok {
-				jiraService.CreateJira(fmt.Sprintf("HAL Panic - %v", err.Error()), string(debug.Stack()), getTechnicalUser())
+				jiraService.CreateJira(context.TODO(), fmt.Sprintf("HAL Panic - %v", err.Error()), string(debug.Stack()), getTechnicalUser())
 			}
 			panic(r)
 		}
@@ -190,7 +196,7 @@ func main() {
 			Help:      "Total duration of requests in microseconds.",
 		}, fieldKeys), appdynamicsService)
 
-	snmpService := snmp.NewService(alertService)
+	snmpService := snmp.NewService(alertService, machineLearningService)
 	snmpService = snmp.NewLoggingService(log.With(logger, "component", "snmp"), snmpService)
 	snmpService = snmp.NewInstrumentService(kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
 		Namespace: "api",
@@ -265,10 +271,31 @@ func main() {
 			Help:      "Total duration of requests in microseconds.",
 		}, fieldKeys), sensuService)
 
+	userService := user.NewService(userStore)
+	userService = user.NewLoggingService(log.With(logger, "component", "userService"), userService)
+	userService = user.NewInstrumentService(kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
+		Namespace: "api",
+		Subsystem: "user_service",
+		Name:      "request_count",
+		Help:      "Number of requests received.",
+	}, fieldKeys),
+		kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
+			Namespace: "api",
+			Subsystem: "user_service",
+			Name:      "error_count",
+			Help:      "Number of errors encountered.",
+		}, fieldKeys),
+		kitprometheus.NewSummaryFrom(stdprometheus.SummaryOpts{
+			Namespace: "api",
+			Subsystem: "user_service",
+			Name:      "request_latency_microseconds",
+			Help:      "Total duration of requests in microseconds.",
+		}, fieldKeys), userService)
+
 	remoteTelegramCommand := remoteTelegramCommands.NewService(telegramService)
 
 	_ = seleniumTests.NewService(seleniumStore, alertService, calloutService)
-	httpService := http2.NewService(alertService, httpStore, calloutService)
+	httpService := httpSmoke.NewService(alertService, httpStore, calloutService)
 
 	//Telegram Commands
 	telegramService.RegisterCommand(alert.NewSetGroupCommand(telegramService, alertStore))
@@ -279,7 +306,7 @@ func main() {
 	telegramService.RegisterCommand(skynet.NewRebuildCHefNodeCommand(telegramStore, chefStore, telegramService,
 		alertService))
 	telegramService.RegisterCommand(skynet.NewRebuildNodeCommand(alertService, skynetService))
-	telegramService.RegisterCommand(http2.NewQuietHttpAlertCommand(telegramService, httpService))
+	telegramService.RegisterCommand(httpSmoke.NewQuietHttpAlertCommand(telegramService, httpService))
 
 	telegramService.RegisterCommandLet(skynet.NewRebuildChefNodeEnvironmentReplyCommandlet(telegramService,
 		skynetService, chefService))
@@ -290,12 +317,13 @@ func main() {
 	httpLogger := log.With(logger, "component", "http")
 
 	mux := http.NewServeMux()
-	mux.Handle("/alert/", alert.MakeHandler(alertService, httpLogger))
-	mux.Handle("/chefAudit", analytics.MakeHandler(analyticsService, httpLogger))
-	mux.Handle("/appdynamics/", appdynamics.MakeHandler(appdynamicsService, httpLogger))
-	mux.Handle("/delivery", chef.MakeHandler(chefService, httpLogger))
-	mux.Handle("/skynet/", skynet.MakeHandler(skynetService, httpLogger))
-	mux.Handle("/sensu", sensu.MakeHandler(sensuService, httpLogger))
+	mux.Handle("/alert/", alert.MakeHandler(alertService, httpLogger, machineLearningService))
+	mux.Handle("/chefAudit", analytics.MakeHandler(analyticsService, httpLogger, machineLearningService))
+	mux.Handle("/appdynamics/", appdynamics.MakeHandler(appdynamicsService, httpLogger, machineLearningService))
+	mux.Handle("/delivery", chef.MakeHandler(chefService, httpLogger, machineLearningService))
+	mux.Handle("/skynet/", skynet.MakeHandler(skynetService, httpLogger, machineLearningService))
+	mux.Handle("/sensu", sensu.MakeHandler(sensuService, httpLogger, machineLearningService))
+	mux.Handle("/users/", user.MakeHandler(userService, httpLogger, machineLearningService))
 
 	http.Handle("/", panicHandler{accessControl(mux), jiraService, alertService})
 	http.Handle("/metrics", promhttp.Handler())
@@ -359,8 +387,8 @@ func (h panicHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 			err, ok := err.(error)
 			if ok {
-				h.alert.SendError(fmt.Errorf("panic detected: %v \n %v", err.Error(), string(debug.Stack())))
-				h.jira.CreateJira(fmt.Sprintf("HAL Panic - %v", err.Error()), string(debug.Stack()), getTechnicalUser())
+				h.alert.SendError(context.TODO(), fmt.Errorf("panic detected: %v \n %v", err.Error(), string(debug.Stack())))
+				h.jira.CreateJira(context.TODO(), fmt.Sprintf("HAL Panic - %v", err.Error()), string(debug.Stack()), getTechnicalUser())
 			}
 		}
 	}()

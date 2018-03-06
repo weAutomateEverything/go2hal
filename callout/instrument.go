@@ -2,6 +2,7 @@ package callout
 
 import (
 	"github.com/go-kit/kit/metrics"
+	"golang.org/x/net/context"
 	"time"
 )
 
@@ -19,18 +20,18 @@ func NewInstrumentService(counter metrics.Counter, latency metrics.Histogram, s 
 	}
 }
 
-func (s instrumentingService) InvokeCallout(title, message string) {
+func (s instrumentingService) InvokeCallout(ctx context.Context, title, message string) {
 	defer func(begin time.Time) {
 		s.requestCount.With("method", "InvokeCallout").Add(1)
 		s.requestLatency.With("method", "InvokeCallout").Observe(time.Since(begin).Seconds())
 	}(time.Now())
-	s.Service.InvokeCallout(title, message)
+	s.Service.InvokeCallout(ctx, title, message)
 }
 
-func (s instrumentingService) getFirstCallName() (string, error) {
+func (s instrumentingService) getFirstCallName(ctx context.Context) (string, error) {
 	defer func(begin time.Time) {
 		s.requestCount.With("method", "getFirstCallName").Add(1)
 		s.requestLatency.With("method", "getFirstCallName").Observe(time.Since(begin).Seconds())
 	}(time.Now())
-	return s.Service.getFirstCallName()
+	return s.Service.getFirstCallName(ctx)
 }

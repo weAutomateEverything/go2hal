@@ -2,13 +2,14 @@ package sensu
 
 import (
 	"fmt"
-	"github.com/zamedic/go2hal/alert"
+	"github.com/weAutomateEverything/go2hal/alert"
+	"golang.org/x/net/context"
 	"gopkg.in/kyokomi/emoji.v1"
 	"strings"
 )
 
 type Service interface {
-	handleSensu(sensu SensuMessageRequest)
+	handleSensu(ctx context.Context, sensu SensuMessageRequest)
 }
 
 type service struct {
@@ -19,7 +20,7 @@ func NewService(alert alert.Service) Service {
 	return &service{alert: alert}
 }
 
-func (s *service) handleSensu(sensu SensuMessageRequest) {
+func (s *service) handleSensu(ctx context.Context, sensu SensuMessageRequest) {
 	for _, msg := range sensu.Attachments {
 		e := ""
 		if strings.Index(msg.Title, "CRITICAL") > 0 {
@@ -31,7 +32,7 @@ func (s *service) handleSensu(sensu SensuMessageRequest) {
 			e = ":white_check_mark:"
 		}
 		msg := fmt.Sprintf("%v *%v*\n %v", e, msg.Title, msg.Text)
-		s.alert.SendAlert(emoji.Sprint(msg))
+		s.alert.SendAlert(ctx, emoji.Sprint(msg))
 
 	}
 

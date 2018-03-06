@@ -1,6 +1,7 @@
 package callout
 
 import (
+	"context"
 	"github.com/go-kit/kit/log"
 	"time"
 )
@@ -14,7 +15,7 @@ func NewLoggingService(logger log.Logger, s Service) Service {
 	return &loggingService{logger, s}
 }
 
-func (s loggingService) InvokeCallout(title, message string) {
+func (s loggingService) InvokeCallout(ctx context.Context, title, message string) {
 	defer func(begin time.Time) {
 		s.logger.Log(
 			"method", "InvokeCallout",
@@ -23,10 +24,10 @@ func (s loggingService) InvokeCallout(title, message string) {
 			"took", time.Since(begin),
 		)
 	}(time.Now())
-	s.Service.InvokeCallout(title, message)
+	s.Service.InvokeCallout(ctx, title, message)
 }
 
-func (s loggingService) getFirstCallName() (name string, error error) {
+func (s loggingService) getFirstCallName(ctx context.Context) (name string, error error) {
 	defer func(begin time.Time) {
 		s.logger.Log(
 			"method", "getFirstCallName",
@@ -35,5 +36,5 @@ func (s loggingService) getFirstCallName() (name string, error error) {
 			"took", time.Since(begin),
 		)
 	}(time.Now())
-	return s.Service.getFirstCallName()
+	return s.Service.getFirstCallName(ctx)
 }

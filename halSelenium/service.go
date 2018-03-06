@@ -6,8 +6,9 @@ import (
 	"github.com/pkg/errors"
 	stdprometheus "github.com/prometheus/client_golang/prometheus"
 	"github.com/tebeka/selenium"
-	"github.com/zamedic/go2hal/alert"
-	selenium2 "github.com/zamedic/go2hal/seleniumTests"
+	"github.com/weAutomateEverything/go2hal/alert"
+	selenium2 "github.com/weAutomateEverything/go2hal/seleniumTests"
+	"golang.org/x/net/context"
 )
 
 type Service interface {
@@ -141,12 +142,12 @@ func (s chromeService) sendError(message string, image []byte, internalError boo
 
 	if image != nil {
 		if internalError {
-			err := s.alert.SendImageToHeartbeatGroup(image)
+			err := s.alert.SendImageToHeartbeatGroup(context.TODO(), image)
 			if err != nil {
 				return err
 			}
 		} else {
-			err := s.alert.SendImageToAlertGroup(image)
+			err := s.alert.SendImageToAlertGroup(context.TODO(), image)
 			if err != nil {
 				return err
 			}
@@ -154,9 +155,9 @@ func (s chromeService) sendError(message string, image []byte, internalError boo
 	}
 
 	if internalError {
-		s.alert.SendError(errors.New(message))
+		s.alert.SendError(context.TODO(), errors.New(message))
 	} else {
-		err := s.alert.SendAlert(message)
+		err := s.alert.SendAlert(context.TODO(), message)
 		if err != nil {
 			return err
 		}

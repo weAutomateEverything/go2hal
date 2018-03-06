@@ -2,11 +2,12 @@ package skynet
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/zamedic/go2hal/alert"
-	"github.com/zamedic/go2hal/callout"
-	"github.com/zamedic/go2hal/chef"
+	"github.com/weAutomateEverything/go2hal/alert"
+	"github.com/weAutomateEverything/go2hal/callout"
+	"github.com/weAutomateEverything/go2hal/chef"
 	"gopkg.in/kyokomi/emoji.v1"
 	"io/ioutil"
 	"log"
@@ -17,8 +18,8 @@ import (
 )
 
 type Service interface {
-	RecreateNode(nodeName, callerName string) error
-	sendSkynetAlert(message string)
+	RecreateNode(ctx context.Context, nodeName, callerName string) error
+	sendSkynetAlert(ctx context.Context, message string)
 }
 
 type service struct {
@@ -31,15 +32,15 @@ func NewService(alert alert.Service, chefStore chef.Store, calloutService callou
 	return &service{alert, chefStore, calloutService}
 }
 
-func (s *service) sendSkynetAlert(message string) {
-	if !s.checkSend(message) {
+func (s *service) sendSkynetAlert(ctx context.Context, message string) {
+	if !s.checkSend(ctx, message) {
 		log.Println("Ignoreing message: " + message)
 		return
 	}
 
 	var dat map[string]interface{}
 	if err := json.Unmarshal([]byte(message), &dat); err != nil {
-		s.alert.SendError(fmt.Errorf("skynet alert - rrror unmarshalling: %s", message))
+		s.alert.SendError(ctx, fmt.Errorf("skynet alert - rrror unmarshalling: %s", message))
 		return
 	}
 
@@ -88,16 +89,16 @@ func (s *service) sendSkynetAlert(message string) {
 	buffer.WriteString(cmdbConfig["application"].(string))
 	buffer.WriteString("\n")
 
-	s.alert.SendAlert(buffer.String())
+	s.alert.SendAlert(ctx, buffer.String())
 
 }
 
-func (s *service) checkSend(message string) bool {
+func (s *service) checkSend(ctx context.Context, message string) bool {
 	message = strings.ToUpper(message)
 	log.Printf("Checking if we should send: %s", message)
 	recipes, err := s.chefStore.GetRecipes()
 	if err != nil {
-		s.alert.SendError(err)
+		s.alert.SendError(ctx, err)
 		return false
 	}
 	for _, recipe := range recipes {
@@ -115,121 +116,121 @@ func (s *service) checkSend(message string) bool {
 /*
 RecreateNode will find a node, get the details, delete the node, then recreate it
 */
-func (s service) RecreateNode(nodeName, callerName string) error {
+func (s service) RecreateNode(ctx context.Context, nodeName, callerName string) error {
 
 	skynet := getSkynetUrl()
-	json, err := s.findNode(nodeName, skynet)
+	json, err := s.findNode(ctx, nodeName, skynet)
 	if err != nil {
 		return err
 	}
 
-	err = s.deleteNode(nodeName, callerName, skynet)
+	err = s.deleteNode(ctx, nodeName, callerName, skynet)
 	if err != nil {
 		return err
 	}
 
-	err = s.waitForDelete(nodeName, skynet)
+	err = s.waitForDelete(ctx, nodeName, skynet)
 	if err != nil {
 		return err
 	}
 
-	err = s.createNode(json, skynet)
-	err = s.waitForBuild(nodeName, skynet)
+	err = s.createNode(ctx, json, skynet)
+	err = s.waitForBuild(ctx, nodeName, skynet)
 	return nil
 
 }
 
-func (s *service) findNode(nodeName string, skynet string) (string, error) {
-	body, err := s.doHTTP("GET", skynet+"/virtual_machines/"+nodeName, "", skynet)
+func (s *service) findNode(ctx context.Context, nodeName string, skynet string) (string, error) {
+	body, err := s.doHTTP(ctx, "GET", skynet+"/virtual_machines/"+nodeName, "", skynet)
 	if err != nil {
 		return "", err
 	}
 	return body, nil
 }
 
-func (s service) deleteNode(nodeName, callerName string, skynet string) error {
-	s.alert.SendAlert(fmt.Sprintf("Received a Delete Node request from %s for node %s. Proceeding with Delete", callerName, nodeName))
-	_, err := s.doHTTP("DELETE", skynet+"/virtual_machines/"+nodeName, "", skynet)
+func (s service) deleteNode(ctx context.Context, nodeName, callerName string, skynet string) error {
+	s.alert.SendAlert(ctx, fmt.Sprintf("Received a Delete Node request from %s for node %s. Proceeding with Delete", callerName, nodeName))
+	_, err := s.doHTTP(ctx, "DELETE", skynet+"/virtual_machines/"+nodeName, "", skynet)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (s *service) waitForDelete(nodeName string, skynet string) error {
-	return s.poll("ARCHIVED", nodeName, skynet, true, 300)
+func (s *service) waitForDelete(ctx context.Context, nodeName string, skynet string) error {
+	return s.poll(ctx, "ARCHIVED", nodeName, skynet, true, 300)
 }
 
-func (s *service) createNode(json string, skynet string) error {
+func (s *service) createNode(ctx context.Context, json string, skynet string) error {
 
-	body, err := s.doHTTP("POST", skynet+"/virtual_machines", json, skynet)
+	body, err := s.doHTTP(ctx, "POST", skynet+"/virtual_machines", json, skynet)
 	if err != nil {
-		s.calloutService.InvokeCallout("skynet error creating node", fmt.Sprintf("Json: %s, Error: %s", json, err.Error()))
+		s.calloutService.InvokeCallout(ctx, "skynet error creating node", fmt.Sprintf("Json: %s, Error: %s", json, err.Error()))
 		return err
 	}
 	log.Println(body)
 	return nil
 }
 
-func (s *service) waitForBuild(nodeName string, skynet string) error {
-	return s.poll("BOOTSTRAPPED", nodeName, skynet, false, 1200)
+func (s *service) waitForBuild(ctx context.Context, nodeName string, skynet string) error {
+	return s.poll(ctx, "BOOTSTRAPPED", nodeName, skynet, false, 1200)
 }
 
-func (s service) doHTTP(method, url, body string, skynet string) (string, error) {
+func (s service) doHTTP(ctx context.Context, method, url, body string, skynet string) (string, error) {
 	client := &http.Client{}
 	req, err := http.NewRequest(method, url, strings.NewReader(body))
 	if err != nil {
-		s.logError(fmt.Sprintf("skynet error creating URL to find node. Error %s. Method: %s, URL: %s, Body %s", err.Error(), method, url, body))
+		s.logError(ctx, fmt.Sprintf("skynet error creating URL to find node. Error %s. Method: %s, URL: %s, Body %s", err.Error(), method, url, body))
 		return "", err
 	}
 	req.SetBasicAuth(getSkynetUser(), getSkynetPassword())
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := client.Do(req)
 	if err != nil {
-		s.logError(fmt.Sprintf("error in skynet call.  Error %s. Method: %s, URL: %s, Body %s", err.Error(), method, url, body))
+		s.logError(ctx, fmt.Sprintf("error in skynet call.  Error %s. Method: %s, URL: %s, Body %s", err.Error(), method, url, body))
 		return "", err
 	}
 	bodyText, err := ioutil.ReadAll(resp.Body)
 	return string(bodyText), nil
 }
 
-func (s service) logError(error string) {
-	s.alert.SendAlert(error)
+func (s service) logError(ctx context.Context, error string) {
+	s.alert.SendAlert(ctx, error)
 }
 
-func (s *service) poll(expectedState, nodeName string, skynet string, ignoreFailed bool, timeout int) error {
+func (s *service) poll(ctx context.Context, expectedState, nodeName string, skynet string, ignoreFailed bool, timeout int) error {
 	i := 0
 	for i < timeout {
-		body, err := s.doHTTP("GET", skynet+"/virtual_machines/"+nodeName+"/state", "", skynet)
+		body, err := s.doHTTP(ctx, "GET", skynet+"/virtual_machines/"+nodeName+"/state", "", skynet)
 		if err != nil {
-			s.logError(fmt.Sprintf("skynet error retreiving node state:  Error %s. Node: %s", err.Error(), nodeName))
+			s.logError(ctx, fmt.Sprintf("skynet error retreiving node state:  Error %s. Node: %s", err.Error(), nodeName))
 			return err
 		}
 		var dat map[string]interface{}
 		err = json.Unmarshal([]byte(body), &dat)
 		if err != nil {
-			s.logError(fmt.Sprintf("skynet error unamrhsaling %s to json. Node: %s", body, nodeName))
+			s.logError(ctx, fmt.Sprintf("skynet error unamrhsaling %s to json. Node: %s", body, nodeName))
 			return err
 		}
 		state := dat["state"].(map[string]interface{})["current"].(string)
 		if strings.ToUpper(state) == expectedState {
-			s.alert.SendAlert(fmt.Sprintf("%s has been reached state %s.", nodeName, expectedState))
+			s.alert.SendAlert(ctx, fmt.Sprintf("%s has been reached state %s.", nodeName, expectedState))
 			return nil
 		}
 		if !ignoreFailed && strings.ToUpper(state) == "FAILED" {
-			s.alert.SendAlert(fmt.Sprintf("%s has entered a Failed State.", nodeName))
-			s.calloutService.InvokeCallout(fmt.Sprintf("Skynet Error rebuilding node %s", nodeName), "Node failed to build successfully")
+			s.alert.SendAlert(ctx, fmt.Sprintf("%s has entered a Failed State.", nodeName))
+			s.calloutService.InvokeCallout(ctx, fmt.Sprintf("Skynet Error rebuilding node %s", nodeName), "Node failed to build successfully")
 			return fmt.Errorf("%s has entered a Failed State", nodeName)
 		}
 		i++
 		if i%60 == 0 {
-			s.alert.SendError(fmt.Errorf("still waiting for node %s to reach state %s. Curent state is %s", nodeName, expectedState, state))
+			s.alert.SendError(ctx, fmt.Errorf("still waiting for node %s to reach state %s. Curent state is %s", nodeName, expectedState, state))
 		}
 		time.Sleep(time.Second)
 	}
-	s.calloutService.InvokeCallout(fmt.Sprintf("Timed out waiting for node %s to enter state %s", nodeName, expectedState), "")
+	s.calloutService.InvokeCallout(ctx, fmt.Sprintf("Timed out waiting for node %s to enter state %s", nodeName, expectedState), "")
 	err := fmt.Errorf("timed out waiting for node %s to %s", nodeName, expectedState)
-	s.logError(err.Error())
+	s.logError(ctx, err.Error())
 	return err
 }
 
