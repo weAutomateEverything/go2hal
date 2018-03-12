@@ -28,10 +28,10 @@ func (s *whosOnFirstCall) CommandDescription() string {
 }
 
 func (s *whosOnFirstCall) Execute(update tgbotapi.Update) {
-	name, err := s.service.getFirstCallName(context.TODO())
+	name, phone, err := s.service.getFirstCall(context.TODO())
 	if err != nil {
 		s.alert.SendError(context.TODO(), err)
 		return
 	}
-	s.telegram.SendMessage(context.TODO(), update.Message.Chat.ID, fmt.Sprintf("%s is on first call", name), update.Message.MessageID)
+	s.telegram.SendMessage(context.TODO(), update.Message.Chat.ID, fmt.Sprintf("%s is on first call. Number %v", name,phone), update.Message.MessageID)
 }

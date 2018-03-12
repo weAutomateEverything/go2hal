@@ -35,6 +35,7 @@ import (
 	"os/signal"
 	"runtime/debug"
 	"syscall"
+	"github.com/weAutomateEverything/go2hal/halaws"
 )
 
 func main() {
@@ -43,6 +44,8 @@ func main() {
 	logger = log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
 	logger = level.NewFilter(logger, level.AllowAll())
 	logger = log.With(logger, "ts", log.DefaultTimestamp)
+
+
 
 	db := database.NewConnection()
 
@@ -191,7 +194,22 @@ func main() {
 			Help:      "Total duration of requests in microseconds.",
 		}, fieldKeys), snmpService)
 
-	calloutService := callout.NewService(alertService, snmpService, jiraService)
+	aws := halaws.NewService()
+	aws = halaws.NewLoggingService(log.With(logger, "component", "halaws"), aws)
+	aws = halaws.NewInstrumentService(kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
+		Namespace: "api",
+		Subsystem: "halaws",
+		Name:      "request_count",
+		Help:      "Number of requests received.",
+	}, fieldKeys),
+		kitprometheus.NewSummaryFrom(stdprometheus.SummaryOpts{
+			Namespace: "api",
+			Subsystem: "callout",
+			Name:      "request_latency_microseconds",
+			Help:      "Total duration of requests in microseconds.",
+		}, fieldKeys), aws)
+
+	calloutService := callout.NewService(alertService, snmpService, jiraService,aws)
 	calloutService = callout.NewLoggingService(log.With(logger, "component", "callout"), calloutService)
 	calloutService = callout.NewInstrumentService(kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
 		Namespace: "api",
