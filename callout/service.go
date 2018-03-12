@@ -50,7 +50,7 @@ func (s *service) InvokeCallout(ctx context.Context, title, message string) {
 	}
 	s.jira.CreateJira(ctx, title, message, name)
 	if s.alexa != nil {
-		s.alexa.SendAlert(phone)
+		s.alexa.SendAlert(ctx, phone, name)
 	}
 }
 

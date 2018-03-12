@@ -192,7 +192,7 @@ func main() {
 			Help:      "Total duration of requests in microseconds.",
 		}, fieldKeys), snmpService)
 
-	aws := halaws.NewService()
+	aws := halaws.NewService(alertService)
 	aws = halaws.NewLoggingService(log.With(logger, "component", "halaws"), aws)
 	aws = halaws.NewInstrumentService(kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
 		Namespace: "api",
@@ -320,6 +320,7 @@ func main() {
 	mux.Handle("/skynet/", skynet.MakeHandler(skynetService, httpLogger, machineLearningService))
 	mux.Handle("/sensu", sensu.MakeHandler(sensuService, httpLogger, machineLearningService))
 	mux.Handle("/users/", user.MakeHandler(userService, httpLogger, machineLearningService))
+	mux.Handle("/aws/sendTestAlert", halaws.MakeHandler(aws, httpLogger, machineLearningService))
 
 	http.Handle("/", panicHandler{accessControl(mux), jiraService, alertService})
 	http.Handle("/metrics", promhttp.Handler())

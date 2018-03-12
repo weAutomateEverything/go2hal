@@ -2,6 +2,7 @@ package halaws
 
 import (
 	"github.com/go-kit/kit/log"
+	"golang.org/x/net/context"
 	"time"
 )
 
@@ -14,7 +15,7 @@ func NewLoggingService(logger log.Logger, s Service) Service {
 	return &loggingService{logger, s}
 }
 
-func (s loggingService) SendAlert(destination string) {
+func (s loggingService) SendAlert(ctx context.Context, destination string, name string) {
 	defer func(begin time.Time) {
 		s.logger.Log(
 			"method", "InvokeCallout",
@@ -22,5 +23,5 @@ func (s loggingService) SendAlert(destination string) {
 			"took", time.Since(begin),
 		)
 	}(time.Now())
-	s.Service.SendAlert(destination)
+	s.Service.SendAlert(ctx, destination, name)
 }

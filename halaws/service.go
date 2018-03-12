@@ -1,25 +1,30 @@
 package halaws
 
 import (
+	"fmt"
+	"github.com/kyokomi/emoji"
 	"github.com/weAutomateEverything/aws-sdk-go/aws"
 	"github.com/weAutomateEverything/aws-sdk-go/aws/credentials"
 	"github.com/weAutomateEverything/aws-sdk-go/aws/session"
 	"github.com/weAutomateEverything/aws-sdk-go/service/connect"
+	"github.com/weAutomateEverything/go2hal/alert"
+	"golang.org/x/net/context"
 	"os"
 )
 
 type Service interface {
-	SendAlert(destination string)
+	SendAlert(ctx context.Context, destination string, name string)
 }
 
 type service struct {
+	alert alert.Service
 }
 
-func NewService() Service {
-	return &service{}
+func NewService(alert alert.Service) Service {
+	return &service{alert: alert}
 }
 
-func (s *service) SendAlert(destination string) {
+func (s *service) SendAlert(ctx context.Context, destination string, name string) {
 	c := credentials.NewEnvCredentials()
 
 	config := aws.Config{Credentials: c, Region: aws.String("us-east-1"), LogLevel: aws.LogLevel(aws.LogDebugWithHTTPBody)}
@@ -34,7 +39,14 @@ func (s *service) SendAlert(destination string) {
 		DestinationPhoneNumber: aws.String(destination),
 		Attributes:             &map[string]string{},
 	}
-	outbound.StartOutboundVoiceContact(&req)
+	output, err := outbound.StartOutboundVoiceContact(&req)
+	if err != nil {
+		s.alert.SendError(ctx, fmt.Errorf("error invoking alexa to call %v on %v. Error: %v", name, destination, err.Error()))
+		return
+	}
+
+	s.alert.SendAlert(ctx, emoji.Sprintf(":phone: HAL has phoned %v on %v. Reference %v ", name, destination, output.ContactId))
+
 }
 
 func getInstanceID() string {
