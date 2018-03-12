@@ -1,0 +1,14 @@
+kind: Ingress
+apiVersion: extensions/v1beta1
+metadata:
+  name: hal
+  annotations:
+   kubernetes.io/ingress.class: istio
+spec:
+   rules:
+     - host:
+       http:
+         paths:
+           - backend:
+               serviceName: hal
+               servicePort: http

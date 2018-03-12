@@ -2,9 +2,9 @@ package halaws
 
 import (
 	"github.com/weAutomateEverything/aws-sdk-go/aws"
+	"github.com/weAutomateEverything/aws-sdk-go/aws/credentials"
 	"github.com/weAutomateEverything/aws-sdk-go/aws/session"
 	"github.com/weAutomateEverything/aws-sdk-go/service/connect"
-	"github.com/weAutomateEverything/aws-sdk-go/aws/credentials"
 	"os"
 )
 
@@ -13,14 +13,13 @@ type Service interface {
 }
 
 type service struct {
-
 }
 
-func NewService() Service{
+func NewService() Service {
 	return &service{}
 }
 
-func (s *service)SendAlert(destination string){
+func (s *service) SendAlert(destination string) {
 	c := credentials.NewEnvCredentials()
 
 	config := aws.Config{Credentials: c, Region: aws.String("us-east-1"), LogLevel: aws.LogLevel(aws.LogDebugWithHTTPBody)}
@@ -31,7 +30,7 @@ func (s *service)SendAlert(destination string){
 	req := connect.StartOutboundVoiceContactInput{
 		InstanceId:             aws.String(getInstanceID()),
 		ContactFlowId:          aws.String(getContactFlowID()),
-		SourcePhoneNumber:                aws.String(getSourcePhoneNumber()),
+		SourcePhoneNumber:      aws.String(getSourcePhoneNumber()),
 		DestinationPhoneNumber: aws.String(destination),
 		Attributes:             &map[string]string{},
 	}

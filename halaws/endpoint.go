@@ -1,14 +1,14 @@
 package halaws
 
 import (
-	"github.com/go-kit/kit/endpoint"
 	"context"
+	"github.com/go-kit/kit/endpoint"
 )
 
-func MakeSendAlertEndpoint(s Service) endpoint.Endpoint{
+func MakeSendAlertEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(string)
 		s.SendAlert(req)
-		return nil,nil
+		return nil, nil
 	}
 }

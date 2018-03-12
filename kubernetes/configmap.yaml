@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hal
+  labels:
+    name: hal
+data:
+  MONGO_SERVERS:
+  MONGO_USER:
+  MONGO_REPLICA_SET:
+  MONGO_AUTH_SOURCE:
+  MONGO_SSL:
+  NO_PROXY:
+  SNMP_SERVER:
+  SNMP_PORT:
+  CALLOUT_URL:
+  JIRA_TEMPLATE:
+  JIRA_DEFAULT_USER:
+  SKYNET_URL:
+  SKYNET_USER:

@@ -8,12 +8,12 @@ import (
 
 	"errors"
 	"github.com/weAutomateEverything/go2hal/alert"
+	"github.com/weAutomateEverything/go2hal/halaws"
 	"github.com/weAutomateEverything/go2hal/jira"
 	"github.com/weAutomateEverything/go2hal/snmp"
 	"golang.org/x/net/context"
-	"os"
 	"gopkg.in/xmlpath.v2"
-	"github.com/weAutomateEverything/go2hal/halaws"
+	"os"
 )
 
 type Service interface {
@@ -22,7 +22,7 @@ type Service interface {
 	*/
 	InvokeCallout(ctx context.Context, title, message string)
 
-	getFirstCall(ctx context.Context) (name string,number string, err error)
+	getFirstCall(ctx context.Context) (name string, number string, err error)
 }
 
 type service struct {
@@ -43,7 +43,7 @@ func (s *service) InvokeCallout(ctx context.Context, title, message string) {
 
 	s.alert.SendError(ctx, fmt.Errorf("invoking callout for: %s, %s", title, message))
 	s.snmp.SendSNMPMessage(ctx)
-	name,phone, err := s.getFirstCall(ctx)
+	name, phone, err := s.getFirstCall(ctx)
 	if err != nil {
 		s.alert.SendError(ctx, err)
 		name = "DEFAULT"
@@ -54,21 +54,21 @@ func (s *service) InvokeCallout(ctx context.Context, title, message string) {
 	}
 }
 
-func (s *service) getFirstCall(ctx context.Context) (name string,number string, err error){
+func (s *service) getFirstCall(ctx context.Context) (name string, number string, err error) {
 	endpoint := getCalloutDetails()
 	if endpoint == "" {
-		return "DEFAULT","", nil
+		return "DEFAULT", "", nil
 	}
 	resp, err := http.Get(endpoint)
 	if err != nil {
 		s.alert.SendError(ctx, err)
-		return "DEFAULT","", err
+		return "DEFAULT", "", err
 	}
 	nodes, err := xmlpath.ParseHTML(resp.Body)
 
 	if err != nil {
-		s.alert.SendError(ctx, fmt.Errorf("error decoding html for callout list. %v",err))
-		return "DEFAULT","",err
+		s.alert.SendError(ctx, fmt.Errorf("error decoding html for callout list. %v", err))
+		return "DEFAULT", "", err
 	}
 
 	namePath := xmlpath.MustCompile("/html/body/div[2]/fieldset[1]/table/tbody/tr[1]/th/font")
@@ -76,24 +76,21 @@ func (s *service) getFirstCall(ctx context.Context) (name string,number string, 
 
 	name, ok := namePath.String(nodes)
 	if !ok {
-		s.alert.SendAlert(ctx,"unable to retrieve first call user from callout portal")
-		return "DEFAULT","",errors.New("unable to retrieve first call user from portal due ot xml parsing issue. ")
+		s.alert.SendAlert(ctx, "unable to retrieve first call user from callout portal")
+		return "DEFAULT", "", errors.New("unable to retrieve first call user from portal due ot xml parsing issue. ")
 	}
 
 	phone, ok := phonePath.String(nodes)
 	if !ok {
-		s.alert.SendAlert(ctx,"unable to retrieve phone number from callout portal")
-		return "DEFAULT","",errors.New("unable to retrieve phone number from portal due ot xml parsing issue. ")
+		s.alert.SendAlert(ctx, "unable to retrieve phone number from callout portal")
+		return "DEFAULT", "", errors.New("unable to retrieve phone number from portal due ot xml parsing issue. ")
 	}
 
-	phone = strings.Replace(phone,"-","",-1)
-	phone = strings.Replace(phone," ","",-1)
-	phone = strings.Replace(phone,"0","+27",1)
+	phone = strings.Replace(phone, "-", "", -1)
+	phone = strings.Replace(phone, " ", "", -1)
+	phone = strings.Replace(phone, "0", "+27", 1)
 
 	return name, phone, nil
-
-
-
 
 }
 func getCalloutDetails() string {
