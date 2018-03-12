@@ -2,10 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/connect"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	kitprometheus "github.com/go-kit/kit/metrics/prometheus"
@@ -39,6 +35,7 @@ import (
 	"os/signal"
 	"runtime/debug"
 	"syscall"
+	"github.com/weAutomateEverything/go2hal/halaws"
 )
 
 func main() {
@@ -48,21 +45,7 @@ func main() {
 	logger = level.NewFilter(logger, level.AllowAll())
 	logger = log.With(logger, "ts", log.DefaultTimestamp)
 
-	c := credentials.NewEnvCredentials()
 
-	config := aws.Config{Credentials: c, Region: aws.String("us-east-1"), LogLevel: aws.LogLevel(aws.LogDebugWithHTTPBody)}
-	sess, _ := session.NewSession(&config)
-
-	outbound := connect.New(sess, &config)
-
-	req := connect.StartOutboundVoiceContactInput{
-		InstanceId:             aws.String("cb23092d-681f-49a4-b8f7-ff5c739b6c7c"),
-		ContactFlowId:          aws.String("f470c790-8018-4bfe-8d43-c46b45dc1d90"),
-		QueueId:                aws.String("0e7f76b7-19bf-4406-8931-9522f08afacf"),
-		DestinationPhoneNumber: aws.String("+27836670778"),
-		Attributes:             &map[string]string{},
-	}
-	outbound.StartOutboundVoiceContact(&req)
 
 	db := database.NewConnection()
 
@@ -211,7 +194,22 @@ func main() {
 			Help:      "Total duration of requests in microseconds.",
 		}, fieldKeys), snmpService)
 
-	calloutService := callout.NewService(alertService, snmpService, jiraService)
+	aws := halaws.NewService()
+	aws = halaws.NewLoggingService(log.With(logger, "component", "halaws"), aws)
+	aws = halaws.NewInstrumentService(kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
+		Namespace: "api",
+		Subsystem: "halaws",
+		Name:      "request_count",
+		Help:      "Number of requests received.",
+	}, fieldKeys),
+		kitprometheus.NewSummaryFrom(stdprometheus.SummaryOpts{
+			Namespace: "api",
+			Subsystem: "callout",
+			Name:      "request_latency_microseconds",
+			Help:      "Total duration of requests in microseconds.",
+		}, fieldKeys), aws)
+
+	calloutService := callout.NewService(alertService, snmpService, jiraService,aws)
 	calloutService = callout.NewLoggingService(log.With(logger, "component", "callout"), calloutService)
 	calloutService = callout.NewInstrumentService(kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
 		Namespace: "api",

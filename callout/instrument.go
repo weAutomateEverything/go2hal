@@ -28,10 +28,10 @@ func (s instrumentingService) InvokeCallout(ctx context.Context, title, message 
 	s.Service.InvokeCallout(ctx, title, message)
 }
 
-func (s instrumentingService) getFirstCallName(ctx context.Context) (string, error) {
+func (s instrumentingService) getFirstCallName(ctx context.Context) (string,string, error) {
 	defer func(begin time.Time) {
 		s.requestCount.With("method", "getFirstCallName").Add(1)
 		s.requestLatency.With("method", "getFirstCallName").Observe(time.Since(begin).Seconds())
 	}(time.Now())
-	return s.Service.getFirstCallName(ctx)
+	return s.Service.getFirstCall(ctx)
 }

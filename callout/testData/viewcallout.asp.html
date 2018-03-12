@@ -1,0 +1,148 @@
+
+<!-- saved from url=(0048)http://bob/callout/viewcallout.asp -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<link rel="stylesheet" type="text/css" href="./viewcallout.asp_files/calloutstyle.css">
+<title></title>
+</head>
+
+<body topmargin="0" leftmargin="0" onload="DropDownForm.TeamText.focus();">
+<script language="javascript">
+if (parent.header.AddTeamCall.style.visibility=='visible') {
+	parent.header.setStyle('View','visible','');
+	parent.header.homeRef.value='admin/logon.asp'
+}
+else {
+	parent.header.setStyle('View','hidden','');
+	parent.header.homeRef.value='mainpage.asp'
+}
+
+var arrDescription = new Array()
+arrDescription[0] = "";
+
+
+function CheckForm() {
+	var message = "";
+
+	if (DropDownForm.Team.value == 0) {
+		message += "Please select a Team!\n";
+	}
+
+	if (message.length > 0) {
+		alert(message);
+		return false;
+	}
+	else {
+		return true;
+	}
+}
+</script>
+<script language="javascript">
+function showDescription(selectedTeam) {
+	if (arrDescription[selectedTeam].length != 0) {
+		splitdesc = arrDescription[selectedTeam].split("~");
+		desctext = "<table width=100% cellpadding=0 cellspacing=0 border=0><tr><td width=25% style='background-color: #EBEBEB'>";
+		desctext += "</td><td width=50% style='background-color: #EBEBEB' align='center'>";
+		desctext += "<b>Team Description</b></td><td nowrap width=25% style='background-color: #EBEBEB' align='right'>"
+		desctext += "<a href='' onClick=\"document.all.description.style.visibility='hidden'; return false\">close</a></td></tr></table><br>";
+		for (key in splitdesc) {
+			desctext += splitdesc[key]+"<br>";
+		}
+		document.all.celltext.innerHTML=desctext;
+		document.all.description.style.visibility = 'visible';
+	}
+	else document.all.description.style.visibility = 'hidden';
+}
+
+function search(object) {
+	var found = false;
+	//*************************************************
+	// if backspace to the beginning then don't search
+	//*************************************************
+	if (object.TeamText.value.length > -1) {
+
+		for (var i=0; (i < object.Team.length) && !found; i++) {
+
+			//******************************************************
+			// if the search string is found then select the team
+       		//******************************************************
+
+       		if (object.Team.options[i].text.toUpperCase().indexOf(object.TeamText.value.toUpperCase()) == 0) {
+          		found = true;
+              	object.Team.options[i].selected = true;
+         	}
+
+         	//****************************************************************************
+         	// if not found then select the NEXT team closest to the character entered
+         	// eg. if K is entered and no teams start with K then select L if available
+         	//****************************************************************************
+         	else if (object.Team.options[i].text.toUpperCase() > object.TeamText.value.toUpperCase()) {
+         		found = true;
+             	object.Team.options[i].selected = true;
+        	}
+      	}
+
+      	//***************************************************************************
+      	// if characters searched for are after the last entry in the menu eg. zz,
+      	// then select the last entry
+      	//***************************************************************************
+      	if (!found) object.Team.options[object.Team.length - 1].selected = true;
+	}
+	showDescription(object.Team.selectedIndex);
+}
+</script>
+<div id="description" style="visibility: hidden; position: absolute; left: 98; top: 130;">
+<table width="300px" height="100" border="2" style="cellpadding=; border-width:1; border-collapse:collapse" cellspacing="0" bordercolor="&#39;111111" cellpadding="2">
+	<tbody><tr>
+		<td id="celltext" style="background-color: #EBEBEB" valign="top">
+        <p align="center"></p></td>
+	</tr>
+</tbody></table>
+</div>
+<form method="POST" name="DropDownForm" onsubmit="return CheckForm" action="http://bob/callout/viewcallout.asp">
+<table border="0" cellspacing="0" height="104" width="733">
+	<tbody><tr>
+   		<td height="12" width="65">
+       	<b>&nbsp; Search :</b>
+       </td>
+       <td width="289" rowspan="2" height="102">
+			<p>&nbsp;
+			<input type="text" name="TeamText" size="41" onkeyup="search(this.form);" tabindex="1">
+			<select size="6" width="80" name="Team" tabindex="2" onchange="showDescription(this.selectedIndex);">
+				<option value="" selected=""></option>
+<option value=" GTSS Data Services BI"> BOB</option>
+
+   			</select>
+          	&nbsp;
+     	</p></td>
+       <td width="367" nowrap="" height="39"><b>&nbsp;Enter the first few letters of the Team to search for.<br>
+       	&nbsp;Press Enter or click View when the team is selected.</b>
+       </td>
+   	</tr>
+   	<tr>
+   		<td height="70" width="65">
+       	<b>&nbsp; Team :</b>
+       </td>
+       <td width="367" nowrap="" height="63">&nbsp; <b>Current</b>
+       	<input type="radio" value="current" name="View" tabindex="3" checked="" class="radio">
+       	<b>All</b> <input type="radio" value="all" name="View" tabindex="4" class="radio">
+       	<b>Team Details</b> <input type="radio" value="TeamNumbers" name="View" tabindex="5" class="radio">
+   		</td>
+	</tr>
+</tbody></table>
+	<a href="javascript:document.DropDownForm.submit()" onmouseover="document.ViewSubmit.src=&#39;Images/ViewSubmit.jpg&#39;;" onmouseout="document.ViewSubmit.src=&#39;Images/ViewShadowSubmit.jpg&#39;;" onclick="return CheckForm();">
+		<img name="ViewSubmit" src="./viewcallout.asp_files/ViewShadowSubmit.jpg" border="0"></a>
+</form>
+<p>
+
+</p><div align="center">
+<table border="0" cellpadding="0" cellspacing="0"><tbody><tr><td width="702" height="30" nowrap="">
+<p align="center"><b><font size="2" color="000080">BOBS TEAM&nbsp;&nbsp;&nbsp;&nbsp;09 March 2018   -  16 March 2018</font></b></p></td></tr></tbody></table>
+<fieldset style="width:550px" align="center"><legend>1st Call</legend><br><table border="0" cellspacing="1" width="522"><tbody><tr><th colspan="3" align="center"><font color="red" size="2">BOB1</font></th></tr><tr><td align="center"><b>Primary Number</b></td><td align="center"><b>Secondary Number</b></td><td align="center"><b>Work Number</b></td></tr><tr><td align="center">084 123 1234</td><td align="center"></td>
+<td align="center"></td></tr>
+<tr><td colspan="3" align="center"><b>Special Instructions</b></td></tr><tr><td colspan="3"><pre>BOB is 2nd call for all BOB related <br>issues - please call him only for BOB <br>issues&#65007; &#65007;&#65007;&#65007;<br></pre></td></tr></tbody></table></fieldset><br><fieldset style="width:550px" align="center"><legend>2nd Call</legend><br><table border="0" cellspacing="1" width="522"><tbody><tr><th colspan="3" align="center"><font color="red" size="2">BOB2</font></th></tr><tr><td align="center"><b>Primary Number</b></td><td align="center"><b>Secondary Number</b></td><td align="center"><b>Work Number</b></td></tr><tr><td align="center">083 432 4321</td><td align="center"></td>
+<td align="center"></td></tr>
+</tbody></table></fieldset><br><fieldset style="width:550px" align="center"><legend>3rd Call</legend><br><table border="0" cellspacing="1" width="522"><tbody><tr><th colspan="3" align="center"><font color="red" size="2">BOB3</font></th></tr><tr><td align="center"><b>Primary Number</b></td><td align="center"><b>Secondary Number</b></td><td align="center"><b>Work Number</b></td></tr><tr><td align="center">084 333 4444</td><td align="center"></td>
+<td align="center"></td></tr>
+<tr><td colspan="3" align="center"><b>Special Instructions</b></td></tr><tr><td colspan="3"><pre>BOB3 is the 2nd call for ALL BOB <br>related issues ONLY&#65007; &#65007;<br></pre></td></tr></tbody></table></fieldset><br><fieldset style="width:550px" align="center"><legend>1st Call Management</legend><br><table border="0" width="522" cellspacing="1"><tbody><tr><th colspan="3" align="center"><font size="2" color="red">BOB4</font></th></tr><tr><td align="center"><b>Primary Number</b></td><td align="center">
+<b>Secondary Number</b></td><td align="center"><b>Work Number</b></td></tr><tr><td align="center">076-555 5555</td><td align="center"></td><td align="center"></td></tr>
+<tr><td colspan="3" width="499" align="center"><b>Special Instructions</b></td></tr><tr><td colspan="3" width="499"><pre>65007; &#65007;&#65007;&#65007;&#65007; &#65007;<br></pre></td></tr></tbody></table></fieldset><br><p></p></div></body></html>
