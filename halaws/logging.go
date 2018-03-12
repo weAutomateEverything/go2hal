@@ -14,7 +14,7 @@ func NewLoggingService(logger log.Logger, s Service) Service {
 	return &loggingService{logger, s}
 }
 
-func (s loggingService)SendAlert(destination string) {
+func (s loggingService) SendAlert(destination string) {
 	defer func(begin time.Time) {
 		s.logger.Log(
 			"method", "InvokeCallout",

@@ -25,6 +25,7 @@ import (
 	"github.com/weAutomateEverything/go2hal/user"
 	"google.golang.org/grpc/reflection"
 
+	"github.com/weAutomateEverything/go2hal/halaws"
 	"github.com/weAutomateEverything/go2hal/httpSmoke"
 	"github.com/weAutomateEverything/go2hal/machineLearning"
 	"golang.org/x/net/context"
@@ -35,7 +36,6 @@ import (
 	"os/signal"
 	"runtime/debug"
 	"syscall"
-	"github.com/weAutomateEverything/go2hal/halaws"
 )
 
 func main() {
@@ -44,8 +44,6 @@ func main() {
 	logger = log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
 	logger = level.NewFilter(logger, level.AllowAll())
 	logger = log.With(logger, "ts", log.DefaultTimestamp)
-
-
 
 	db := database.NewConnection()
 
@@ -204,12 +202,12 @@ func main() {
 	}, fieldKeys),
 		kitprometheus.NewSummaryFrom(stdprometheus.SummaryOpts{
 			Namespace: "api",
-			Subsystem: "callout",
+			Subsystem: "halaws",
 			Name:      "request_latency_microseconds",
 			Help:      "Total duration of requests in microseconds.",
 		}, fieldKeys), aws)
 
-	calloutService := callout.NewService(alertService, snmpService, jiraService,aws)
+	calloutService := callout.NewService(alertService, snmpService, jiraService, aws)
 	calloutService = callout.NewLoggingService(log.With(logger, "component", "callout"), calloutService)
 	calloutService = callout.NewInstrumentService(kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
 		Namespace: "api",

@@ -33,5 +33,5 @@ func (s *whosOnFirstCall) Execute(update tgbotapi.Update) {
 		s.alert.SendError(context.TODO(), err)
 		return
 	}
-	s.telegram.SendMessage(context.TODO(), update.Message.Chat.ID, fmt.Sprintf("%s is on first call. Number %v", name,phone), update.Message.MessageID)
+	s.telegram.SendMessage(context.TODO(), update.Message.Chat.ID, fmt.Sprintf("%s is on first call. Number %v", name, phone), update.Message.MessageID)
 }
