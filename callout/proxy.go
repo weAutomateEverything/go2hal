@@ -28,6 +28,8 @@ type SendCalloutRequest struct {
 	message string
 }
 
+// NewCalloutProxy will create a HTTP Rest client to easily invoke the Callout service offered by HAL. The HAL Service
+// endpoint needs to be set in a Environment Variable named HAL_ENDPOINT
 func NewCalloutProxy() Service {
 	if getHalUrl() == "" {
 		panic("No Alert Endpoint set. Please set the environment variable ALERT_ENDPOINT with the http address of the alert service")
@@ -40,6 +42,11 @@ func NewCalloutProxy() Service {
 
 }
 
+// NewKubernetesCalloutProxy creates a HTTP Rest client to easily call the Callout service by using the Service discovery
+// mechaisms build into kubernetes. The funciton does assume that the deployment was done using the templates provided
+// within the kuberets folder of the project, and that a service names hal was created. If you application resides in the
+// same namespace as HAL, then the namespace can be left as a empty string, else provide the namespace that contains
+// the hal deployment.
 func NewKubernetesCalloutProxy(namespace string) Service {
 	fieldKeys := []string{"method"}
 

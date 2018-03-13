@@ -1,3 +1,5 @@
+// Package callout provides a mechanism to invoke various different forms of callout depending on the services
+// linked when creating the service.
 package callout
 
 import (
@@ -16,10 +18,9 @@ import (
 	"os"
 )
 
+//Service interface for the Callout Service
 type Service interface {
-	/*
-		InvokeCallout will invoke snmp if configured, then create a jira ticket if configured.
-	*/
+	//InvokeCallout will invoke snmp if configured, then create a jira ticket if configured.
 	InvokeCallout(ctx context.Context, title, message string) error
 
 	getFirstCall(ctx context.Context) (name string, number string, err error)
@@ -32,23 +33,27 @@ type service struct {
 	alexa halaws.Service
 }
 
+// NewService creates a new Callout Service. Parameters can be passed in as Nil should they not be required.
+// any items that are nil will simply not be invoked.
 func NewService(alert alert.Service, snmp snmp.Service, jira jira.Service, alexa halaws.Service) Service {
 	return &service{alert, snmp, jira, alexa}
 }
 
-/*
-InvokeCallout will invoke snmp if configured, then create a jira ticket if configured.
-*/
+// InvokeCallout will invoke snmp if configured, then create a jira ticket if configured, finally it will invoke a phone
+// call via alexa connect, if configured.
 func (s *service) InvokeCallout(ctx context.Context, title, message string) error {
-
 	s.alert.SendError(ctx, fmt.Errorf("invoking callout for: %s, %s", title, message))
-	s.snmp.SendSNMPMessage(ctx)
+	if s.snmp != nil {
+		s.snmp.SendSNMPMessage(ctx)
+	}
 	name, phone, err := s.getFirstCall(ctx)
 	if err != nil {
 		s.alert.SendError(ctx, err)
 		name = "DEFAULT"
 	}
-	s.jira.CreateJira(ctx, title, message, name)
+	if s.jira != nil {
+		s.jira.CreateJira(ctx, title, message, name)
+	}
 	if s.alexa != nil {
 		return s.alexa.SendAlert(ctx, phone, name)
 	}
