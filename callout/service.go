@@ -20,7 +20,7 @@ type Service interface {
 	/*
 		InvokeCallout will invoke snmp if configured, then create a jira ticket if configured.
 	*/
-	InvokeCallout(ctx context.Context, title, message string)
+	InvokeCallout(ctx context.Context, title, message string) error
 
 	getFirstCall(ctx context.Context) (name string, number string, err error)
 }
@@ -39,7 +39,7 @@ func NewService(alert alert.Service, snmp snmp.Service, jira jira.Service, alexa
 /*
 InvokeCallout will invoke snmp if configured, then create a jira ticket if configured.
 */
-func (s *service) InvokeCallout(ctx context.Context, title, message string) {
+func (s *service) InvokeCallout(ctx context.Context, title, message string) error {
 
 	s.alert.SendError(ctx, fmt.Errorf("invoking callout for: %s, %s", title, message))
 	s.snmp.SendSNMPMessage(ctx)
@@ -50,8 +50,9 @@ func (s *service) InvokeCallout(ctx context.Context, title, message string) {
 	}
 	s.jira.CreateJira(ctx, title, message, name)
 	if s.alexa != nil {
-		s.alexa.SendAlert(ctx, phone, name)
+		return s.alexa.SendAlert(ctx, phone, name)
 	}
+	return nil
 }
 
 func (s *service) getFirstCall(ctx context.Context) (name string, number string, err error) {

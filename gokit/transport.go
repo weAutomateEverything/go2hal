@@ -116,6 +116,17 @@ func EncodeErrorRequest(_ context.Context, r *http.Request, request interface{})
 	return nil
 }
 
+//EncodeJsonRequest will attempt to conver the input request
+func EncodeJsonRequest(_ context.Context, r *http.Request, request interface{}) error {
+	p := new(bytes.Buffer)
+	err := json.NewEncoder(p).Encode(request)
+	if err != nil {
+		return err
+	}
+	r.Body = ioutil.NopCloser(p)
+	return nil
+}
+
 type errorer interface {
 	error() error
 }

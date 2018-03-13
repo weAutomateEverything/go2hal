@@ -200,6 +200,12 @@ func main() {
 		Name:      "request_count",
 		Help:      "Number of requests received.",
 	}, fieldKeys),
+		kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
+			Namespace: "api",
+			Subsystem: "halaws",
+			Name:      "error_count",
+			Help:      "Number of errors encountered.",
+		}, fieldKeys),
 		kitprometheus.NewSummaryFrom(stdprometheus.SummaryOpts{
 			Namespace: "api",
 			Subsystem: "halaws",
@@ -215,6 +221,12 @@ func main() {
 		Name:      "request_count",
 		Help:      "Number of requests received.",
 	}, fieldKeys),
+		kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
+			Namespace: "api",
+			Subsystem: "callout",
+			Name:      "error_count",
+			Help:      "Number of errors encountered.",
+		}, fieldKeys),
 		kitprometheus.NewSummaryFrom(stdprometheus.SummaryOpts{
 			Namespace: "api",
 			Subsystem: "callout",
@@ -321,6 +333,7 @@ func main() {
 	mux.Handle("/sensu", sensu.MakeHandler(sensuService, httpLogger, machineLearningService))
 	mux.Handle("/users/", user.MakeHandler(userService, httpLogger, machineLearningService))
 	mux.Handle("/aws/sendTestAlert", halaws.MakeHandler(aws, httpLogger, machineLearningService))
+	mux.Handle("/callout/", callout.MakeHandler(calloutService, httpLogger, machineLearningService))
 
 	http.Handle("/", panicHandler{accessControl(mux), jiraService, alertService})
 	http.Handle("/metrics", promhttp.Handler())
