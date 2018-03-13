@@ -34,8 +34,10 @@ func (m *MockService) EXPECT() *MockServiceMockRecorder {
 }
 
 // SendAlert mocks base method
-func (m *MockService) SendAlert(ctx context.Context, destination, name string) {
-	m.ctrl.Call(m, "SendAlert", ctx, destination, name)
+func (m *MockService) SendAlert(ctx context.Context, destination, name string) error {
+	ret := m.ctrl.Call(m, "SendAlert", ctx, destination, name)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // SendAlert indicates an expected call of SendAlert

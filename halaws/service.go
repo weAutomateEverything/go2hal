@@ -13,7 +13,7 @@ import (
 )
 
 type Service interface {
-	SendAlert(ctx context.Context, destination string, name string)
+	SendAlert(ctx context.Context, destination string, name string) error
 }
 
 type service struct {
@@ -24,7 +24,7 @@ func NewService(alert alert.Service) Service {
 	return &service{alert: alert}
 }
 
-func (s *service) SendAlert(ctx context.Context, destination string, name string) {
+func (s *service) SendAlert(ctx context.Context, destination string, name string) error {
 	c := credentials.NewEnvCredentials()
 
 	config := aws.Config{Credentials: c, Region: aws.String("us-east-1"), LogLevel: aws.LogLevel(aws.LogDebugWithHTTPBody)}
@@ -42,10 +42,11 @@ func (s *service) SendAlert(ctx context.Context, destination string, name string
 	output, err := outbound.StartOutboundVoiceContact(&req)
 	if err != nil {
 		s.alert.SendError(ctx, fmt.Errorf("error invoking alexa to call %v on %v. Error: %v", name, destination, err.Error()))
-		return
+		return err
 	}
 
 	s.alert.SendAlert(ctx, emoji.Sprintf(":phone: HAL has phoned %v on %v. Reference %v ", name, destination, output.ContactId))
+	return nil
 
 }
 
