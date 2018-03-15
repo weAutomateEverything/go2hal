@@ -13,6 +13,6 @@ func makeCalloutEndpoint(service Service) endpoint.Endpoint {
 			return nil, fmt.Errorf("request type not a SendCalloutRequest, received %v", request)
 		}
 
-		return nil, service.InvokeCallout(ctx, req.title, req.message)
+		return nil, service.InvokeCallout(ctx, req.Title, req.Message)
 	}
 }
