@@ -64,7 +64,7 @@ func NewKubernetesCalloutProxy(namespace string) Service {
 	}, fieldKeys),
 		kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
 			Namespace: "proxy",
-			Subsystem: "alert_service",
+			Subsystem: "callout_service",
 			Name:      "error_count",
 			Help:      "Number of errors.",
 		}, fieldKeys),
