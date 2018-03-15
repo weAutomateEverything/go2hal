@@ -24,8 +24,8 @@ type calloutProxy struct {
 }
 
 type SendCalloutRequest struct {
-	title   string
-	message string
+	Title   string
+	Message string
 }
 
 // NewCalloutProxy will create a HTTP Rest client to easily invoke the Callout service offered by HAL. The HAL Service
@@ -87,7 +87,7 @@ func newProxy(namespace string, logger log.Logger) Service {
 }
 
 func (s *calloutProxy) InvokeCallout(ctx context.Context, title, message string) error {
-	_, err := s.requestCallout(ctx, &SendCalloutRequest{message: message, title: title})
+	_, err := s.requestCallout(ctx, &SendCalloutRequest{Message: message, Title: title})
 	return err
 }
 
