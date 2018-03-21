@@ -10,6 +10,7 @@ import (
 	"gopkg.in/kyokomi/emoji.v1"
 	"io/ioutil"
 	"log"
+	"math"
 	"net/http"
 	"net/url"
 	"strings"
@@ -88,6 +89,14 @@ func (s *service) checkHTTP(endpoint httpEndpoint) {
 	if err := s.store.successfulEndpointTest(&endpoint); err != nil {
 		s.alert.SendError(context.TODO(), err)
 	}
+	certExpiry := response.TLS.PeerCertificates[0].NotAfter
+	daysTillExpiry := s.daysToExpiry(certExpiry)
+	expiryStatus := s.confirmCertExpiry(certExpiry, endpoint.Endpoint, daysTillExpiry)
+
+	if expiryStatus != "" {
+		err := errors.New(expiryStatus)
+		s.alert.SendError(context.TODO(), err)
+	}
 }
 
 func (s *service) checkAlert(endpoint httpEndpoint, msg string) {
@@ -140,4 +149,33 @@ func (s service) doHTTPEndpoint(endpoint httpEndpoint) (*http.Response, error) {
 func (s *service) setTimeOut(minutes int64) {
 	s.timeout = time.Now().Local().Add(time.Minute * time.Duration(minutes))
 	s.timeoutSet = true
+}
+
+func (s *service) daysToExpiry(expiryDate time.Time) float64 {
+
+	duration := expiryDate.Sub(time.Now())
+	return math.Floor(duration.Hours() / 24)
+}
+
+func (s *service) confirmCertExpiry(expiryDate time.Time, endpoint string, expiryDays float64) string {
+
+	if expiryDays <= 54 {
+		return emoji.Sprintf(":rotating_light: SSL certificate for %v expires withing 54 days!\nExpiry date: %v", endpoint, expiryDate)
+	}
+	if expiryDays <= 60 {
+		return emoji.Sprintf(":rotating_light: SSL certificate for %v expires withing 60 days!\nExpiry date: %v", endpoint, expiryDate)
+	}
+	if expiryDays <= 70 {
+		return emoji.Sprintf(":rotating_light: SSL certificate for %v expires withing 70 days!\nExpiry date: %v", endpoint, expiryDate)
+	}
+	if expiryDays <= 85 {
+		return emoji.Sprintf(":rotating_light: SSL certificate for %v expires withing 85 days!\nExpiry date: %v", endpoint, expiryDate)
+	}
+	if expiryDays <= 100 {
+		return emoji.Sprintf(":rotating_light: SSL certificate for %v expires withing 100 days!\nExpiry date: %v", endpoint, expiryDate)
+	}
+	if expiryDays <= 120 {
+		return emoji.Sprintf(":rotating_light: SSL certificate for %v expires withing 120 days!\nExpiry date: %v", endpoint, expiryDate)
+	}
+	return ""
 }
