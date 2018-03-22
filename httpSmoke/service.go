@@ -89,13 +89,15 @@ func (s *service) checkHTTP(endpoint httpEndpoint) {
 	if err := s.store.successfulEndpointTest(&endpoint); err != nil {
 		s.alert.SendError(context.TODO(), err)
 	}
-	certExpiry := response.TLS.PeerCertificates[0].NotAfter
-	daysTillExpiry := s.daysToExpiry(certExpiry)
-	expiryStatus := s.confirmCertExpiry(certExpiry, endpoint.Endpoint, daysTillExpiry)
+	if len(response.TLS.PeerCertificates) != 0 {
+		certExpiry := response.TLS.PeerCertificates[0].NotAfter
+		daysTillExpiry := s.daysToExpiry(certExpiry)
+		expiryStatus := s.confirmCertExpiry(certExpiry, endpoint.Endpoint, daysTillExpiry)
 
-	if expiryStatus != "" {
-		err := errors.New(expiryStatus)
-		s.alert.SendError(context.TODO(), err)
+		if expiryStatus != "" {
+			err := errors.New(expiryStatus)
+			s.alert.SendError(context.TODO(), err)
+		}
 	}
 }
 
