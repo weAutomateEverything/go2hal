@@ -89,7 +89,7 @@ func (s *service) checkHTTP(endpoint httpEndpoint) {
 	if err := s.store.successfulEndpointTest(&endpoint); err != nil {
 		s.alert.SendError(context.TODO(), err)
 	}
-	if len(response.TLS.PeerCertificates) != 0 {
+	if response.TLS != nil && len(response.TLS.PeerCertificates) != 0 {
 		certExpiry := response.TLS.PeerCertificates[0].NotAfter
 		daysTillExpiry := s.daysToExpiry(certExpiry)
 		expiryStatus := s.confirmCertExpiry(certExpiry, endpoint.Endpoint, daysTillExpiry)
