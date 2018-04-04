@@ -27,6 +27,17 @@ func (s *loggingService) SendAlert(ctx context.Context, message string) (err err
 	return s.Service.SendAlert(ctx, message)
 
 }
+func (s *loggingService) SendAlertKeyboard(ctx context.Context, message string) (err error) {
+	defer func(begin time.Time) {
+		s.logger.Log(
+			"method", "send keyboard alert",
+			"took", time.Since(begin),
+			"err", err,
+		)
+	}(time.Now())
+	return s.Service.SendAlertKeyboard(ctx, message)
+
+}
 func (s *loggingService) SendNonTechnicalAlert(ctx context.Context, message string) (err error) {
 	defer func(begin time.Time) {
 		s.logger.Log(

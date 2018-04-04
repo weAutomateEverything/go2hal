@@ -19,6 +19,7 @@ func MakeHandler(service Service, logger kitlog.Logger, ml machineLearning.Servi
 	opts := gokit.GetServerOpts(logger, ml)
 
 	alertHandler := kithttp.NewServer(makeAlertEndpoint(service), gokit.DecodeString, gokit.EncodeResponse, opts...)
+	alertKeyboardHandler := kithttp.NewServer(makeKeyboardAlertEndpoint(service), gokit.DecodeString, gokit.EncodeResponse, opts...)
 	imageAlertHandler := kithttp.NewServer(makeImageAlertEndpoint(service), gokit.DecodeFromBase64, gokit.EncodeResponse, opts...)
 
 	heartbeatAlertHandler := kithttp.NewServer(makeHeartbeatMessageEncpoint(service), gokit.DecodeString, gokit.EncodeResponse, opts...)
@@ -31,6 +32,7 @@ func MakeHandler(service Service, logger kitlog.Logger, ml machineLearning.Servi
 	r := mux.NewRouter()
 
 	r.Handle("/alert/", alertHandler).Methods("POST")
+	r.Handle("/alert/keyboard", alertKeyboardHandler).Methods("POST")
 	r.Handle("/alert/image", imageAlertHandler).Methods("POST")
 
 	r.Handle("/alert/heartbeat", heartbeatAlertHandler).Methods("POST")

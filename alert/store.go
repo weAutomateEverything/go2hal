@@ -11,16 +11,20 @@ type Store interface {
 	alertGroup() (groupID int64, err error)
 	heartbeatGroup() (groupID int64, err error)
 	nonTechnicalGroup() (groupID int64, err error)
-
 	setAlertGroup(AlertGroupID int64)
 	setHeartbeatGroup(groupID int64)
 	setNonTechnicalGroup(groupID int64)
+	GetRecipes() ([]Recipe, error)
 }
 
 type mongoStore struct {
 	mongo *mgo.Database
 }
-
+type Recipe struct {
+	ID           bson.ObjectId `bson:"_id,omitempty"`
+	Recipe       string
+	FriendlyName string
+}
 type alertDB struct {
 	ID                bson.ObjectId `bson:"_id,omitempty"`
 	GroupID           int64
@@ -131,4 +135,14 @@ func (s *mongoStore) setNonTechnicalGroup(groupID int64) {
 			log.Panic(err)
 		}
 	}
+}
+func (s *mongoStore) GetRecipes() ([]Recipe, error) {
+	c := s.mongo.C("recipes")
+	q := c.Find(nil)
+	var recipes []Recipe
+	err := q.All(&recipes)
+	if err != nil {
+		return nil, err
+	}
+	return recipes, nil
 }

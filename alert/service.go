@@ -12,6 +12,7 @@ Service interface
 */
 type Service interface {
 	SendAlert(ctx context.Context, message string) error
+	SendAlertKeyboard(ctx context.Context, message string) error
 	SendNonTechnicalAlert(ctx context.Context, message string) error
 	SendHeartbeatGroupAlert(ctx context.Context, message string) error
 	SendImageToAlertGroup(ctx context.Context, image []byte) error
@@ -45,7 +46,23 @@ func (s *service) SendAlert(ctx context.Context, message string) error {
 	err = s.telegram.SendMessage(ctx, alertGroup, message, 0)
 	return err
 }
-
+func (s *service) SendAlertKeyboard(ctx context.Context, message string) error {
+	alertGroup, err := s.store.alertGroup()
+	recipes, err := s.store.GetRecipes()
+	if err != nil {
+		s.SendError(context.TODO(), err)
+		return err
+	}
+	buttons := make([]string, len(recipes))
+	for x, i := range recipes {
+		buttons[x] = i.FriendlyName
+	}
+	if err != nil {
+		return err
+	}
+	s.telegram.SendKeyboard(ctx, buttons, message, alertGroup)
+	return err;
+}
 func (s *service) SendNonTechnicalAlert(ctx context.Context, message string) error {
 	return nil
 }
