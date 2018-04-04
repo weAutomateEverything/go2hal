@@ -5,6 +5,7 @@ import (
 	"golang.org/x/net/context"
 	"gopkg.in/kyokomi/emoji.v1"
 	"log"
+	"github.com/weAutomateEverything/go2hal/chef"
 )
 
 /*
@@ -21,8 +22,9 @@ type Service interface {
 }
 
 type service struct {
-	telegram telegram.Service
-	store    Store
+	telegram  telegram.Service
+	store     Store
+	chefStore chef.Store
 }
 
 /*
@@ -48,7 +50,7 @@ func (s *service) SendAlert(ctx context.Context, message string) error {
 }
 func (s *service) SendAlertKeyboard(ctx context.Context, message string) error {
 	alertGroup, err := s.store.alertGroup()
-	recipes, err := s.store.GetRecipes()
+	recipes, err := s.chefStore.GetRecipes()
 	if err != nil {
 		s.SendError(context.TODO(), err)
 		return err
