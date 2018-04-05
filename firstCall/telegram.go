@@ -1,4 +1,4 @@
-package callout
+package firstCall
 
 import (
 	"fmt"
@@ -28,7 +28,7 @@ func (s *whosOnFirstCall) CommandDescription() string {
 }
 
 func (s *whosOnFirstCall) Execute(update tgbotapi.Update) {
-	name, phone, err := s.service.getFirstCall(context.TODO())
+	name, phone, err := s.service.GetFirstCall(context.TODO())
 	if err != nil {
 		s.alert.SendError(context.TODO(), err)
 		return

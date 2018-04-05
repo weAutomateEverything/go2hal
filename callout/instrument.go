@@ -33,14 +33,3 @@ func (s instrumentingService) InvokeCallout(ctx context.Context, title, message 
 	}(time.Now())
 	return s.Service.InvokeCallout(ctx, title, message)
 }
-
-func (s instrumentingService) getFirstCallName(ctx context.Context) (name string, phone string, err error) {
-	defer func(begin time.Time) {
-		s.requestCount.With("method", "getFirstCallName").Add(1)
-		if err != nil {
-			s.errorCount.With("method", "getFirstCallName").Add(1)
-
-		}
-	}(time.Now())
-	return s.Service.getFirstCall(ctx)
-}

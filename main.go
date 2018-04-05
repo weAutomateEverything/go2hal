@@ -25,6 +25,7 @@ import (
 	"github.com/weAutomateEverything/go2hal/user"
 	"google.golang.org/grpc/reflection"
 
+	"github.com/weAutomateEverything/go2hal/firstCall"
 	"github.com/weAutomateEverything/go2hal/halaws"
 	"github.com/weAutomateEverything/go2hal/httpSmoke"
 	"github.com/weAutomateEverything/go2hal/machineLearning"
@@ -213,7 +214,9 @@ func main() {
 			Help:      "Total duration of requests in microseconds.",
 		}, fieldKeys), aws)
 
-	calloutService := callout.NewService(alertService, snmpService, jiraService, aws)
+	firstcallService := firstCall.NewDefaultFirstcallService()
+
+	calloutService := callout.NewService(alertService, firstcallService, snmpService, jiraService, aws)
 	calloutService = callout.NewLoggingService(log.With(logger, "component", "callout"), calloutService)
 	calloutService = callout.NewInstrumentService(kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
 		Namespace: "api",
@@ -310,7 +313,7 @@ func main() {
 	telegramService.RegisterCommand(alert.NewSetNonTechnicalGroupCommand(telegramService, alertStore))
 	telegramService.RegisterCommand(alert.NewSetHeartbeatGroupCommand(telegramService, alertStore))
 	telegramService.RegisterCommand(telegram.NewHelpCommand(telegramService))
-	telegramService.RegisterCommand(callout.NewWhosOnFirstCallCommand(alertService, telegramService, calloutService))
+	telegramService.RegisterCommand(firstCall.NewWhosOnFirstCallCommand(alertService, telegramService, firstcallService))
 	telegramService.RegisterCommand(skynet.NewRebuildCHefNodeCommand(telegramStore, chefStore, telegramService,
 		alertService))
 	telegramService.RegisterCommand(skynet.NewRebuildNodeCommand(alertService, skynetService))
