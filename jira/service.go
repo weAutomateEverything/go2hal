@@ -33,6 +33,8 @@ func NewService(alert alert.Service, userStore user.Store) Service {
 func (s *service) CreateJira(ctx context.Context, title, description string, username string) {
 	title = strings.Replace(title, "\n", "", -1)
 	description = strings.Replace(description, "\n", "", -1)
+	title = strings.Replace(title, "\t", "", -1)
+	description = strings.Replace(description, "\t", "", -1)
 	type q struct {
 		User        string
 		Title       string
