@@ -32,7 +32,16 @@ func (s *instrumentingService) SendAlert(ctx context.Context, message string) (e
 	}(time.Now())
 	return s.Service.SendAlert(ctx, message)
 }
-
+func (s *instrumentingService) SendAlertKeyboard(ctx context.Context, message string) (err error) {
+	defer func(begin time.Time) {
+		s.requestCount.With("method", "send_keyboard_alert").Add(1)
+		s.requestLatency.With("method", "send_keyboard_alert").Observe(time.Since(begin).Seconds())
+		if err != nil {
+			s.errorCount.With("method", "send_keyboard_alert").Add(1)
+		}
+	}(time.Now())
+	return s.Service.SendAlertKeyboard(ctx, message)
+}
 func (s *instrumentingService) SendNonTechnicalAlert(ctx context.Context, message string) (err error) {
 	defer func(begin time.Time) {
 		s.requestCount.With("method", "send_technical_alert").Add(1)

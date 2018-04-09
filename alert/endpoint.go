@@ -12,7 +12,12 @@ func makeAlertEndpoint(s Service) endpoint.Endpoint {
 		return nil, s.SendAlert(ctx, req)
 	}
 }
-
+func makeKeyboardAlertEndpoint(s Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(string)
+		return nil, s.SendAlertKeyboard(ctx, req)
+	}
+}
 func makeImageAlertEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.([]byte)
