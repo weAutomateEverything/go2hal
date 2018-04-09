@@ -36,6 +36,7 @@ func (s *service) SendAlert(ctx context.Context, destination string, name string
 		InstanceId:             aws.String(getInstanceID()),
 		ContactFlowId:          aws.String(getContactFlowID()),
 		DestinationPhoneNumber: aws.String(destination),
+		SourcePhoneNumber:      aws.String(getSourcePhoneNumber()),
 	}
 	output, err := outbound.StartOutboundVoiceContact(&req)
 	if err != nil {
