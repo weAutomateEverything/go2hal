@@ -3,12 +3,14 @@ package telegram
 import (
 	"bytes"
 	"context"
-	tgbotapi "gopkg.in/telegram-bot-api.v4"
+	"github.com/weAutomateEverything/go2hal/auth"
+	"gopkg.in/telegram-bot-api.v4"
 	"io/ioutil"
 	"log"
 	"math/rand"
 	"os"
 	"runtime"
+	"strconv"
 )
 
 type Service interface {
@@ -23,6 +25,7 @@ type Service interface {
 type Command interface {
 	CommandIdentifier() string
 	CommandDescription() string
+	RestrictToAuthorised() bool
 	Execute(update tgbotapi.Update)
 }
 
@@ -34,7 +37,8 @@ type Commandlet interface {
 }
 
 type service struct {
-	store Store
+	store       Store
+	authService auth.Service
 }
 
 type commandCtor func() Command
@@ -44,8 +48,8 @@ var commandList = map[string]commandCtor{}
 var commandletList = []commandletCtor{}
 var telegramBot *tgbotapi.BotAPI
 
-func NewService(store Store) Service {
-	s := &service{store}
+func NewService(store Store, authService auth.Service) Service {
+	s := &service{store: store, authService: authService}
 	err := s.useBot(os.Getenv("BOT_KEY"))
 	if err != nil {
 		panic(err)
@@ -151,7 +155,7 @@ func (s service) pollMessage() {
 			}
 
 			if update.Message.IsCommand() {
-				if executeCommand(update) {
+				if s.executeCommand(update) {
 					continue
 				}
 			}
@@ -186,9 +190,15 @@ func sendMessage(chatID int64, message string, messageID int, markup bool) (err 
 	return nil
 }
 
-func executeCommand(update tgbotapi.Update) bool {
+func (s service) executeCommand(update tgbotapi.Update) bool {
 	command := findCommand(update.Message.Command())
 	if command != nil {
+		if command.RestrictToAuthorised() {
+			if !(s.authService.Authorize(strconv.Itoa(update.Message.From.ID))) {
+				s.SendMessage(context.TODO(), update.Message.Chat.ID, "You are not authorized to use this transaction.", update.Message.MessageID)
+				return false
+			}
+		}
 		go func() { command.Execute(update) }()
 		return true
 	}
@@ -233,6 +243,10 @@ type help struct {
 
 func NewHelpCommand(telegram Service) Command {
 	return &help{telegram}
+}
+
+func (s *help) RestrictToAuthorised() bool {
+	return false
 }
 
 func (s *help) CommandIdentifier() string {

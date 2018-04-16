@@ -15,6 +15,10 @@ func NewSetGroupCommand(service telegram.Service, store Store) telegram.Command 
 	return &setGroupCommand{service, store}
 }
 
+func (s *setGroupCommand) RestrictToAuthorised() bool {
+	return true
+}
+
 func (s *setGroupCommand) CommandIdentifier() string {
 	return "SetGroup"
 }
@@ -37,6 +41,10 @@ func NewSetNonTechnicalGroupCommand(service telegram.Service, store Store) teleg
 	return &setNonTechnicalGroupCommand{service, store}
 }
 
+func (s *setNonTechnicalGroupCommand) RestrictToAuthorised() bool {
+	return true
+}
+
 func (s *setNonTechnicalGroupCommand) CommandIdentifier() string {
 	return "SetNonTechGroup"
 }
@@ -57,6 +65,10 @@ type setHeartbeatGroupCommand struct {
 
 func NewSetHeartbeatGroupCommand(service telegram.Service, store Store) telegram.Command {
 	return &setHeartbeatGroupCommand{service, store}
+}
+
+func (s *setHeartbeatGroupCommand) RestrictToAuthorised() bool {
+	return true
 }
 
 /* Set Heartbeat group */

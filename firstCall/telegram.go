@@ -18,6 +18,10 @@ func NewWhosOnFirstCallCommand(alert alert.Service, telegram telegram.Service, s
 	return &whosOnFirstCall{alert, telegram, service}
 }
 
+func (s *whosOnFirstCall) RestrictToAuthorised() bool {
+	return false
+}
+
 /* Set Heartbeat group */
 func (s *whosOnFirstCall) CommandIdentifier() string {
 	return "FirstCall"
