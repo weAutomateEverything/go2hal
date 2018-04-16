@@ -11,6 +11,7 @@ import (
 	"os"
 	"runtime"
 	"strconv"
+	"strings"
 )
 
 type Service interface {
@@ -221,7 +222,7 @@ func (s service) executeCommandLet(update tgbotapi.Update) bool {
 func findCommand(command string) (a Command) {
 	for _, item := range commandList {
 		a = item()
-		if a.CommandIdentifier() == command {
+		if strings.ToLower(a.CommandIdentifier()) == strings.ToLower(command) {
 			return a
 		}
 	}
