@@ -25,6 +25,7 @@ import (
 	"github.com/weAutomateEverything/go2hal/user"
 	"google.golang.org/grpc/reflection"
 
+	"github.com/weAutomateEverything/bankldapService"
 	"github.com/weAutomateEverything/go2hal/firstCall"
 	"github.com/weAutomateEverything/go2hal/halaws"
 	"github.com/weAutomateEverything/go2hal/httpSmoke"
@@ -59,13 +60,20 @@ func main() {
 	httpStore := httpSmoke.NewMongoStore(db)
 	machingLearningStore := machineLearning.NewMongoStore(db)
 
+	//A datastore to store the auth info for our bank - not required if you dont want auth
+	bankLdapStore := bankldapService.NewMongoStore(db)
+
 	fieldKeys := []string{"method"}
 
 	//Services
 
+	// Used to save all the requests and responses for later machine learning.
 	machineLearningService := machineLearning.NewService(machingLearningStore)
 
-	telegramService := telegram.NewService(telegramStore)
+	//A auth service for our bank. If you dont want auth use auth.alwaysTrueAuthService()
+	authService := bankldapService.NewService(bankLdapStore)
+
+	telegramService := telegram.NewService(telegramStore, authService)
 	telegramService = telegram.NewLoggingService(log.With(logger, "component", "telegram"), telegramService)
 	telegramService = telegram.NewMachineLearning(machineLearningService, telegramService)
 	telegramService = telegram.NewInstrumentService(kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
@@ -318,6 +326,8 @@ func main() {
 		alertService))
 	telegramService.RegisterCommand(skynet.NewRebuildNodeCommand(alertService, skynetService))
 	telegramService.RegisterCommand(httpSmoke.NewQuietHttpAlertCommand(telegramService, httpService))
+	telegramService.RegisterCommand(bankldapService.NewRegisterCommand(telegramService, bankLdapStore))
+	telegramService.RegisterCommand(bankldapService.NewTokenCommand(telegramService, bankLdapStore))
 
 	telegramService.RegisterCommandLet(skynet.NewRebuildChefNodeEnvironmentReplyCommandlet(telegramService,
 		skynetService, chefService))

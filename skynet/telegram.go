@@ -20,6 +20,10 @@ func NewRebuildNodeCommand(alertService alert.Service, skynetService Service) te
 	return &rebuildNode{alertService, skynetService}
 }
 
+func (s *rebuildNode) RestrictToAuthorised() bool {
+	return true
+}
+
 /* Rebuild Node */
 func (s *rebuildNode) CommandIdentifier() string {
 	return "RebuildNode"
@@ -54,6 +58,10 @@ type rebuildChefNode struct {
 func NewRebuildCHefNodeCommand(stateStore telegram.Store, chefStore chef.Store, telegram telegram.Service,
 	alert alert.Service) telegram.Command {
 	return &rebuildChefNode{stateStore, chefStore, alert, telegram}
+}
+
+func (s *rebuildChefNode) RestrictToAuthorised() bool {
+	return true
 }
 
 func (s *rebuildChefNode) CommandIdentifier() string {

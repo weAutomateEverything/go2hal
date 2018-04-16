@@ -27,6 +27,10 @@ type remoteCommand struct {
 	remote     RemoteCommand_RegisterCommandServer
 }
 
+func (s remoteCommand) RestrictToAuthorised() bool {
+	return true
+}
+
 func newRemoteCommand(name, help string, remote RemoteCommand_RegisterCommandServer) telegram.Command {
 	return &remoteCommand{name: name, help: help, remote: remote}
 

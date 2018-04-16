@@ -19,6 +19,10 @@ func NewQuietHttpAlertCommand(telegramService telegram.Service,
 	return &quietHttpAlertsCommand{telegramService: telegramService, service: service}
 }
 
+func (s quietHttpAlertsCommand) RestrictToAuthorised() bool {
+	return true
+}
+
 func (quietHttpAlertsCommand) CommandIdentifier() string {
 	return "SilenceSmoke"
 }

@@ -1,30 +1,32 @@
-package examples
+package alert
 
 import (
 	"fmt"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
-	"github.com/weAutomateEverything/go2hal/alert"
 	"github.com/weAutomateEverything/go2hal/database"
 	"github.com/weAutomateEverything/go2hal/telegram"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
+	"github.com/weAutomateEverything/go2hal/auth"
 )
 
 func server() {
 	db := database.NewConnection()
 
 	//Stores
-	alertStore := alert.NewStore(db)
+	alertStore := NewStore(db)
 	telegramStore := telegram.NewMongoStore(db)
 
-	telegramService := telegram.NewService(telegramStore)
-	alertService := alert.NewService(telegramService, alertStore)
+	authService := auth.NewAlwaysTrustEveryoneAuthService()
 
-	telegramService.RegisterCommand(alert.NewSetGroupCommand(telegramService, alertStore))
-	telegramService.RegisterCommand(alert.NewSetNonTechnicalGroupCommand(telegramService, alertStore))
+	telegramService := telegram.NewService(telegramStore, authService)
+	alertService := NewService(telegramService, alertStore)
+
+	telegramService.RegisterCommand(NewSetGroupCommand(telegramService, alertStore))
+	telegramService.RegisterCommand(NewSetNonTechnicalGroupCommand(telegramService, alertStore))
 
 	var logger log.Logger
 	logger = log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
@@ -33,7 +35,7 @@ func server() {
 	httpLogger := log.With(logger, "component", "http")
 
 	mux := http.NewServeMux()
-	mux.Handle("/alert/", alert.MakeHandler(alertService, httpLogger, nil))
+	mux.Handle("/alert/", MakeHandler(alertService, httpLogger, nil))
 	http.Handle("/", accessControl(mux))
 
 	errs := make(chan error, 2)
