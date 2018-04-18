@@ -25,6 +25,7 @@ import (
 	"github.com/weAutomateEverything/go2hal/user"
 	"google.golang.org/grpc/reflection"
 
+	"github.com/weAutomateEverything/bankCallout"
 	"github.com/weAutomateEverything/bankldapService"
 	"github.com/weAutomateEverything/go2hal/firstCall"
 	"github.com/weAutomateEverything/go2hal/halaws"
@@ -222,7 +223,7 @@ func main() {
 			Help:      "Total duration of requests in microseconds.",
 		}, fieldKeys), aws)
 
-	firstcallService := firstCall.NewDefaultFirstcallService()
+	firstcallService := bankCallout.NewService()
 
 	calloutService := callout.NewService(alertService, firstcallService, snmpService, jiraService, aws)
 	calloutService = callout.NewLoggingService(log.With(logger, "component", "callout"), calloutService)
