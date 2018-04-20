@@ -51,9 +51,13 @@ var telegramBot *tgbotapi.BotAPI
 
 func NewService(store Store, authService auth.Service) Service {
 	s := &service{store: store, authService: authService}
-	err := s.useBot(os.Getenv("BOT_KEY"))
+	key := os.Getenv("BOT_KEY")
+	if key == "" {
+		panic("BOT_KEY environment variable not set.")
+	}
+	err := s.useBot(key)
 	if err != nil {
-		panic(err)
+		panic(err.Error())
 	}
 	return s
 }
