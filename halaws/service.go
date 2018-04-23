@@ -10,6 +10,7 @@ import (
 	"github.com/weAutomateEverything/go2hal/alert"
 	"golang.org/x/net/context"
 	"os"
+	"time"
 )
 
 type Service interface {
@@ -18,6 +19,8 @@ type Service interface {
 
 type service struct {
 	alert alert.Service
+
+	lastcall time.Time
 }
 
 func NewService(alert alert.Service) Service {
@@ -25,6 +28,10 @@ func NewService(alert alert.Service) Service {
 }
 
 func (s *service) SendAlert(ctx context.Context, destination string, name string) error {
+	if time.Since(s.lastcall) < time.Duration(30*time.Minute) {
+		s.alert.SendAlert(ctx, ":phone: :negative_squared_cross_mark: Not invoking callout since its been less than 30 minutes since the last phone call")
+	}
+
 	c := credentials.NewEnvCredentials()
 
 	config := aws.Config{Credentials: c, Region: aws.String("us-east-1"), LogLevel: aws.LogLevel(aws.LogDebugWithHTTPBody)}
@@ -44,6 +51,7 @@ func (s *service) SendAlert(ctx context.Context, destination string, name string
 		return err
 	}
 
+	s.lastcall = time.Now()
 	s.alert.SendAlert(ctx, emoji.Sprintf(":phone: HAL has phoned %v on %v. Reference %v ", name, destination, output.ContactId))
 	return nil
 
