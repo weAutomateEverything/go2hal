@@ -30,6 +30,7 @@ func NewService(alert alert.Service) Service {
 func (s *service) SendAlert(ctx context.Context, destination string, name string) error {
 	if time.Since(s.lastcall) < time.Duration(30*time.Minute) {
 		s.alert.SendAlert(ctx, ":phone: :negative_squared_cross_mark: Not invoking callout since its been less than 30 minutes since the last phone call")
+		return nil
 	}
 
 	c := credentials.NewEnvCredentials()
