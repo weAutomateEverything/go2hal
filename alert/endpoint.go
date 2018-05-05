@@ -6,6 +6,10 @@ import (
 	"github.com/pkg/errors"
 )
 
+type KeyboardAlertRequest struct {
+	Nodes   []string `json:"Nodes"`
+}
+
 func makeAlertEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(string)
@@ -46,5 +50,19 @@ func makeAlertErrorHandler(s Service) endpoint.Endpoint {
 		req := request.(string)
 		return nil, s.SendError(ctx, errors.New(req))
 
+	}
+
+}
+
+func makeKeyboardRecipeAlertEndpoint(s Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(KeyboardAlertRequest)
+		return nil, s.SendAlertKeyboardRecipe(ctx,req.Nodes)
+	}
+}
+func makeEnvironmentAlertEndpoint(s Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(KeyboardAlertRequest)
+		return nil, s.SendAlertEnvironment(ctx, req.Nodes)
 	}
 }

@@ -17,6 +17,8 @@ type Service interface {
 	SendImageToAlertGroup(ctx context.Context, image []byte) error
 	SendImageToHeartbeatGroup(ctx context.Context, image []byte) error
 	SendError(ctx context.Context, err error) error
+	SendAlertKeyboardRecipe(ctx context.Context, buttons []string) error
+	SendAlertEnvironment(ctx context.Context, buttons []string) error
 }
 
 type service struct {
@@ -89,4 +91,14 @@ func (s *service) SendError(ctx context.Context, err error) error {
 		return e
 	}
 	return s.telegram.SendMessagePlainText(ctx, group, emoji.Sprintf(":poop: %s", err.Error()), 0)
+}
+func (s *service) SendAlertKeyboardRecipe(ctx context.Context, buttons []string) error {
+	alertGroup, err := s.store.alertGroup()
+	s.telegram.SendKeyboard(ctx, buttons, "Please select the application", alertGroup)
+	return err;
+}
+func (s *service) SendAlertEnvironment(ctx context.Context, nodes []string) error {
+	alertGroup, err := s.store.alertGroup()
+	s.telegram.SendKeyboard(ctx, nodes, "Please select the environment", alertGroup)
+	return err;
 }
