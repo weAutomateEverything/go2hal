@@ -5,7 +5,7 @@ import (
 	"github.com/go-kit/kit/endpoint"
 	"github.com/pkg/errors"
 )
-
+//request for keyboard alerts.
 type KeyboardAlertRequest struct {
 	Nodes   []string `json:"Nodes"`
 }
