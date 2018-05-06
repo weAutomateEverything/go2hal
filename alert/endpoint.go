@@ -66,3 +66,9 @@ func makeEnvironmentAlertEndpoint(s Service) endpoint.Endpoint {
 		return nil, s.SendAlertEnvironment(ctx, req.Nodes)
 	}
 }
+func makeNodesAlertEndpoint(s Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(KeyboardAlertRequest)
+		return nil, s.SendAlertNodes(ctx, req.Nodes)
+	}
+}

@@ -19,6 +19,7 @@ type Service interface {
 	SendError(ctx context.Context, err error) error
 	SendAlertKeyboardRecipe(ctx context.Context, buttons []string) error
 	SendAlertEnvironment(ctx context.Context, buttons []string) error
+	SendAlertNodes(ctx context.Context, nodes []string) error
 }
 
 type service struct {
@@ -100,5 +101,10 @@ func (s *service) SendAlertKeyboardRecipe(ctx context.Context, buttons []string)
 func (s *service) SendAlertEnvironment(ctx context.Context, nodes []string) error {
 	alertGroup, err := s.store.alertGroup()
 	s.telegram.SendKeyboard(ctx, nodes, "Please select the environment", alertGroup)
+	return err;
+}
+func (s *service) SendAlertNodes(ctx context.Context, nodes []string) error {
+	alertGroup, err := s.store.alertGroup()
+	s.telegram.SendKeyboard(ctx, nodes, "please select the node", alertGroup)
 	return err;
 }

@@ -109,3 +109,14 @@ func (s *loggingService) SendAlertEnvironment(ctx context.Context, nodes []strin
 	return s.Service.SendAlertEnvironment(ctx, nodes)
 
 }
+func (s *loggingService) SendAlertNodes(ctx context.Context, nodes []string) (err error) {
+	defer func(begin time.Time) {
+		s.logger.Log(
+			"method", "send keyboard nodes",
+			"took", time.Since(begin),
+			"err", err,
+		)
+	}(time.Now())
+	return s.Service.SendAlertNodes(ctx, nodes)
+
+}
