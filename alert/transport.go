@@ -8,8 +8,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/weAutomateEverything/go2hal/gokit"
 	"github.com/weAutomateEverything/go2hal/machineLearning"
-	"encoding/json"
-	"context"
 )
 
 /*
@@ -21,22 +19,20 @@ func MakeHandler(service Service, logger kitlog.Logger, ml machineLearning.Servi
 	opts := gokit.GetServerOpts(logger, ml)
 
 	alertHandler := kithttp.NewServer(makeAlertEndpoint(service), gokit.DecodeString, gokit.EncodeResponse, opts...)
-	recipeKeyboardHandler := kithttp.NewServer(makeKeyboardRecipeAlertEndpoint(service), decodeKeyboardAlertRequest, gokit.EncodeResponse, opts...)
-	environmentKeyboardHandler := kithttp.NewServer(makeEnvironmentAlertEndpoint(service), decodeKeyboardAlertRequest, gokit.EncodeResponse, opts...)
-	nodesKeyboardHandler := kithttp.NewServer(makeNodesAlertEndpoint(service), decodeKeyboardAlertRequest, gokit.EncodeResponse, opts...)
 	imageAlertHandler := kithttp.NewServer(makeImageAlertEndpoint(service), gokit.DecodeFromBase64, gokit.EncodeResponse, opts...)
+
 	heartbeatAlertHandler := kithttp.NewServer(makeHeartbeatMessageEncpoint(service), gokit.DecodeString, gokit.EncodeResponse, opts...)
 	heartbeatImageHandler := kithttp.NewServer(makeImageHeartbeatEndpoint(service), gokit.DecodeFromBase64, gokit.EncodeResponse, opts...)
+
 	busienssAlertHandler := kithttp.NewServer(makeBusinessAlertEndpoint(service), gokit.DecodeString, gokit.EncodeResponse, opts...)
+
 	alertErrorHandler := kithttp.NewServer(makeAlertErrorHandler(service), gokit.DecodeString, gokit.EncodeResponse, opts...)
 
 	r := mux.NewRouter()
 
 	r.Handle("/alert/", alertHandler).Methods("POST")
 	r.Handle("/alert/image", imageAlertHandler).Methods("POST")
-	r.Handle("/alert/keyboard/recipe", recipeKeyboardHandler).Methods("POST")
-	r.Handle("/alert/keyboard/environment", environmentKeyboardHandler).Methods("POST")
-	r.Handle("/alert/keyboard/nodes", nodesKeyboardHandler).Methods("POST")
+
 	r.Handle("/alert/heartbeat", heartbeatAlertHandler).Methods("POST")
 	r.Handle("/alert/heartbeat/image", heartbeatImageHandler).Methods("POST")
 
@@ -45,12 +41,4 @@ func MakeHandler(service Service, logger kitlog.Logger, ml machineLearning.Servi
 	r.Handle("/alert/business", busienssAlertHandler).Methods("POST")
 
 	return r
-}
-func decodeKeyboardAlertRequest(_ context.Context, r *http.Request) (interface{}, error) {
-	var request KeyboardAlertRequest
-	if err := json.NewDecoder(r.Body).Decode(&request.Nodes); err != nil {
-		return nil, err
-	}
-	return request, nil
-
 }
