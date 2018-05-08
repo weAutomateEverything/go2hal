@@ -84,3 +84,33 @@ func (s *instrumentingService) SendError(ctx context.Context, err error) error {
 	}(time.Now())
 	return s.Service.SendError(ctx, err)
 }
+func (s *instrumentingService) SendAlertKeyboardRecipe(ctx context.Context, nodes []string) (err error) {
+	defer func(begin time.Time) {
+		s.requestCount.With("method", "send_keyboard_recipe").Add(1)
+		s.requestLatency.With("method", "send_keyboard_recipe").Observe(time.Since(begin).Seconds())
+		if err != nil {
+			s.errorCount.With("method", "send_keyboard_recipe").Add(1)
+		}
+	}(time.Now())
+	return s.Service.SendAlertKeyboardRecipe(ctx, nodes)
+}
+func (s *instrumentingService) SendAlertEnvironment(ctx context.Context, nodes []string) (err error) {
+	defer func(begin time.Time) {
+		s.requestCount.With("method", "send_keyboard_environment").Add(1)
+		s.requestLatency.With("method", "send_keyboard_environment").Observe(time.Since(begin).Seconds())
+		if err != nil {
+			s.errorCount.With("method", "send_keyboard_environment").Add(1)
+		}
+	}(time.Now())
+	return s.Service.SendAlertEnvironment(ctx, nodes)
+}
+func (s *instrumentingService) SendAlertNodes(ctx context.Context, nodes []string) (err error) {
+	defer func(begin time.Time) {
+		s.requestCount.With("method", "send_keyboard_nodes").Add(1)
+		s.requestLatency.With("method", "send_keyboard_nodes").Observe(time.Since(begin).Seconds())
+		if err != nil {
+			s.errorCount.With("method", "send_keyboard_nodes").Add(1)
+		}
+	}(time.Now())
+	return s.Service.SendAlertNodes(ctx, nodes)
+}
