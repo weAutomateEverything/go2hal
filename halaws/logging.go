@@ -15,14 +15,15 @@ func NewLoggingService(logger log.Logger, s Service) Service {
 	return &loggingService{logger, s}
 }
 
-func (s loggingService) SendAlert(ctx context.Context, destination string, name string) (err error) {
+func (s loggingService) SendAlert(ctx context.Context, destination string, name string, variables map[string]string) (err error) {
 	defer func(begin time.Time) {
 		s.logger.Log(
 			"method", "InvokeCallout",
 			"destination", destination,
 			"error", err,
+			"variables", variables,
 			"took", time.Since(begin),
 		)
 	}(time.Now())
-	return s.Service.SendAlert(ctx, destination, name)
+	return s.Service.SendAlert(ctx, destination, name, variables)
 }

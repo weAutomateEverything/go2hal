@@ -2,11 +2,11 @@ package halaws
 
 import (
 	"fmt"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/connect"
 	"github.com/kyokomi/emoji"
-	"github.com/weAutomateEverything/aws-sdk-go/aws"
-	"github.com/weAutomateEverything/aws-sdk-go/aws/credentials"
-	"github.com/weAutomateEverything/aws-sdk-go/aws/session"
-	"github.com/weAutomateEverything/aws-sdk-go/service/connect"
 	"github.com/weAutomateEverything/go2hal/alert"
 	"golang.org/x/net/context"
 	"os"
@@ -14,7 +14,7 @@ import (
 )
 
 type Service interface {
-	SendAlert(ctx context.Context, destination string, name string) error
+	SendAlert(ctx context.Context, destination string, name string, variables map[string]string) error
 }
 
 type service struct {
@@ -27,7 +27,7 @@ func NewService(alert alert.Service) Service {
 	return &service{alert: alert}
 }
 
-func (s *service) SendAlert(ctx context.Context, destination string, name string) error {
+func (s *service) SendAlert(ctx context.Context, destination string, name string, variables map[string]string) error {
 	if time.Since(s.lastcall) < time.Duration(30*time.Minute) {
 		s.alert.SendAlert(ctx, ":phone: :negative_squared_cross_mark: Not invoking callout since its been less than 30 minutes since the last phone call")
 		return nil
@@ -40,11 +40,19 @@ func (s *service) SendAlert(ctx context.Context, destination string, name string
 
 	outbound := connect.New(sess, &config)
 
+	v := map[string]*string{}
+	if variables != nil {
+		for key, val := range variables {
+			v[key] = aws.String(val)
+		}
+	}
+
 	req := connect.StartOutboundVoiceContactInput{
 		InstanceId:             aws.String(getInstanceID()),
 		ContactFlowId:          aws.String(getContactFlowID()),
 		DestinationPhoneNumber: aws.String(destination),
 		SourcePhoneNumber:      aws.String(getSourcePhoneNumber()),
+		Attributes:             v,
 	}
 	output, err := outbound.StartOutboundVoiceContact(&req)
 	if err != nil {

@@ -23,7 +23,7 @@ func NewInstrumentService(counter metrics.Counter, errorCount metrics.Counter, l
 	}
 }
 
-func (s instrumentingService) InvokeCallout(ctx context.Context, title, message string) (err error) {
+func (s instrumentingService) InvokeCallout(ctx context.Context, title, message string, variables map[string]string) (err error) {
 	defer func(begin time.Time) {
 		s.requestCount.With("method", "InvokeCallout").Add(1)
 		s.requestLatency.With("method", "InvokeCallout").Observe(time.Since(begin).Seconds())
@@ -31,5 +31,5 @@ func (s instrumentingService) InvokeCallout(ctx context.Context, title, message 
 			s.errorCount.With("method", "InvokeCallout").Add(1)
 		}
 	}(time.Now())
-	return s.Service.InvokeCallout(ctx, title, message)
+	return s.Service.InvokeCallout(ctx, title, message, variables)
 }

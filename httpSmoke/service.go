@@ -107,7 +107,7 @@ func (s *service) checkAlert(endpoint httpEndpoint, msg string) {
 	}
 	if endpoint.Threshold > 0 {
 		if endpoint.Threshold == endpoint.ErrorCount {
-			s.callout.InvokeCallout(context.TODO(), fmt.Sprintf("Some Test failures for %s", endpoint.Name), msg)
+			s.callout.InvokeCallout(context.TODO(), fmt.Sprintf("Some Test failures for %s", endpoint.Name), msg, nil)
 		}
 		if endpoint.ErrorCount >= endpoint.Threshold {
 			s.checkTimeout(msg)
