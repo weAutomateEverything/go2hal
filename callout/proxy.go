@@ -86,7 +86,7 @@ func newProxy(namespace string, logger log.Logger) Service {
 	return &calloutProxy{requestCallout: callout}
 }
 
-func (s *calloutProxy) InvokeCallout(ctx context.Context, title, message string) error {
+func (s *calloutProxy) InvokeCallout(ctx context.Context, title, message string, variables map[string]string) error {
 	_, err := s.requestCallout(ctx, &SendCalloutRequest{Message: message, Title: title})
 	return err
 }

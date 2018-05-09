@@ -8,7 +8,7 @@ import (
 func MakeSendAlertEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(string)
-		s.SendAlert(ctx, req, "Manually Invoked")
+		s.SendAlert(ctx, req, "Manually Invoked", nil)
 		return nil, nil
 	}
 }
