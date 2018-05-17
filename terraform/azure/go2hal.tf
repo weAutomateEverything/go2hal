@@ -30,7 +30,7 @@ resource "azurerm_container_group" "aci-helloworld" {
 
   "container" {
     cpu = 1
-    image = "weautomateeverything/go2hal:1.805.1"
+    image = "weautomateeverything/go2hal:1.807.1"
     memory = 0.5
     name = "go2hal"
     port = "8000"

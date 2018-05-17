@@ -28,6 +28,7 @@ func NewConnection() *mgo.Database {
 			log.Fatal(err)
 		}
 	}
+	log.Printf("Connecting to Mongo with %v", dialinfo)
 	session, err := mgo.DialWithInfo(dialinfo)
 	if err != nil {
 		log.Panic(err)
