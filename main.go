@@ -28,6 +28,7 @@ import (
 	"github.com/weAutomateEverything/bankCallout"
 	"github.com/weAutomateEverything/bankldapService"
 	"github.com/weAutomateEverything/go2hal/firstCall"
+	"github.com/weAutomateEverything/go2hal/github"
 	"github.com/weAutomateEverything/go2hal/halaws"
 	"github.com/weAutomateEverything/go2hal/httpSmoke"
 	"github.com/weAutomateEverything/go2hal/machineLearning"
@@ -39,7 +40,6 @@ import (
 	"os/signal"
 	"runtime/debug"
 	"syscall"
-	"github.com/weAutomateEverything/go2hal/github"
 )
 
 func main() {
@@ -351,7 +351,7 @@ func main() {
 	mux.Handle("/users/", user.MakeHandler(userService, httpLogger, machineLearningService))
 	mux.Handle("/aws/sendTestAlert", halaws.MakeHandler(aws, httpLogger, machineLearningService))
 	mux.Handle("/callout/", callout.MakeHandler(calloutService, httpLogger, machineLearningService))
-	mux.Handle("/github/",github.MakeHandler(githubService,httpLogger,machineLearningService))
+	mux.Handle("/github/", github.MakeHandler(githubService, httpLogger, machineLearningService))
 
 	http.Handle("/", panicHandler{accessControl(mux), jiraService, alertService})
 	http.Handle("/metrics", promhttp.Handler())

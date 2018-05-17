@@ -12,4 +12,3 @@ func MakeSendAlertEndpoint(s Service) endpoint.Endpoint {
 		return nil, nil
 	}
 }
-
