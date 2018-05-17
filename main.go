@@ -18,15 +18,12 @@ import (
 	"github.com/weAutomateEverything/go2hal/remoteTelegramCommands"
 	"github.com/weAutomateEverything/go2hal/seleniumTests"
 	"github.com/weAutomateEverything/go2hal/sensu"
-	"github.com/weAutomateEverything/go2hal/skynet"
 	"github.com/weAutomateEverything/go2hal/snmp"
 	ssh2 "github.com/weAutomateEverything/go2hal/ssh"
 	"github.com/weAutomateEverything/go2hal/telegram"
 	"github.com/weAutomateEverything/go2hal/user"
 	"google.golang.org/grpc/reflection"
 
-	"github.com/weAutomateEverything/bankCallout"
-	"github.com/weAutomateEverything/bankldapService"
 	"github.com/weAutomateEverything/go2hal/firstCall"
 	"github.com/weAutomateEverything/go2hal/github"
 	"github.com/weAutomateEverything/go2hal/halaws"
@@ -40,6 +37,8 @@ import (
 	"os/signal"
 	"runtime/debug"
 	"syscall"
+
+	"github.com/weAutomateEverything/go2hal/auth"
 )
 
 func main() {
@@ -62,9 +61,6 @@ func main() {
 	httpStore := httpSmoke.NewMongoStore(db)
 	machingLearningStore := machineLearning.NewMongoStore(db)
 
-	//A datastore to store the auth info for our bank - not required if you dont want auth
-	bankLdapStore := bankldapService.NewMongoStore(db)
-
 	fieldKeys := []string{"method"}
 
 	//Services
@@ -73,7 +69,7 @@ func main() {
 	machineLearningService := machineLearning.NewService(machingLearningStore)
 
 	//A auth service for our bank. If you dont want auth use auth.alwaysTrueAuthService()
-	authService := bankldapService.NewService(bankLdapStore)
+	authService := auth.NewAlwaysTrustEveryoneAuthService()
 
 	telegramService := telegram.NewService(telegramStore, authService)
 	telegramService = telegram.NewLoggingService(log.With(logger, "component", "telegram"), telegramService)
@@ -224,7 +220,7 @@ func main() {
 			Help:      "Total duration of requests in microseconds.",
 		}, fieldKeys), aws)
 
-	firstcallService := bankCallout.NewService()
+	firstcallService := firstCall.NewDefaultFirstcallService()
 
 	calloutService := callout.NewService(alertService, firstcallService, snmpService, jiraService, aws)
 	calloutService = callout.NewLoggingService(log.With(logger, "component", "callout"), calloutService)
@@ -261,21 +257,6 @@ func main() {
 			Name:      "request_latency_microseconds",
 			Help:      "Total duration of requests in microseconds.",
 		}, fieldKeys), chefService)
-
-	skynetService := skynet.NewService(alertService, chefStore, calloutService)
-	skynetService = skynet.NewLoggingService(log.With(logger, "component", "skynet"), skynetService)
-	skynetService = skynet.NewInstrumentService(kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
-		Namespace: "api",
-		Subsystem: "skynet",
-		Name:      "request_count",
-		Help:      "Number of requests received.",
-	}, fieldKeys),
-		kitprometheus.NewSummaryFrom(stdprometheus.SummaryOpts{
-			Namespace: "api",
-			Subsystem: "skynet",
-			Name:      "request_latency_microseconds",
-			Help:      "Total duration of requests in microseconds.",
-		}, fieldKeys), skynetService)
 
 	sensuService := sensu.NewService(alertService)
 	sensuService = sensu.NewLoggingService(log.With(logger, "component", "sensu"), sensuService)
@@ -326,18 +307,8 @@ func main() {
 	telegramService.RegisterCommand(alert.NewSetHeartbeatGroupCommand(telegramService, alertStore))
 	telegramService.RegisterCommand(telegram.NewHelpCommand(telegramService))
 	telegramService.RegisterCommand(firstCall.NewWhosOnFirstCallCommand(alertService, telegramService, firstcallService))
-	telegramService.RegisterCommand(skynet.NewRebuildCHefNodeCommand(telegramStore, chefStore, telegramService,
-		alertService))
-	telegramService.RegisterCommand(skynet.NewRebuildNodeCommand(alertService, skynetService))
-	telegramService.RegisterCommand(httpSmoke.NewQuietHttpAlertCommand(telegramService, httpService))
-	telegramService.RegisterCommand(bankldapService.NewRegisterCommand(telegramService, bankLdapStore))
-	telegramService.RegisterCommand(bankldapService.NewTokenCommand(telegramService, bankLdapStore))
 
-	telegramService.RegisterCommandLet(skynet.NewRebuildChefNodeEnvironmentReplyCommandlet(telegramService,
-		skynetService, chefService))
-	telegramService.RegisterCommandLet(skynet.NewRebuildChefNodeExecute(skynetService, alertService))
-	telegramService.RegisterCommandLet(skynet.NewRebuildChefNodeRecipeReplyCommandlet(chefStore, alertService,
-		telegramService))
+	telegramService.RegisterCommand(httpSmoke.NewQuietHttpAlertCommand(telegramService, httpService))
 
 	httpLogger := log.With(logger, "component", "http")
 
@@ -346,7 +317,6 @@ func main() {
 	mux.Handle("/chefAudit", analytics.MakeHandler(analyticsService, httpLogger, machineLearningService))
 	mux.Handle("/appdynamics/", appdynamics.MakeHandler(appdynamicsService, httpLogger, machineLearningService))
 	mux.Handle("/delivery", chef.MakeHandler(chefService, httpLogger, machineLearningService))
-	mux.Handle("/skynet/", skynet.MakeHandler(skynetService, httpLogger, machineLearningService))
 	mux.Handle("/sensu", sensu.MakeHandler(sensuService, httpLogger, machineLearningService))
 	mux.Handle("/users/", user.MakeHandler(userService, httpLogger, machineLearningService))
 	mux.Handle("/aws/sendTestAlert", halaws.MakeHandler(aws, httpLogger, machineLearningService))
