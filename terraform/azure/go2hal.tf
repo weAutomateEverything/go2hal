@@ -30,10 +30,10 @@ resource "azurerm_container_group" "aci-helloworld" {
 
   "container" {
     cpu = 1
-    image = "weautomateeverything/go2hal:1.803.1"
+    image = "weautomateeverything/go2hal:1.805.1"
     memory = 0.5
     name = "go2hal"
-    port = "80"
+    port = "8000"
     environment_variables {
       MONGO = "${azurerm_cosmosdb_account.go2hal.connection_strings[0]}"
       BOT_KEY = "411872276:AAHeaOcCauxP0p7vEoTnl1Jeafil9fulrz0"
@@ -43,6 +43,8 @@ resource "azurerm_container_group" "aci-helloworld" {
   name = "go2hal"
   os_type = "Linux"
   resource_group_name = "${azurerm_resource_group.go2hal.name}"
+  dns_name_label = "go2hal"
+  ip_address_type = "Public"
 }
 
 
