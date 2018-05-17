@@ -3,3 +3,7 @@ go2hal.exe
 go2hal
 go2hal~
 .DS_Store
+
+terraform/azure/terraform.tfstate
+terraform/azure/terraform.tfstate.backup
+terraform/azure/.terraform/

@@ -39,6 +39,7 @@ import (
 	"os/signal"
 	"runtime/debug"
 	"syscall"
+	"github.com/weAutomateEverything/go2hal/github"
 )
 
 func main() {
@@ -314,6 +315,8 @@ func main() {
 
 	remoteTelegramCommand := remoteTelegramCommands.NewService(telegramService)
 
+	githubService := github.NewService(alertService)
+
 	_ = seleniumTests.NewService(seleniumStore, alertService, calloutService)
 	httpService := httpSmoke.NewService(alertService, httpStore, calloutService)
 
@@ -348,6 +351,7 @@ func main() {
 	mux.Handle("/users/", user.MakeHandler(userService, httpLogger, machineLearningService))
 	mux.Handle("/aws/sendTestAlert", halaws.MakeHandler(aws, httpLogger, machineLearningService))
 	mux.Handle("/callout/", callout.MakeHandler(calloutService, httpLogger, machineLearningService))
+	mux.Handle("/github/",github.MakeHandler(githubService,httpLogger,machineLearningService))
 
 	http.Handle("/", panicHandler{accessControl(mux), jiraService, alertService})
 	http.Handle("/metrics", promhttp.Handler())
