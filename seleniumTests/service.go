@@ -83,13 +83,18 @@ func (s service) handleError(test Selenium, image []byte, err error) {
 	}
 	if test.Threshold > 0 {
 		if test.Threshold == test.ErrorCount {
-			s.calloutService.InvokeCallout(context.TODO(), fmt.Sprintf("halSelenium Error with  test %s", test.Name), err.Error(), nil)
+			for _, chat := range test.Chats {
+				s.calloutService.InvokeCallout(context.TODO(), chat, fmt.Sprintf("halSelenium Error with  test %s", test.Name), err.Error(), nil)
+			}
+
 		}
 
 		if test.ErrorCount >= test.Threshold {
-			s.alert.SendAlert(context.TODO(), emoji.Sprintf(":computer: :x: Error executing seleniumTests test for %s. error: %s", test.Name, err.Error()))
-			if image != nil {
-				s.alert.SendImageToAlertGroup(context.TODO(), image)
+			for _, chat := range test.Chats {
+				s.alert.SendAlert(context.TODO(), chat, emoji.Sprintf(":computer: :x: Error executing seleniumTests test for %s. error: %s", test.Name, err.Error()))
+				if image != nil {
+					s.alert.SendImageToAlertGroup(context.TODO(), chat, image)
+				}
 			}
 		}
 	}
@@ -101,7 +106,9 @@ func (s service) handleSuccess(test Selenium) {
 		return
 	}
 	if !test.Passing && test.ErrorCount >= test.Threshold {
-		s.alert.SendAlert(context.TODO(), emoji.Sprintf(":computer: :white_check_mark: halSelenium Test %s back to normal", test.Name))
+		for _, chat := range test.Chats {
+			s.alert.SendAlert(context.TODO(), chat, emoji.Sprintf(":computer: :white_check_mark: halSelenium Test %s back to normal", test.Name))
+		}
 	}
 }
 

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	kitlog "github.com/go-kit/kit/log"
 	kithttp "github.com/go-kit/kit/transport/http"
+	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/weAutomateEverything/go2hal/machineLearning"
 	"io"
@@ -38,11 +39,14 @@ func EncodeError(c context.Context, err error, w http.ResponseWriter) {
 /*
 DecodeString will return the the body of the http request as a string
 */
-func DecodeString(_ context.Context, r *http.Request) (interface{}, error) {
+func DecodeString(ctx context.Context, r *http.Request) (interface{}, error) {
 	s, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		return nil, err
 	}
+
+	vars := mux.Vars(r)
+	context.WithValue(ctx, "CHAT-ID", vars["chatid"])
 	return string(s), nil
 }
 
@@ -79,6 +83,7 @@ EncodeRequest converts the input request into a json string and adds it to the r
 func EncodeRequest(_ context.Context, r *http.Request, request interface{}) error {
 	req := request.(string)
 	r.Body = nopCloser{strings.NewReader(req)}
+
 	return nil
 }
 
@@ -97,11 +102,14 @@ func EncodeToBase64(_ context.Context, r *http.Request, request interface{}) err
 	return nil
 }
 
-func DecodeFromBase64(_ context.Context, r *http.Request) (interface{}, error) {
+func DecodeFromBase64(ctx context.Context, r *http.Request) (interface{}, error) {
 	base64msg, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		return nil, err
 	}
+
+	vars := mux.Vars(r)
+	context.WithValue(ctx, "CHAT-ID", vars["chatid"])
 
 	return base64.StdEncoding.DecodeString(string(base64msg))
 

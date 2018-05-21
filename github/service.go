@@ -16,9 +16,9 @@ func NewService(alert alert.Service) Service {
 }
 
 type Service interface {
-	sendGithubMessage(ctx context.Context, message string)
+	sendGithubMessage(ctx context.Context, chatId uint32, message string)
 }
 
-func (s *service) sendGithubMessage(ctx context.Context, message string) {
-	s.alert.SendAlert(ctx, message)
+func (s *service) sendGithubMessage(ctx context.Context, chatId uint32, message string) {
+	s.alert.SendAlert(ctx, chatId, message)
 }

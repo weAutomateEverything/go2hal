@@ -3,6 +3,7 @@ package telegram
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"github.com/weAutomateEverything/go2hal/auth"
 	"gopkg.in/telegram-bot-api.v4"
 	"io/ioutil"
@@ -159,6 +160,22 @@ func (s service) pollMessage() {
 				continue
 			}
 
+			if update.Message.NewChatMembers != nil {
+				for _, user := range *update.Message.NewChatMembers {
+					// Looks like the bot has been added to a new group - lets register the details.
+					if user.ID == telegramBot.Self.ID {
+						id, err := s.store.addBot(update.Message.Chat.ID)
+						if err != nil {
+							sendMessage(update.Message.Chat.ID, fmt.Sprintf("There was an error registering your bot: %v", err.Error()), update.Message.MessageID, false)
+							continue
+						}
+
+						sendMessage(update.Message.Chat.ID, fmt.Sprintf("The bot has been successfully registered. Your token is %v", id), update.Message.MessageID, false)
+						continue
+					}
+				}
+			}
+
 			if update.Message.IsCommand() {
 				if s.executeCommand(update) {
 					continue
@@ -211,12 +228,12 @@ func (s service) executeCommand(update tgbotapi.Update) bool {
 }
 
 func (s service) executeCommandLet(update tgbotapi.Update) bool {
-	state := s.store.getState(update.Message.From.ID)
+	state := s.store.getState(update.Message.From.ID, update.Message.Chat.ID)
 	for _, c := range commandletList {
 		a := c()
 		if a.CanExecute(update, state) {
 			a.Execute(update, state)
-			s.store.SetState(update.Message.From.ID, a.NextState(update, state), a.Fields(update, state))
+			s.store.SetState(update.Message.From.ID, update.Message.Chat.ID, a.NextState(update, state), a.Fields(update, state))
 			return true
 		}
 	}

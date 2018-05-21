@@ -14,7 +14,7 @@ import (
 )
 
 type Service interface {
-	ExecuteRemoteCommand(ctx context.Context, commandName, address string) error
+	ExecuteRemoteCommand(ctx context.Context, chatId uint32, commandName, address string) error
 }
 
 type service struct {
@@ -29,7 +29,7 @@ func NewService(alert alert.Service, store Store) Service {
 /*
 ExecuteRemoteCommand will run the command against the supplied address
 */
-func (s *service) ExecuteRemoteCommand(ctx context.Context, commandName, address string) error {
+func (s *service) ExecuteRemoteCommand(ctx context.Context, chatId uint32, commandName, address string) error {
 	defer func() {
 		if err := recover(); err != nil {
 			fmt.Print(err)
@@ -56,7 +56,7 @@ func (s *service) ExecuteRemoteCommand(ctx context.Context, commandName, address
 		return err
 	}
 
-	s.alert.SendAlert(ctx, emoji.Sprintf(":ghost: Executing Remote Command %s on machine %s", command, address))
+	s.alert.SendAlert(ctx, chatId, emoji.Sprintf(":ghost: Executing Remote Command %s on machine %s", command, address))
 	cmd := exec.Command("sh", "-c", fmt.Sprintf("ssh -i /tmp/key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no %s@%s \"%s\" > /tmp/ssh.log", key.Username, address, command))
 	log.Println(cmd.Args)
 	stdout, err := cmd.StdoutPipe()
@@ -75,18 +75,18 @@ func (s *service) ExecuteRemoteCommand(ctx context.Context, commandName, address
 		time.Sleep(time.Second * 1)
 		count++
 		if count%60 == 0 {
-			s.alert.SendAlert(ctx, fmt.Sprintf("Still waiting for command %s to complete on %s", command, address))
+			s.alert.SendAlert(ctx, chatId, fmt.Sprintf("Still waiting for command %s to complete on %s", command, address))
 		}
 		if count > 600 {
-			s.alert.SendAlert(ctx, emoji.Sprintf(":bangbang: Timed Out waiting for command %s to complete on %s", command, address))
+			s.alert.SendAlert(ctx, chatId, emoji.Sprintf(":bangbang: Timed Out waiting for command %s to complete on %s", command, address))
 			return fmt.Errorf("timed out waiting for %s to complete on %s", command, address)
 		}
 	}
 
 	if !cmd.ProcessState.Success() {
-		s.alert.SendAlert(ctx, emoji.Sprintf(":bangbang:  command %s did not complete successfully on %s", command, address))
+		s.alert.SendAlert(ctx, chatId, emoji.Sprintf(":bangbang:  command %s did not complete successfully on %s", command, address))
 	} else {
-		s.alert.SendAlert(ctx, emoji.Sprintf(":white_check_mark: command %s complete successfully on %s", command, address))
+		s.alert.SendAlert(ctx, chatId, emoji.Sprintf(":white_check_mark: command %s complete successfully on %s", command, address))
 	}
 	log.Println("output")
 	log.Println(stdout)

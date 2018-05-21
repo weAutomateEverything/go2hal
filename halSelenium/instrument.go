@@ -34,12 +34,12 @@ func (s *instrumentingService) NewClient(seleniumServer string) (err error) {
 	return s.Service.NewClient(seleniumServer)
 
 }
-func (s *instrumentingService) HandleSeleniumError(internal bool, err error) {
+func (s *instrumentingService) HandleSeleniumError(chatId uint32, internal bool, err error) {
 	defer func(begin time.Time) {
 		s.requestCount.With("method", "HandleSeleniumError").Add(1)
 		s.requestLatency.With("method", "HandleSeleniumError").Observe(time.Since(begin).Seconds())
 	}(time.Now())
-	s.Service.HandleSeleniumError(internal, err)
+	s.Service.HandleSeleniumError(chatId, internal, err)
 }
 func (s *instrumentingService) Driver() selenium.WebDriver {
 	defer func(begin time.Time) {

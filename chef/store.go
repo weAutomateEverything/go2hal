@@ -19,7 +19,7 @@ type Store interface {
 	/*
 		AddChefEnvironment Adds a chef environment to alert on
 	*/
-	AddChefEnvironment(environment, friendlyName string)
+	AddChefEnvironment(environment, friendlyName string, chatid uint32) error
 
 	/*
 		GetChefEnvironments will return all the chef environments in the database
@@ -34,7 +34,7 @@ type Store interface {
 	/*
 		AddRecipe will add a recipe to the watch list for the bot
 	*/
-	AddRecipe(recipeName, friendlyName string) error
+	AddRecipe(recipeName, friendlyName string, chatid uint32) error
 
 	/*
 		GetRecipes returns all the configured chef recipes. 0 length if none exists or there is an error.
@@ -69,6 +69,7 @@ type ChefEnvironment struct {
 	ID           bson.ObjectId `bson:"_id,omitempty"`
 	Environment  string
 	FriendlyName string
+	ChatID       []uint32
 }
 
 /*
@@ -78,6 +79,7 @@ type Recipe struct {
 	ID           bson.ObjectId `bson:"_id,omitempty"`
 	Recipe       string
 	FriendlyName string
+	ChatID       []uint32
 }
 
 func (s *mongoStore) addChefClient(name, url, key string) {
@@ -104,10 +106,30 @@ func (s *mongoStore) IsChefConfigured() (bool, error) {
 
 }
 
-func (s *mongoStore) AddChefEnvironment(environment, friendlyName string) {
+func (s *mongoStore) AddChefEnvironment(environment, friendlyName string, chatid uint32) error {
+
 	c := s.mongo.C("chefenvironments")
-	chefEnvironment := ChefEnvironment{Environment: environment, FriendlyName: friendlyName}
-	c.Insert(chefEnvironment)
+	q := c.Find(bson.M{"environment": environment})
+	n, err := q.Count()
+	if err != nil {
+		return err
+	}
+	if n > 0 {
+		var r ChefEnvironment
+		q.One(&r)
+		for _, id := range r.ChatID {
+			if id == chatid {
+				// its already in the DB
+				return nil
+			}
+		}
+		r.ChatID = append(r.ChatID, chatid)
+		return c.UpdateId(r.ID, r)
+
+	}
+
+	chefEnvironment := ChefEnvironment{Environment: environment, FriendlyName: friendlyName, ChatID: []uint32{chatid}}
+	return c.Insert(chefEnvironment)
 }
 
 func (s *mongoStore) GetChefEnvironments() ([]ChefEnvironment, error) {
@@ -124,9 +146,27 @@ func (s *mongoStore) GetEnvironmentFromFriendlyName(recipe string) (string, erro
 	return r.Environment, err
 }
 
-func (s *mongoStore) AddRecipe(recipeName, friendlyName string) error {
+func (s *mongoStore) AddRecipe(recipeName, friendlyName string, chatid uint32) error {
 	c := s.mongo.C("recipes")
-	recipeItem := Recipe{Recipe: recipeName, FriendlyName: friendlyName}
+	q := c.Find(bson.M{"recipe": recipeName})
+	n, err := q.Count()
+	if err != nil {
+		return err
+	}
+
+	if n > 0 {
+		var r Recipe
+		q.One(&r)
+		for _, i := range r.ChatID {
+			if i == chatid {
+				return nil
+			}
+		}
+		r.ChatID = append(r.ChatID, chatid)
+		return c.UpdateId(r.ID, r)
+	}
+
+	recipeItem := Recipe{Recipe: recipeName, FriendlyName: friendlyName, ChatID: []uint32{chatid}}
 	return c.Insert(recipeItem)
 
 }

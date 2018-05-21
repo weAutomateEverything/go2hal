@@ -14,7 +14,7 @@ import (
 )
 
 type Service interface {
-	SendAlert(ctx context.Context, destination string, name string, variables map[string]string) error
+	SendAlert(ctx context.Context, chatId uint32, destination string, name string, variables map[string]string) error
 }
 
 type service struct {
@@ -27,9 +27,9 @@ func NewService(alert alert.Service) Service {
 	return &service{alert: alert}
 }
 
-func (s *service) SendAlert(ctx context.Context, destination string, name string, variables map[string]string) error {
+func (s *service) SendAlert(ctx context.Context, chatId uint32, destination string, name string, variables map[string]string) error {
 	if time.Since(s.lastcall) < time.Duration(30*time.Minute) {
-		s.alert.SendAlert(ctx, ":phone: :negative_squared_cross_mark: Not invoking callout since its been less than 30 minutes since the last phone call")
+		s.alert.SendAlert(ctx, chatId, ":phone: :negative_squared_cross_mark: Not invoking callout since its been less than 30 minutes since the last phone call")
 		return nil
 	}
 
@@ -61,7 +61,7 @@ func (s *service) SendAlert(ctx context.Context, destination string, name string
 	}
 
 	s.lastcall = time.Now()
-	s.alert.SendAlert(ctx, emoji.Sprintf(":phone: HAL has phoned %v on %v. Reference %v ", name, destination, output.ContactId))
+	s.alert.SendAlert(ctx, chatId, emoji.Sprintf(":phone: HAL has phoned %v on %v. Reference %v ", name, destination, output.ContactId))
 	return nil
 
 }

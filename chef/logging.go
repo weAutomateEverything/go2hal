@@ -15,15 +15,16 @@ func NewLoggingService(logger log.Logger, s Service) Service {
 	return &loggingService{logger, s}
 }
 
-func (s *loggingService) sendDeliveryAlert(ctx context.Context, message string) {
+func (s *loggingService) sendDeliveryAlert(ctx context.Context, chatId uint32, message string) {
 	defer func(begin time.Time) {
 		s.logger.Log(
 			"method", "sendDeliveryAlert",
 			"message", message,
+			"chat", chatId,
 			"took", time.Since(begin),
 		)
 	}(time.Now())
-	s.Service.sendDeliveryAlert(ctx, message)
+	s.Service.sendDeliveryAlert(ctx, chatId, message)
 
 }
 func (s *loggingService) FindNodesFromFriendlyNames(recipe, environment string) []Node {

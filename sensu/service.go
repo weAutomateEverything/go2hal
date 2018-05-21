@@ -9,7 +9,7 @@ import (
 )
 
 type Service interface {
-	handleSensu(ctx context.Context, sensu SensuMessageRequest)
+	handleSensu(ctx context.Context, chatId uint32, sensu SensuMessageRequest)
 }
 
 type service struct {
@@ -20,7 +20,7 @@ func NewService(alert alert.Service) Service {
 	return &service{alert: alert}
 }
 
-func (s *service) handleSensu(ctx context.Context, sensu SensuMessageRequest) {
+func (s *service) handleSensu(ctx context.Context, chatId uint32, sensu SensuMessageRequest) {
 	for _, msg := range sensu.Attachments {
 		e := ""
 		if strings.Index(msg.Title, "CRITICAL") > 0 {
@@ -32,7 +32,7 @@ func (s *service) handleSensu(ctx context.Context, sensu SensuMessageRequest) {
 			e = ":white_check_mark:"
 		}
 		msg := fmt.Sprintf("%v *%v*\n %v", e, msg.Title, msg.Text)
-		s.alert.SendAlert(ctx, emoji.Sprint(msg))
+		s.alert.SendAlert(ctx, chatId, emoji.Sprint(msg))
 
 	}
 

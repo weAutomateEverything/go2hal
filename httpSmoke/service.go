@@ -83,7 +83,10 @@ func (s *service) checkHTTP(endpoint httpEndpoint) {
 		return
 	}
 	if !endpoint.Passing && endpoint.ErrorCount >= endpoint.Threshold {
-		s.alert.SendAlert(context.TODO(), emoji.Sprintf(":smoking: :white_check_mark: smoke test %s back to normal", endpoint.Name))
+		for _, chat := range endpoint.Chats {
+			s.alert.SendAlert(context.TODO(), chat, emoji.Sprintf(":smoking: :white_check_mark: smoke test %s back to normal", endpoint.Name))
+
+		}
 	}
 
 	if err := s.store.successfulEndpointTest(&endpoint); err != nil {
@@ -107,19 +110,25 @@ func (s *service) checkAlert(endpoint httpEndpoint, msg string) {
 	}
 	if endpoint.Threshold > 0 {
 		if endpoint.Threshold == endpoint.ErrorCount {
-			s.callout.InvokeCallout(context.TODO(), fmt.Sprintf("Some Test failures for %s", endpoint.Name), msg, nil)
+			for _, chat := range endpoint.Chats {
+				s.callout.InvokeCallout(context.TODO(), chat, fmt.Sprintf("Some Test failures for %s", endpoint.Name), msg, nil)
+			}
 		}
 		if endpoint.ErrorCount >= endpoint.Threshold {
-			s.checkTimeout(msg)
+			s.checkTimeout(endpoint.Chats, msg)
 		}
 	}
 }
 
-func (s *service) checkTimeout(msg string) {
+func (s *service) checkTimeout(chats []uint32, msg string) {
 	if !s.timeoutSet || time.Now().Local().After(s.timeout) {
-		s.alert.SendAlert(context.TODO(), msg)
+		for _, chat := range chats {
+			s.alert.SendAlert(context.TODO(), chat, msg)
+		}
 		if s.timeoutSet {
-			s.alert.SendAlert(context.TODO(), emoji.Sprintf(":alarm_clock: - Smoke Alerts expired. The bot will now be sending alerts for smoke failures again"))
+			for _, chat := range chats {
+				s.alert.SendAlert(context.TODO(), chat, emoji.Sprintf(":alarm_clock: - Smoke Alerts expired. The bot will now be sending alerts for smoke failures again"))
+			}
 			s.timeoutSet = false
 		}
 	}

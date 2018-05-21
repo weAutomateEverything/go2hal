@@ -15,13 +15,14 @@ func NewLoggingService(logger log.Logger, s Service) Service {
 	return &loggingService{logger, s}
 }
 
-func (s loggingService) handleSensu(ctx context.Context, sensu SensuMessageRequest) {
+func (s loggingService) handleSensu(ctx context.Context, chatId uint32, sensu SensuMessageRequest) {
 	defer func(begin time.Time) {
 		s.logger.Log(
 			"method", "handleSensu",
 			"message", sensu,
+			"chat", chatId,
 			"took", time.Since(begin),
 		)
 	}(time.Now())
-	s.Service.handleSensu(ctx, sensu)
+	s.Service.handleSensu(ctx, chatId, sensu)
 }

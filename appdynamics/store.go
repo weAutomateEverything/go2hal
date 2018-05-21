@@ -13,7 +13,7 @@ type Store interface {
 	GetAppDynamics() (*AppDynamics, error)
 
 	addAppDynamicsEndpoint(endpoint string) error
-	addMqEndpoint(name, application string, metricPath string) error
+	addMqEndpoint(name, application string, metricPath string, chat uint32) error
 }
 
 type mongoStore struct {
@@ -39,6 +39,7 @@ type MqEndpoint struct {
 	Name        string
 	Application string
 	MetricPath  string
+	Chat        []uint32
 }
 
 func (s *mongoStore) addAppDynamicsEndpoint(endpoint string) error {
@@ -59,20 +60,29 @@ func (s *mongoStore) addAppDynamicsEndpoint(endpoint string) error {
 	return nil
 }
 
-func (s *mongoStore) addMqEndpoint(name, application string, metricPath string) error {
+func (s *mongoStore) addMqEndpoint(name, application string, metricPath string, chat uint32) error {
 	var mq = MqEndpoint{Application: application, MetricPath: metricPath, Name: name}
 	appd, err := s.GetAppDynamics()
 	if err != nil {
 		return err
 	}
+	c := s.mongo.C("appDynamics")
+
+	for _, mq := range appd.MqEndpoints {
+		if mq.Application == application && mq.MetricPath == metricPath {
+			for _, id := range mq.Chat {
+				if id == chat {
+					return nil
+				}
+			}
+			mq.Chat = append(mq.Chat, chat)
+			return c.UpdateId(appd.ID, appd)
+		}
+	}
 
 	appd.MqEndpoints = append(appd.MqEndpoints, mq)
-	c := s.mongo.C("appDynamics")
-	err = c.UpdateId(appd.ID, appd)
-	if err != nil {
-		return err
-	}
-	return nil
+	return c.UpdateId(appd.ID, appd)
+
 }
 
 func (s *mongoStore) GetAppDynamics() (*AppDynamics, error) {

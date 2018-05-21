@@ -17,7 +17,7 @@ import (
 )
 
 type Service interface {
-	CreateJira(ctx context.Context, title, description string, name string)
+	CreateJira(ctx context.Context, chatId uint32, title, description string, name string)
 }
 
 type service struct {
@@ -30,7 +30,7 @@ func NewService(alert alert.Service, userStore user.Store) Service {
 
 }
 
-func (s *service) CreateJira(ctx context.Context, title, description string, username string) {
+func (s *service) CreateJira(ctx context.Context, chatId uint32, title, description string, username string) {
 	title = strings.Replace(title, "\n", "", -1)
 	description = strings.Replace(description, "\n", "", -1)
 	title = strings.Replace(title, "\t", "", -1)
@@ -90,7 +90,7 @@ func (s *service) CreateJira(ctx context.Context, title, description string, use
 		s.alert.SendError(ctx, fmt.Errorf("JIRA Response dat key not a string: %s", response))
 	}
 
-	s.alert.SendAlert(ctx, emoji.Sprintf(":ticket: JIRA Ticket Created. ID: %s assigned to %s. Description %s", key, qr.User, description))
+	s.alert.SendAlert(ctx, chatId, emoji.Sprintf(":ticket: JIRA Ticket Created. ID: %s assigned to %s. Description %s", key, qr.User, description))
 }
 
 func (s *service) jiraUser(username string) string {

@@ -14,7 +14,7 @@ import (
 )
 
 type Service interface {
-	sendDeliveryAlert(ctx context.Context, message string)
+	sendDeliveryAlert(ctx context.Context, chatId uint32, message string)
 	FindNodesFromFriendlyNames(recipe, environment string) []Node
 }
 
@@ -32,7 +32,7 @@ func NewService(alert alert.Service, chefStore Store) Service {
 	return s
 }
 
-func (s *service) sendDeliveryAlert(ctx context.Context, message string) {
+func (s *service) sendDeliveryAlert(ctx context.Context, chatId uint32, message string) {
 	var dat map[string]interface{}
 
 	message = strings.Replace(message, "\n", "\\n", -1)
@@ -73,7 +73,7 @@ func (s *service) sendDeliveryAlert(ctx context.Context, message string) {
 	buffer.WriteString(parts[0])
 	buffer.WriteString(")")
 
-	s.alert.SendAlert(ctx, buffer.String())
+	s.alert.SendAlert(ctx, chatId, buffer.String())
 
 }
 
@@ -129,7 +129,14 @@ func (s *service) checkQuarentined() {
 			nodes := s.FindNodesFromFriendlyNames(r.FriendlyName, e.FriendlyName)
 			for _, n := range nodes {
 				if strings.Index(n.Environment, "quar") > 0 {
-					s.alert.SendAlert(context.TODO(), emoji.Sprintf(":hospital: *Node Quarantined* \n node %v has been placed in environment %v. Application %v ", n.Name, strings.Replace(n.Environment, "_", " ", -1), r.FriendlyName))
+					//We have found a quarentined Node - Now we need to check the recipes and environment to find out who wants to know about this, in this environment
+					for _, rid := range r.ChatID {
+						for _, eid := range e.ChatID {
+							if rid == eid {
+								s.alert.SendAlert(context.TODO(), rid, emoji.Sprintf(":hospital: *Node Quarantined* \n node %v has been placed in environment %v. Application %v ", n.Name, strings.Replace(n.Environment, "_", " ", -1), r.FriendlyName))
+							}
+						}
+					}
 				}
 			}
 		}

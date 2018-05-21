@@ -22,7 +22,7 @@ func NewInstrumentService(counter metrics.Counter, errorCounter metrics.Counter,
 	}
 }
 
-func (s instrumentingService) SendAlert(ctx context.Context, destination string, name string, variables map[string]string) (err error) {
+func (s instrumentingService) SendAlert(ctx context.Context, chatId uint32, destination string, name string, variables map[string]string) (err error) {
 	defer func(begin time.Time) {
 		s.requestCount.With("method", "SendAlert").Add(1)
 		s.requestLatency.With("method", "SendAlert").Observe(time.Since(begin).Seconds())
@@ -30,5 +30,5 @@ func (s instrumentingService) SendAlert(ctx context.Context, destination string,
 			s.errorCounter.With("method", "SendAlert").Add(1)
 		}
 	}(time.Now())
-	return s.Service.SendAlert(ctx, destination, name, variables)
+	return s.Service.SendAlert(ctx, chatId, destination, name, variables)
 }

@@ -23,12 +23,12 @@ func TestService_FirstCall(t *testing.T) {
 	firstCallService := firstCall.NewMockService(ctrl)
 
 	alert.EXPECT().SendError(context.TODO(), halmock.ErrorMsgMatches(errors.New("invoking callout for: Test, Sample")))
-	snmp.EXPECT().SendSNMPMessage(context.TODO())
-	jira.EXPECT().CreateJira(context.TODO(), "Test", "Sample", "BOB1")
-	aws.EXPECT().SendAlert(context.TODO(), "+27841231234", "BOB1", nil)
-	firstCallService.EXPECT().GetFirstCall(context.TODO()).Return("BOB1", "+27841231234", nil)
+	snmp.EXPECT().SendSNMPMessage(context.TODO(), uint32(12345))
+	jira.EXPECT().CreateJira(context.TODO(), uint32(12345), "Test", "Sample", "BOB1")
+	aws.EXPECT().SendAlert(context.TODO(), uint32(12345), "+27841231234", "BOB1", nil)
+	firstCallService.EXPECT().GetFirstCall(context.TODO(), uint32(12345)).Return("BOB1", "+27841231234", nil)
 
 	svc := NewService(alert, firstCallService, snmp, jira, aws)
-	svc.InvokeCallout(context.TODO(), "Test", "Sample", nil)
+	svc.InvokeCallout(context.TODO(), uint32(12345), "Test", "Sample", nil)
 
 }

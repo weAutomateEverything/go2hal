@@ -34,13 +34,13 @@ func (m *MockService) EXPECT() *MockServiceMockRecorder {
 }
 
 // SendAlert mocks base method
-func (m *MockService) SendAlert(ctx context.Context, destination, name string, variables map[string]string) error {
-	ret := m.ctrl.Call(m, "SendAlert", ctx, destination, name, variables)
+func (m *MockService) SendAlert(ctx context.Context, chatId uint32, destination, name string, variables map[string]string) error {
+	ret := m.ctrl.Call(m, "SendAlert", ctx, chatId, destination, name, variables)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // SendAlert indicates an expected call of SendAlert
-func (mr *MockServiceMockRecorder) SendAlert(ctx, destination, name, variables interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendAlert", reflect.TypeOf((*MockService)(nil).SendAlert), ctx, destination, name, variables)
+func (mr *MockServiceMockRecorder) SendAlert(ctx, chatId, destination, name, variables interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendAlert", reflect.TypeOf((*MockService)(nil).SendAlert), ctx, chatId, destination, name, variables)
 }

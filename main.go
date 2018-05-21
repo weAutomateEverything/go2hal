@@ -51,7 +51,6 @@ func main() {
 	db := database.NewConnection()
 
 	//Stores
-	alertStore := alert.NewStore(db)
 	telegramStore := telegram.NewMongoStore(db)
 	appdynamicsStore := appdynamics.NewMongoStore(db)
 	chefStore := chef.NewMongoStore(db)
@@ -93,7 +92,7 @@ func main() {
 			Help:      "Total duration of requests in microseconds.",
 		}, fieldKeys), telegramService)
 
-	alertService := alert.NewService(telegramService, alertStore)
+	alertService := alert.NewService(telegramService, telegramStore)
 	alertService = alert.NewLoggingService(log.With(logger, "component", "alert"), alertService)
 	alertService = alert.NewInstrumentService(kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
 		Namespace: "api",
@@ -128,16 +127,6 @@ func main() {
 			Name:      "request_latency_microseconds",
 			Help:      "Total duration of requests in microseconds.",
 		}, fieldKeys), jiraService)
-
-	defer func() {
-		if r := recover(); r != nil {
-			err, ok := r.(error)
-			if ok {
-				jiraService.CreateJira(context.TODO(), fmt.Sprintf("HAL Panic - %v", err.Error()), string(debug.Stack()), getTechnicalUser())
-			}
-			panic(r)
-		}
-	}()
 
 	analyticsService := analytics.NewService(alertService, chefStore)
 	analyticsService = analytics.NewLoggingService(log.With(logger, "component", "chef_audir"), analyticsService)
@@ -302,11 +291,9 @@ func main() {
 	httpService := httpSmoke.NewService(alertService, httpStore, calloutService)
 
 	//Telegram Commands
-	telegramService.RegisterCommand(alert.NewSetGroupCommand(telegramService, alertStore))
-	telegramService.RegisterCommand(alert.NewSetNonTechnicalGroupCommand(telegramService, alertStore))
-	telegramService.RegisterCommand(alert.NewSetHeartbeatGroupCommand(telegramService, alertStore))
 	telegramService.RegisterCommand(telegram.NewHelpCommand(telegramService))
-	telegramService.RegisterCommand(firstCall.NewWhosOnFirstCallCommand(alertService, telegramService, firstcallService))
+	telegramService.RegisterCommand(firstCall.NewWhosOnFirstCallCommand(alertService, telegramService,
+		firstcallService, telegramStore))
 
 	telegramService.RegisterCommand(httpSmoke.NewQuietHttpAlertCommand(telegramService, httpService))
 
@@ -386,7 +373,6 @@ func (h panicHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			err, ok := err.(error)
 			if ok {
 				h.alert.SendError(context.TODO(), fmt.Errorf("panic detected: %v \n %v", err.Error(), string(debug.Stack())))
-				h.jira.CreateJira(context.TODO(), fmt.Sprintf("HAL Panic - %v", err.Error()), string(debug.Stack()), getTechnicalUser())
 			}
 		}
 	}()

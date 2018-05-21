@@ -25,12 +25,13 @@ func NewService(alertService alert.Service, chefStore chef.Store) Service {
 }
 
 func (s *service) SendAnalyticsAlert(ctx context.Context, message string) {
-	if !s.checkSend(ctx, message) {
+	chats := s.checkSend(ctx, message)
+	if len(chats) == 0 {
 		return
 	}
 	var dat map[string]interface{}
 	if err := json.Unmarshal([]byte(message), &dat); err != nil {
-		s.alert.SendError(ctx, fmt.Errorf("Error unmarshalling: %s", message))
+		s.alert.SendError(ctx, fmt.Errorf("error unmarshalling anaytics message: %s", message))
 		return
 	}
 
@@ -43,21 +44,23 @@ func (s *service) SendAnalyticsAlert(ctx context.Context, message string) {
 	buffer.WriteString("\n")
 	util.Getfield(attachments, &buffer)
 
-	s.alert.SendAlert(ctx, buffer.String())
+	for _, chat := range chats {
+		s.alert.SendAlert(ctx, chat, buffer.String())
+	}
 }
 
-func (s *service) checkSend(ctx context.Context, message string) bool {
+func (s *service) checkSend(ctx context.Context, message string) (result []uint32) {
 	message = strings.ToUpper(message)
 	recipes, err := s.chefStore.GetRecipes()
 	if err != nil {
 		s.alert.SendError(ctx, err)
-		return false
+		return
 	}
 	for _, recipe := range recipes {
 		check := "RECIPE[" + strings.ToUpper(recipe.Recipe) + "]"
 		if strings.Contains(message, check) {
-			return true
+			result = append(result, recipe.ChatID...)
 		}
 	}
-	return false
+	return result
 }
