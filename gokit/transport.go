@@ -15,6 +15,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
@@ -45,8 +46,6 @@ func DecodeString(ctx context.Context, r *http.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	vars := mux.Vars(r)
-	context.WithValue(ctx, "CHAT-ID", vars["chatid"])
 	return string(s), nil
 }
 
@@ -108,9 +107,6 @@ func DecodeFromBase64(ctx context.Context, r *http.Request) (interface{}, error)
 		return nil, err
 	}
 
-	vars := mux.Vars(r)
-	context.WithValue(ctx, "CHAT-ID", vars["chatid"])
-
 	return base64.StdEncoding.DecodeString(string(base64msg))
 
 }
@@ -145,8 +141,18 @@ func logRequest(s machineLearning.Service) kithttp.RequestFunc {
 		if s != nil {
 			i = s.StoreHTTPRequest(i, request)
 		}
+
+		vars := mux.Vars(request)
+		i = context.WithValue(i, "CHAT-ID", vars["chatid"])
+
 		return i
 	}
+}
+
+func GetChatId(ctx context.Context) uint32 {
+	s := ctx.Value("CHAT-ID").(string)
+	i, _ := strconv.ParseUint(s, 10, 32)
+	return uint32(i)
 }
 
 func logResponse() kithttp.ClientResponseFunc {

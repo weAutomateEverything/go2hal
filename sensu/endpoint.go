@@ -3,6 +3,7 @@ package sensu
 import (
 	"context"
 	"github.com/go-kit/kit/endpoint"
+	"github.com/weAutomateEverything/go2hal/gokit"
 )
 
 type SensuMessageRequest struct {
@@ -19,7 +20,7 @@ type sensuAttachment struct {
 func makeSensuEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(SensuMessageRequest)
-		s.handleSensu(ctx, ctx.Value("CHAT-ID").(uint32), req)
+		s.handleSensu(ctx, gokit.GetChatId(ctx), req)
 		return nil, nil
 	}
 }

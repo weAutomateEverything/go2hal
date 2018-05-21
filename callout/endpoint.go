@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/go-kit/kit/endpoint"
+	"github.com/weAutomateEverything/go2hal/gokit"
 )
 
 func makeCalloutEndpoint(service Service) endpoint.Endpoint {
@@ -13,6 +14,6 @@ func makeCalloutEndpoint(service Service) endpoint.Endpoint {
 			return nil, fmt.Errorf("request type not a SendCalloutRequest, received %v", request)
 		}
 
-		return nil, service.InvokeCallout(ctx, ctx.Value("CHAT-ID").(uint32), req.Title, req.Message, nil)
+		return nil, service.InvokeCallout(ctx, gokit.GetChatId(ctx), req.Title, req.Message, nil)
 	}
 }
