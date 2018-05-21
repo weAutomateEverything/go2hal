@@ -20,12 +20,12 @@ func NewInstrumentService(counter metrics.Counter, latency metrics.Histogram, s 
 	}
 }
 
-func (s instrumentingService) sendAppdynamicsAlert(ctx context.Context, message string) {
+func (s instrumentingService) sendAppdynamicsAlert(ctx context.Context, chatId uint32, message string) {
 	defer func(begin time.Time) {
 		s.requestCount.With("method", "sendAppdynamicsAlert").Add(1)
 		s.requestLatency.With("method", "sendAppdynamicsAlert").Observe(time.Since(begin).Seconds())
 	}(time.Now())
-	s.Service.sendAppdynamicsAlert(ctx, message)
+	s.Service.sendAppdynamicsAlert(ctx, chatId, message)
 }
 func (s instrumentingService) addAppdynamicsEndpoint(endpoint string) error {
 	defer func(begin time.Time) {
@@ -34,17 +34,17 @@ func (s instrumentingService) addAppdynamicsEndpoint(endpoint string) error {
 	}(time.Now())
 	return s.Service.addAppdynamicsEndpoint(endpoint)
 }
-func (s instrumentingService) addAppDynamicsQueue(name, application, metricPath string) error {
+func (s instrumentingService) addAppDynamicsQueue(chatId uint32, name, application, metricPath string) error {
 	defer func(begin time.Time) {
 		s.requestCount.With("method", "addAppDynamicsQueue").Add(1)
 		s.requestLatency.With("method", "addAppDynamicsQueue").Observe(time.Since(begin).Seconds())
 	}(time.Now())
-	return s.Service.addAppDynamicsQueue(name, application, metricPath)
+	return s.Service.addAppDynamicsQueue(chatId, name, application, metricPath)
 }
-func (s instrumentingService) executeCommandFromAppd(ctx context.Context, commandName, applicationID, nodeID string) error {
+func (s instrumentingService) executeCommandFromAppd(ctx context.Context, chatId uint32, commandName, applicationID, nodeID string) error {
 	defer func(begin time.Time) {
 		s.requestCount.With("method", "executeCommandFromAppd").Add(1)
 		s.requestLatency.With("method", "executeCommandFromAppd").Observe(time.Since(begin).Seconds())
 	}(time.Now())
-	return s.Service.executeCommandFromAppd(ctx, commandName, applicationID, nodeID)
+	return s.Service.executeCommandFromAppd(ctx, chatId, commandName, applicationID, nodeID)
 }

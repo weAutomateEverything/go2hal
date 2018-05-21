@@ -18,7 +18,7 @@ func MakeHandler(service Service, logger kitlog.Logger, ml machineLearning.Servi
 
 	r := mux.NewRouter()
 
-	r.Handle("/delivery", chefDeliveryEndpoint).Methods("POST")
+	r.Handle("/delivery/{chatid:[0-9]+}", chefDeliveryEndpoint).Methods("POST")
 
 	return r
 

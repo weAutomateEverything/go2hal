@@ -4,29 +4,25 @@ import (
 	"fmt"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	"github.com/weAutomateEverything/go2hal/auth"
 	"github.com/weAutomateEverything/go2hal/database"
 	"github.com/weAutomateEverything/go2hal/telegram"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
-	"github.com/weAutomateEverything/go2hal/auth"
 )
 
 func server() {
 	db := database.NewConnection()
 
 	//Stores
-	alertStore := NewStore(db)
 	telegramStore := telegram.NewMongoStore(db)
 
 	authService := auth.NewAlwaysTrustEveryoneAuthService()
 
 	telegramService := telegram.NewService(telegramStore, authService)
-	alertService := NewService(telegramService, alertStore)
-
-	telegramService.RegisterCommand(NewSetGroupCommand(telegramService, alertStore))
-	telegramService.RegisterCommand(NewSetNonTechnicalGroupCommand(telegramService, alertStore))
+	alertService := NewService(telegramService, telegramStore)
 
 	var logger log.Logger
 	logger = log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))

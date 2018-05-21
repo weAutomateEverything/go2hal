@@ -13,6 +13,9 @@ Refer to the readme.md for each Module
 ## Getting Started
 Install a mongo DB locally. By Default, HAL will look for a mongo database on localhost.
 
+Once up and running, you can add the bot to any group. Once its added to a group a ID will be provided with you
+can use within the restful services provied
+
 Run the HAL executable
 
 Below is an example of the Environment variables I have setup on GoLand. The only one thats really important is the BOT_KEY, the rest are used within the submodules of HAL. Reffer to each sub modules README.md for more details.
@@ -27,11 +30,12 @@ Provides a service to send telegram messages and images to groups
 
 ### Alert Service
 
-Extends upon the Telegram Service to abstract the taget group of a message. Currently provides for 3 groups
+Extends upon the Telegram Service to abstract the taget group of a message. Curently the following resful services are provided.
 
-* Business Group - A group to send non technical messages
-* Alert Group - For the technical people
-* Heartbeat Group - for the bot admins
+* Alert Messages
+* Alert Images
+* Error Messages
+* Error Images
 
 ### Appdynamics
 

@@ -19,7 +19,7 @@ type sensuAttachment struct {
 func makeSensuEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(SensuMessageRequest)
-		s.handleSensu(ctx, req)
+		s.handleSensu(ctx, ctx.Value("CHAT-ID").(uint32), req)
 		return nil, nil
 	}
 }

@@ -34,11 +34,11 @@ func (m *MockService) EXPECT() *MockServiceMockRecorder {
 }
 
 // SendSNMPMessage mocks base method
-func (m *MockService) SendSNMPMessage(ctx context.Context) {
-	m.ctrl.Call(m, "SendSNMPMessage", ctx)
+func (m *MockService) SendSNMPMessage(ctx context.Context, chat uint32) {
+	m.ctrl.Call(m, "SendSNMPMessage", ctx, chat)
 }
 
 // SendSNMPMessage indicates an expected call of SendSNMPMessage
-func (mr *MockServiceMockRecorder) SendSNMPMessage(ctx interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendSNMPMessage", reflect.TypeOf((*MockService)(nil).SendSNMPMessage), ctx)
+func (mr *MockServiceMockRecorder) SendSNMPMessage(ctx, chat interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendSNMPMessage", reflect.TypeOf((*MockService)(nil).SendSNMPMessage), ctx, chat)
 }

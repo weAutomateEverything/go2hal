@@ -16,7 +16,7 @@ import (
 //Service interface for the Callout Service
 type Service interface {
 	//InvokeCallout will invoke snmp if configured, then create a jira ticket if configured.
-	InvokeCallout(ctx context.Context, title, message string, variables map[string]string) error
+	InvokeCallout(ctx context.Context, chat uint32, title, message string, variables map[string]string) error
 }
 
 type service struct {
@@ -41,21 +41,21 @@ func NewService(alert alert.Service, firstcall firstCall.Service, snmp snmp.Serv
 
 // InvokeCallout will invoke snmp if configured, then create a jira ticket if configured, finally it will invoke a phone
 // call via alexa connect, if configured.
-func (s *service) InvokeCallout(ctx context.Context, title, message string, variables map[string]string) error {
+func (s *service) InvokeCallout(ctx context.Context, chat uint32, title, message string, variables map[string]string) error {
 	s.alert.SendError(ctx, fmt.Errorf("invoking callout for: %s, %s", title, message))
 	if s.snmp != nil {
-		s.snmp.SendSNMPMessage(ctx)
+		s.snmp.SendSNMPMessage(ctx, chat)
 	}
-	name, phone, err := s.firstcall.GetFirstCall(ctx)
+	name, phone, err := s.firstcall.GetFirstCall(ctx, chat)
 	if err != nil {
 		s.alert.SendError(ctx, err)
 		name = "DEFAULT"
 	}
 	if s.jira != nil {
-		s.jira.CreateJira(ctx, title, message, name)
+		s.jira.CreateJira(ctx, chat, title, message, name)
 	}
 	if s.alexa != nil {
-		return s.alexa.SendAlert(ctx, phone, name, variables)
+		return s.alexa.SendAlert(ctx, chat, phone, name, variables)
 	}
 	return nil
 }

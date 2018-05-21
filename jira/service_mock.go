@@ -34,11 +34,11 @@ func (m *MockService) EXPECT() *MockServiceMockRecorder {
 }
 
 // CreateJira mocks base method
-func (m *MockService) CreateJira(ctx context.Context, title, description, name string) {
-	m.ctrl.Call(m, "CreateJira", ctx, title, description, name)
+func (m *MockService) CreateJira(ctx context.Context, chatId uint32, title, description, name string) {
+	m.ctrl.Call(m, "CreateJira", ctx, chatId, title, description, name)
 }
 
 // CreateJira indicates an expected call of CreateJira
-func (mr *MockServiceMockRecorder) CreateJira(ctx, title, description, name interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateJira", reflect.TypeOf((*MockService)(nil).CreateJira), ctx, title, description, name)
+func (mr *MockServiceMockRecorder) CreateJira(ctx, chatId, title, description, name interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateJira", reflect.TypeOf((*MockService)(nil).CreateJira), ctx, chatId, title, description, name)
 }

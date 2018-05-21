@@ -16,7 +16,7 @@ import (
 )
 
 type Service interface {
-	SendSNMPMessage(ctx context.Context)
+	SendSNMPMessage(ctx context.Context, chat uint32)
 }
 
 type service struct {
@@ -67,7 +67,7 @@ func (s service) handleTrap(packet *g.SnmpPacket, addr *net.UDPAddr) {
 	s.alert.SendError(context.TODO(), errors.New(b.String()))
 }
 
-func (s *service) SendSNMPMessage(ctx context.Context) {
+func (s *service) SendSNMPMessage(ctx context.Context, chat uint32) {
 	if snmpServier() == "" {
 		return
 	}
@@ -103,7 +103,7 @@ func (s *service) SendSNMPMessage(ctx context.Context) {
 
 	log.Printf("Error: %d", result.Error)
 	log.Printf("Request ID %d", result.RequestID)
-	s.alert.SendAlert(ctx, emoji.Sprint(":telephone_receiver: Invoked callout"))
+	s.alert.SendAlert(ctx, chat, emoji.Sprint(":telephone_receiver: Invoked callout"))
 
 }
 

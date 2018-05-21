@@ -33,6 +33,7 @@ type httpEndpoint struct {
 	Method     string
 	Parameters []parameters
 	Threshold  int
+	Chats      []uint32
 
 	LastChecked time.Time
 	LastSuccess time.Time

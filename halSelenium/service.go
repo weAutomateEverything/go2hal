@@ -13,7 +13,7 @@ import (
 
 type Service interface {
 	NewClient(seleniumServer string) error
-	HandleSeleniumError(internal bool, err error)
+	HandleSeleniumError(chatId uint32, internal bool, err error)
 	Driver() selenium.WebDriver
 
 	ClickByClassName(cn string)
@@ -71,19 +71,19 @@ func (s *chromeService) NewClient(seleniumServer string) error {
 	return nil
 }
 
-func (s chromeService) HandleSeleniumError(internal bool, err error) {
+func (s chromeService) HandleSeleniumError(chatId uint32, internal bool, err error) {
 	msg := err.Error()
 	if s.driver == nil {
-		s.sendError(msg, nil, internal)
+		s.sendError(msg, chatId, nil, internal)
 		return
 	}
 	bytes, error := s.driver.Screenshot()
 	if error != nil {
 		// Couldnt get a screenshot - lets end the original error
-		s.sendError(msg, nil, internal)
+		s.sendError(msg, chatId, nil, internal)
 		return
 	}
-	s.sendError(msg, bytes, internal)
+	s.sendError(msg, chatId, bytes, internal)
 }
 
 func (s chromeService) ClickByClassName(cn string) {
@@ -138,16 +138,16 @@ func (s *chromeService) WaitFor(findBy, selector string) {
 	}
 }
 
-func (s chromeService) sendError(message string, image []byte, internalError bool) error {
+func (s chromeService) sendError(message string, chatId uint32, image []byte, internalError bool) error {
 
 	if image != nil {
 		if internalError {
-			err := s.alert.SendImageToHeartbeatGroup(context.TODO(), image)
+			err := s.alert.SendErrorImage(context.TODO(), image)
 			if err != nil {
 				return err
 			}
 		} else {
-			err := s.alert.SendImageToAlertGroup(context.TODO(), image)
+			err := s.alert.SendImageToAlertGroup(context.TODO(), chatId, image)
 			if err != nil {
 				return err
 			}
@@ -157,7 +157,7 @@ func (s chromeService) sendError(message string, image []byte, internalError boo
 	if internalError {
 		s.alert.SendError(context.TODO(), errors.New(message))
 	} else {
-		err := s.alert.SendAlert(context.TODO(), message)
+		err := s.alert.SendAlert(context.TODO(), chatId, message)
 		if err != nil {
 			return err
 		}

@@ -15,13 +15,14 @@ func NewLoggingService(logger log.Logger, s Service) Service {
 	return &loggingService{logger, s}
 }
 
-func (s *loggingService) SendSNMPMessage(ctx context.Context) {
+func (s *loggingService) SendSNMPMessage(ctx context.Context, chat uint32) {
 	defer func(begin time.Time) {
 		s.logger.Log(
 			"method", "SendSNMPMessage",
+			"chat", chat,
 			"took", time.Since(begin),
 		)
 	}(time.Now())
-	s.Service.SendSNMPMessage(ctx)
+	s.Service.SendSNMPMessage(ctx, chat)
 
 }

@@ -23,10 +23,10 @@ func MakeHandler(service Service, logger kitlog.Logger, ml machineLearning.Servi
 
 	r := mux.NewRouter()
 
-	r.Handle("/appdynamics/", appDynamicsAlertEndoint).Methods("POST")
-	r.Handle("/appdynamics/system/queue", addAppdynamicsEndpoint).Methods("POST")
+	r.Handle("/appdynamics/{chatid:[0-9]+}", appDynamicsAlertEndoint).Methods("POST")
+	r.Handle("/appdynamics/{chatid:[0-9]+}/queue", addAppdynamicsEndpoint).Methods("POST")
 	r.Handle("/appdynamics/system", addAppdynamicsQueueEndpoint).Methods("POST")
-	r.Handle("/appdynamics/execute", executeCommandFromAppdynamics).Methods("POST")
+	r.Handle("/appdynamics/{chatid:[0-9]+}/execute", executeCommandFromAppdynamics).Methods("POST")
 
 	return r
 

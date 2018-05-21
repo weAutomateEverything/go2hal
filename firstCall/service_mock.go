@@ -34,8 +34,8 @@ func (m *MockService) EXPECT() *MockServiceMockRecorder {
 }
 
 // GetFirstCall mocks base method
-func (m *MockService) GetFirstCall(ctx context.Context) (string, string, error) {
-	ret := m.ctrl.Call(m, "GetFirstCall", ctx)
+func (m *MockService) GetFirstCall(ctx context.Context, chat uint32) (string, string, error) {
+	ret := m.ctrl.Call(m, "GetFirstCall", ctx, chat)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(string)
 	ret2, _ := ret[2].(error)
@@ -43,6 +43,6 @@ func (m *MockService) GetFirstCall(ctx context.Context) (string, string, error) 
 }
 
 // GetFirstCall indicates an expected call of GetFirstCall
-func (mr *MockServiceMockRecorder) GetFirstCall(ctx interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFirstCall", reflect.TypeOf((*MockService)(nil).GetFirstCall), ctx)
+func (mr *MockServiceMockRecorder) GetFirstCall(ctx, chat interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFirstCall", reflect.TypeOf((*MockService)(nil).GetFirstCall), ctx, chat)
 }

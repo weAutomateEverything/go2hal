@@ -59,13 +59,15 @@ func (mr *MockStoreMockRecorder) IsChefConfigured() *gomock.Call {
 }
 
 // AddChefEnvironment mocks base method
-func (m *MockStore) AddChefEnvironment(environment, friendlyName string) {
-	m.ctrl.Call(m, "AddChefEnvironment", environment, friendlyName)
+func (m *MockStore) AddChefEnvironment(environment, friendlyName string, chatid uint32) error {
+	ret := m.ctrl.Call(m, "AddChefEnvironment", environment, friendlyName, chatid)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // AddChefEnvironment indicates an expected call of AddChefEnvironment
-func (mr *MockStoreMockRecorder) AddChefEnvironment(environment, friendlyName interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddChefEnvironment", reflect.TypeOf((*MockStore)(nil).AddChefEnvironment), environment, friendlyName)
+func (mr *MockStoreMockRecorder) AddChefEnvironment(environment, friendlyName, chatid interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddChefEnvironment", reflect.TypeOf((*MockStore)(nil).AddChefEnvironment), environment, friendlyName, chatid)
 }
 
 // GetChefEnvironments mocks base method
@@ -95,15 +97,15 @@ func (mr *MockStoreMockRecorder) GetEnvironmentFromFriendlyName(recipe interface
 }
 
 // AddRecipe mocks base method
-func (m *MockStore) AddRecipe(recipeName, friendlyName string) error {
-	ret := m.ctrl.Call(m, "AddRecipe", recipeName, friendlyName)
+func (m *MockStore) AddRecipe(recipeName, friendlyName string, chatid uint32) error {
+	ret := m.ctrl.Call(m, "AddRecipe", recipeName, friendlyName, chatid)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // AddRecipe indicates an expected call of AddRecipe
-func (mr *MockStoreMockRecorder) AddRecipe(recipeName, friendlyName interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddRecipe", reflect.TypeOf((*MockStore)(nil).AddRecipe), recipeName, friendlyName)
+func (mr *MockStoreMockRecorder) AddRecipe(recipeName, friendlyName, chatid interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddRecipe", reflect.TypeOf((*MockStore)(nil).AddRecipe), recipeName, friendlyName, chatid)
 }
 
 // GetRecipes mocks base method

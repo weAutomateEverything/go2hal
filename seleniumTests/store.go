@@ -46,6 +46,7 @@ type Selenium struct {
 	InitialURL     string
 	Pages          []Page
 	Threshold      int
+	Chats          []uint32
 
 	Passing     bool
 	ErrorCount  int

@@ -17,10 +17,10 @@ import (
 )
 
 type Service interface {
-	sendAppdynamicsAlert(ctx context.Context, message string)
+	sendAppdynamicsAlert(ctx context.Context, chatId uint32, message string)
 	addAppdynamicsEndpoint(endpoint string) error
-	addAppDynamicsQueue(name, application, metricPath string) error
-	executeCommandFromAppd(ctx context.Context, commandName, applicationID, nodeID string) error
+	addAppDynamicsQueue(chatId uint32, name, application, metricPath string) error
+	executeCommandFromAppd(ctx context.Context, chatId uint32, commandName, applicationID, nodeID string) error
 }
 
 type service struct {
@@ -36,7 +36,7 @@ func NewService(alertService alert.Service, sshservice ssh.Service, store Store)
 	return &service{alert: alertService, ssh: sshservice, store: store}
 }
 
-func (s *service) sendAppdynamicsAlert(ctx context.Context, message string) {
+func (s *service) sendAppdynamicsAlert(ctx context.Context, chatId uint32, message string) {
 
 	var dat map[string]interface{}
 	if err := json.Unmarshal([]byte(message), &dat); err != nil {
@@ -55,7 +55,7 @@ func (s *service) sendAppdynamicsAlert(ctx context.Context, message string) {
 		NonTechBuffer.WriteString(businessMessage)
 
 		log.Printf("Sending Non-Technical Alert %s", NonTechBuffer.String())
-		s.alert.SendNonTechnicalAlert(ctx, NonTechBuffer.String())
+		s.alert.SendAlert(ctx, chatId, NonTechBuffer.String())
 	}
 
 	events := dat["events"].([]interface{})
@@ -103,7 +103,7 @@ func (s *service) sendAppdynamicsAlert(ctx context.Context, message string) {
 		}
 
 		log.Printf("Sending Alert %s", buffer.String())
-		s.alert.SendAlert(ctx, buffer.String())
+		s.alert.SendAlert(ctx, chatId, buffer.String())
 	}
 }
 
@@ -111,23 +111,23 @@ func (s *service) addAppdynamicsEndpoint(endpoint string) error {
 	return s.store.addAppDynamicsEndpoint(endpoint)
 }
 
-func (s *service) addAppDynamicsQueue(name, application, metricPath string) error {
+func (s *service) addAppDynamicsQueue(chatId uint32, name, application, metricPath string) error {
 	endpointObject := MqEndpoint{MetricPath: metricPath, Application: application, Name: name}
 	err := checkQueues(endpointObject, s.alert, s.store)
 	if err != nil {
 		return err
 	}
-	s.store.addMqEndpoint(name, application, metricPath)
+	s.store.addMqEndpoint(name, application, metricPath, chatId)
 	return nil
 }
 
-func (s *service) executeCommandFromAppd(ctx context.Context, commandName, applicationID, nodeID string) error {
+func (s *service) executeCommandFromAppd(ctx context.Context, chatId uint32, commandName, applicationID, nodeID string) error {
 	ipaddress, err := s.getIPAddressForNode(applicationID, nodeID)
 	if err != nil {
 		s.alert.SendError(ctx, err)
 		return err
 	}
-	return s.ssh.ExecuteRemoteCommand(ctx, commandName, ipaddress)
+	return s.ssh.ExecuteRemoteCommand(ctx, chatId, commandName, ipaddress)
 }
 
 func monitorAppdynamicsQueue(s Store, a alert.Service) {
@@ -195,14 +195,19 @@ func checkQueue(endpoint MqEndpoint, name string, a alert.Service, s Store) erro
 	}
 	full := currDepth / maxDepth * 100
 	if full > 90 {
-		a.SendAlert(context.TODO(), emoji.Sprintf(":baggage_claim: :interrobang: %s - Queue %s, is more than 90 percent full. "+
-			"Current Depth %.0f, Max Depth %.0f", endpoint.Name, name, currDepth, maxDepth))
+		for _, chat := range endpoint.Chat {
+			a.SendAlert(context.TODO(), chat, emoji.Sprintf(":baggage_claim: :interrobang: %s - Queue %s, is more than 90 percent full. "+
+				"Current Depth %.0f, Max Depth %.0f", endpoint.Name, name, currDepth, maxDepth))
+		}
+
 		return nil
 	}
 
 	if full > 75 {
-		a.SendAlert(context.TODO(), emoji.Sprintf(":baggage_claim: :warning: %s - Queue %s, is more than 75 percent full. Current "+
-			"Depth %.0f, Max Depth %.0f", endpoint.Name, name, currDepth, maxDepth))
+		for _, chat := range endpoint.Chat {
+			a.SendAlert(context.TODO(), chat, emoji.Sprintf(":baggage_claim: :warning: %s - Queue %s, is more than 75 percent full. Current "+
+				"Depth %.0f, Max Depth %.0f", endpoint.Name, name, currDepth, maxDepth))
+		}
 		return nil
 	}
 	return nil

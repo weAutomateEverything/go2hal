@@ -6,6 +6,7 @@ import (
 	"golang.org/x/net/context"
 	"os"
 
+	"fmt"
 	"github.com/go-kit/kit/circuitbreaker"
 	"github.com/go-kit/kit/endpoint"
 	kitprometheus "github.com/go-kit/kit/metrics/prometheus"
@@ -20,7 +21,8 @@ import (
 )
 
 type calloutProxy struct {
-	requestCallout endpoint.Endpoint
+	namespace string
+	logger    log.Logger
 }
 
 type SendCalloutRequest struct {
@@ -79,15 +81,20 @@ func NewKubernetesCalloutProxy(namespace string) Service {
 }
 
 func newProxy(namespace string, logger log.Logger) Service {
-	callout := makeCalloutHttpProxy(namespace, logger)
+
+	return &calloutProxy{
+		namespace: namespace,
+		logger:    logger,
+	}
+}
+
+func (s *calloutProxy) InvokeCallout(ctx context.Context, chatId uint32, title, message string, variables map[string]string) error {
+
+	callout := makeCalloutHttpProxy(s.namespace, chatId, s.logger)
 	callout = circuitbreaker.Gobreaker(gobreaker.NewCircuitBreaker(gobreaker.Settings{}))(callout)
 	callout = ratelimit.NewErroringLimiter(rate.NewLimiter(rate.Every(time.Second), 10))(callout)
 
-	return &calloutProxy{requestCallout: callout}
-}
-
-func (s *calloutProxy) InvokeCallout(ctx context.Context, title, message string, variables map[string]string) error {
-	_, err := s.requestCallout(ctx, &SendCalloutRequest{Message: message, Title: title})
+	_, err := callout(ctx, &SendCalloutRequest{Message: message, Title: title})
 	return err
 }
 
@@ -99,10 +106,10 @@ func getHalUrl() string {
 	return os.Getenv("HAL_ENDPOINT")
 }
 
-func makeCalloutHttpProxy(namespace string, logger log.Logger) endpoint.Endpoint {
+func makeCalloutHttpProxy(namespace string, chatid uint32, logger log.Logger) endpoint.Endpoint {
 	return http.NewClient(
 		"POST",
-		alert.GetURL(namespace, "callout/"),
+		alert.GetURL(namespace, fmt.Sprintf("callout/%v", chatid)),
 		gokit.EncodeJsonRequest,
 		gokit.DecodeResponse,
 		gokit.GetClientOpts(logger)...,
