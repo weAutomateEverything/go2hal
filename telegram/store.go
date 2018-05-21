@@ -78,7 +78,7 @@ func (s mongoStore) addBot(chat int64) (id uint32, err error) {
 
 func (s mongoStore) GetRoomKey(chat uint32) (roomid int64, err error) {
 	c := s.mongo.C("botroom")
-	q := c.Find(bson.M{"uuuid": chat})
+	q := c.Find(bson.M{"uuid": chat})
 	n, err := q.Count()
 	if err != nil {
 		return
