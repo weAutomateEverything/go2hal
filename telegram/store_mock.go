@@ -94,3 +94,41 @@ func (m *MockStore) GetUUID(chat int64) (uint32, error) {
 func (mr *MockStoreMockRecorder) GetUUID(chat interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUUID", reflect.TypeOf((*MockStore)(nil).GetUUID), chat)
 }
+
+// newAuthRequest mocks base method
+func (m *MockStore) newAuthRequest(msgid int, chat int64, name string) (string, error) {
+	ret := m.ctrl.Call(m, "newAuthRequest", msgid, chat, name)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// newAuthRequest indicates an expected call of newAuthRequest
+func (mr *MockStoreMockRecorder) newAuthRequest(msgid, chat, name interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "newAuthRequest", reflect.TypeOf((*MockStore)(nil).newAuthRequest), msgid, chat, name)
+}
+
+// approveAuthRequest mocks base method
+func (m *MockStore) approveAuthRequest(id int, chat int64, approvedByName string, approvedById int) error {
+	ret := m.ctrl.Call(m, "approveAuthRequest", id, chat, approvedByName, approvedById)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// approveAuthRequest indicates an expected call of approveAuthRequest
+func (mr *MockStoreMockRecorder) approveAuthRequest(id, chat, approvedByName, approvedById interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "approveAuthRequest", reflect.TypeOf((*MockStore)(nil).approveAuthRequest), id, chat, approvedByName, approvedById)
+}
+
+// useToken mocks base method
+func (m *MockStore) useToken(id string) (int64, error) {
+	ret := m.ctrl.Call(m, "useToken", id)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// useToken indicates an expected call of useToken
+func (mr *MockStoreMockRecorder) useToken(id interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "useToken", reflect.TypeOf((*MockStore)(nil).useToken), id)
+}

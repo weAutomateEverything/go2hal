@@ -16,12 +16,15 @@ import (
 )
 
 type Service interface {
-	SendMessage(ctx context.Context, chatID int64, message string, messageID int) (err error)
-	SendMessagePlainText(ctx context.Context, chatID int64, message string, messageID int) (err error)
+	SendMessage(ctx context.Context, chatID int64, message string, messageID int) (msgid int, err error)
+	SendMessagePlainText(ctx context.Context, chatID int64, message string, messageID int) (msgid int, err error)
 	SendImageToGroup(ctx context.Context, image []byte, group int64) error
-	SendKeyboard(ctx context.Context, buttons []string, text string, chat int64)
+	SendKeyboard(ctx context.Context, buttons []string, text string, chat int64) (int, error)
 	RegisterCommand(command Command)
 	RegisterCommandLet(commandlet Commandlet)
+
+	requestAuthorisation(chat uint32, name string) (string, error)
+	pollAuthorisation(token string) (uint32, error)
 }
 
 type Command interface {
@@ -63,11 +66,11 @@ func NewService(store Store, authService auth.Service) Service {
 	return s
 }
 
-func (s *service) SendMessage(ctx context.Context, chatID int64, message string, messageID int) (err error) {
+func (s *service) SendMessage(ctx context.Context, chatID int64, message string, messageID int) (msgid int, err error) {
 	return sendMessage(chatID, message, messageID, true)
 }
 
-func (s *service) SendMessagePlainText(ctx context.Context, chatID int64, message string, messageID int) (err error) {
+func (s *service) SendMessagePlainText(ctx context.Context, chatID int64, message string, messageID int) (msgid int, err error) {
 	return sendMessage(chatID, message, messageID, false)
 }
 
@@ -107,7 +110,7 @@ func (s *service) RegisterCommandLet(commandlet Commandlet) {
 	})
 }
 
-func (s *service) SendKeyboard(ctx context.Context, buttons []string, text string, chat int64) {
+func (s *service) SendKeyboard(ctx context.Context, buttons []string, text string, chat int64) (int, error) {
 	keyB := tgbotapi.NewReplyKeyboard()
 	keyBRow := tgbotapi.NewKeyboardButtonRow()
 
@@ -126,7 +129,40 @@ func (s *service) SendKeyboard(ctx context.Context, buttons []string, text strin
 
 	msg := tgbotapi.NewMessage(chat, text)
 	msg.ReplyMarkup = keyB
-	telegramBot.Send(msg)
+	m, err := telegramBot.Send(msg)
+	if err != nil {
+		return 0, err
+	}
+	return m.MessageID, nil
+}
+
+func (s service) requestAuthorisation(chat uint32, name string) (authtoken string, err error) {
+	room, err := s.store.GetRoomKey(chat)
+	if err != nil {
+		return
+	}
+	id, err := s.SendKeyboard(context.TODO(), []string{"Approve access", "Decline access"}, fmt.Sprintf("A user %v has requested access to edit the configuration for the room. To approve /approveAccess", name), room)
+	if err != nil {
+		return "", err
+	}
+
+	token, err := s.store.newAuthRequest(id, room, name)
+	if err != nil {
+		return "", err
+	}
+
+	return token, nil
+
+}
+
+func (s service) pollAuthorisation(token string) (room uint32, err error) {
+	roomId, err := s.store.useToken(token)
+	if err != nil {
+		return
+	}
+
+	return s.store.GetUUID(roomId)
+
 }
 
 func (s service) useBot(botkey string) error {
@@ -194,7 +230,7 @@ func (s service) pollMessage() {
 	}
 }
 
-func sendMessage(chatID int64, message string, messageID int, markup bool) (err error) {
+func sendMessage(chatID int64, message string, messageID int, markup bool) (msgid int, err error) {
 
 	log.Printf("Sending Message %s", message)
 
@@ -205,11 +241,11 @@ func sendMessage(chatID int64, message string, messageID int, markup bool) (err 
 	if messageID != 0 {
 		msg.ReplyToMessageID = messageID
 	}
-	_, err = telegramBot.Send(msg)
+	out, err := telegramBot.Send(msg)
 	if err != nil {
 		log.Println(err)
 	}
-	return nil
+	return out.MessageID, nil
 }
 
 func (s service) executeCommand(update tgbotapi.Update) bool {

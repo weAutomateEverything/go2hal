@@ -42,7 +42,8 @@ func (s *service) SendAlert(ctx context.Context, chatid uint32, message string) 
 	if err != nil {
 		return err
 	}
-	return s.telegram.SendMessage(ctx, group, message, 0)
+	_, err = s.telegram.SendMessage(ctx, group, message, 0)
+	return err
 }
 
 func (s *service) SendImageToAlertGroup(ctx context.Context, chatid uint32, image []byte) error {
@@ -61,7 +62,8 @@ func (s *service) SendError(ctx context.Context, err error) error {
 	if errs != nil {
 		return errs
 	}
-	return s.telegram.SendMessagePlainText(ctx, group, emoji.Sprintf(":poop: %s", err.Error()), 0)
+	_, err = s.telegram.SendMessagePlainText(ctx, group, emoji.Sprintf(":poop: %s", err.Error()), 0)
+	return err
 }
 
 func (s service) SendErrorImage(ctx context.Context, image []byte) error {

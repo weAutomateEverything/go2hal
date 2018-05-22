@@ -294,8 +294,9 @@ func main() {
 	telegramService.RegisterCommand(telegram.NewHelpCommand(telegramService))
 	telegramService.RegisterCommand(firstCall.NewWhosOnFirstCallCommand(alertService, telegramService,
 		firstcallService, telegramStore))
-
 	telegramService.RegisterCommand(httpSmoke.NewQuietHttpAlertCommand(telegramService, httpService))
+
+	telegramService.RegisterCommandLet(telegram.NewTelegramAuthApprovalCommand(telegramService,telegramStore))
 
 	httpLogger := log.With(logger, "component", "http")
 
@@ -309,6 +310,7 @@ func main() {
 	mux.Handle("/aws/sendTestAlert", halaws.MakeHandler(aws, httpLogger, machineLearningService))
 	mux.Handle("/callout/", callout.MakeHandler(calloutService, httpLogger, machineLearningService))
 	mux.Handle("/github/", github.MakeHandler(githubService, httpLogger, machineLearningService))
+	mux.Handle("/telegram/",telegram.MakeHandler(telegramService,httpLogger,machineLearningService))
 
 	http.Handle("/", panicHandler{accessControl(mux), jiraService, alertService})
 	http.Handle("/metrics", promhttp.Handler())
