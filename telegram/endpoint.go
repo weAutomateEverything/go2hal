@@ -49,11 +49,15 @@ func makeTelegramAuthPollEndpoint(s Service) endpoint.Endpoint {
 		claims := CustomClaims{
 			room,
 			jwt.StandardClaims{
-				ExpiresAt: time.Now().Add(time.Second * 60).Unix(),
+				ExpiresAt: time.Now().Add(time.Hour * 120).Unix(),
 				IssuedAt:  jwt.TimeFunc().Unix(),
 			},
 		}
 		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 		return token.SignedString([]byte(os.Getenv("JWT_KEY")))
 	}
+}
+
+func CustomClaimFactory() jwt.Claims {
+	return &CustomClaims{}
 }

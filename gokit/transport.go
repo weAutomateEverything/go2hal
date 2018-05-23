@@ -239,7 +239,7 @@ func GetClientOpts(logger kitlog.Logger) []kithttp.ClientOption {
 }
 
 func GetJWTKeys() jwt.Keyfunc {
-	key := os.Getenv("JWT-KEY")
+	key := []byte(os.Getenv("JWT_KEY"))
 	return func(token *jwt.Token) (interface{}, error) {
 		return key, nil
 	}

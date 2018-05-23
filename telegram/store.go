@@ -19,7 +19,7 @@ type State struct {
 }
 
 type botRoom struct {
-	ChatId int64 `bson: "_id"`
+	ChatId int64 `json:"id" bson:"_id,omitempty"`
 	Uuid   uint32
 }
 
@@ -141,7 +141,7 @@ func (s mongoStore) getState(user int, chat int64) State {
 
 func (s mongoStore) addBot(chat int64) (id uint32, err error) {
 	c := s.mongo.C("botroom")
-	q := c.Find(bson.M{"chatid": chat})
+	q := c.FindId(chat)
 	n, err := q.Count()
 	if err != nil {
 		return
@@ -182,7 +182,7 @@ func (s mongoStore) GetRoomKey(chat uint32) (roomid int64, err error) {
 
 func (s mongoStore) GetUUID(chat int64) (uuid uint32, err error) {
 	c := s.mongo.C("botroom")
-	q := c.Find(bson.M{"chatid": chat})
+	q := c.FindId(chat)
 	n, err := q.Count()
 	if err != nil {
 		return

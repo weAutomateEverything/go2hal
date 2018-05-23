@@ -17,8 +17,19 @@ import (
 	"time"
 )
 
+func NewService(alertService alert.Service, store Store, callout callout.Service) Service {
+	s := &service{alert: alertService, store: store, callout: callout}
+	go func() {
+		s.monitorEndpoints()
+	}()
+	return s
+}
+
 type Service interface {
 	setTimeOut(minutes int64)
+	getEndpoints(group uint32) ([]httpEndpoint, error)
+	addHttpEndpoint(name, url, method string, parameters []parameters, threshold int, chat uint32) error
+	deleteEndpoint(id string, chat uint32)
 }
 
 type service struct {
@@ -29,12 +40,30 @@ type service struct {
 	timeoutSet bool
 }
 
-func NewService(alertService alert.Service, store Store, callout callout.Service) Service {
-	s := &service{alert: alertService, store: store, callout: callout}
-	go func() {
-		s.monitorEndpoints()
-	}()
-	return s
+func (s *service) getEndpoints(group uint32) ([]httpEndpoint, error) {
+	return s.store.getHTMLEndpointsByChat(group)
+}
+
+func (s *service) addHttpEndpoint(name, url, method string, parameters []parameters, threshold int, chat uint32) (err error) {
+	v := httpEndpoint{
+		Chat:       chat,
+		Name:       name,
+		Endpoint:   url,
+		Method:     method,
+		Parameters: parameters,
+		Threshold:  threshold,
+	}
+
+	err = s.checkEndpoint(v)
+	if err != nil {
+		return
+	}
+
+	return s.store.addHTMLEndpoint(v)
+}
+
+func (s *service) deleteEndpoint(id string, chat uint32) {
+	panic("implement me")
 }
 
 func (s *service) checkEndpoint(endpoint httpEndpoint) error {
@@ -83,10 +112,8 @@ func (s *service) checkHTTP(endpoint httpEndpoint) {
 		return
 	}
 	if !endpoint.Passing && endpoint.ErrorCount >= endpoint.Threshold {
-		for _, chat := range endpoint.Chats {
-			s.alert.SendAlert(context.TODO(), chat, emoji.Sprintf(":smoking: :white_check_mark: smoke test %s back to normal", endpoint.Name))
+		s.alert.SendAlert(context.TODO(), endpoint.Chat, emoji.Sprintf(":smoking: :white_check_mark: smoke test %s back to normal", endpoint.Name))
 
-		}
 	}
 
 	if err := s.store.successfulEndpointTest(&endpoint); err != nil {
@@ -110,25 +137,22 @@ func (s *service) checkAlert(endpoint httpEndpoint, msg string) {
 	}
 	if endpoint.Threshold > 0 {
 		if endpoint.Threshold == endpoint.ErrorCount {
-			for _, chat := range endpoint.Chats {
-				s.callout.InvokeCallout(context.TODO(), chat, fmt.Sprintf("Some Test failures for %s", endpoint.Name), msg, nil)
-			}
+			s.callout.InvokeCallout(context.TODO(), endpoint.Chat, fmt.Sprintf("Some Test failures for %s", endpoint.Name), msg, nil)
+
 		}
 		if endpoint.ErrorCount >= endpoint.Threshold {
-			s.checkTimeout(endpoint.Chats, msg)
+			s.checkTimeout(endpoint.Chat, msg)
 		}
 	}
 }
 
-func (s *service) checkTimeout(chats []uint32, msg string) {
+func (s *service) checkTimeout(chat uint32, msg string) {
 	if !s.timeoutSet || time.Now().Local().After(s.timeout) {
-		for _, chat := range chats {
-			s.alert.SendAlert(context.TODO(), chat, msg)
-		}
+		s.alert.SendAlert(context.TODO(), chat, msg)
+
 		if s.timeoutSet {
-			for _, chat := range chats {
-				s.alert.SendAlert(context.TODO(), chat, emoji.Sprintf(":alarm_clock: - Smoke Alerts expired. The bot will now be sending alerts for smoke failures again"))
-			}
+			s.alert.SendAlert(context.TODO(), chat, emoji.Sprintf(":alarm_clock: - Smoke Alerts expired. The bot will now be sending alerts for smoke failures again"))
+
 			s.timeoutSet = false
 		}
 	}

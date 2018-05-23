@@ -296,7 +296,7 @@ func main() {
 		firstcallService, telegramStore))
 	telegramService.RegisterCommand(httpSmoke.NewQuietHttpAlertCommand(telegramService, httpService))
 
-	telegramService.RegisterCommandLet(telegram.NewTelegramAuthApprovalCommand(telegramService,telegramStore))
+	telegramService.RegisterCommandLet(telegram.NewTelegramAuthApprovalCommand(telegramService, telegramStore))
 
 	httpLogger := log.With(logger, "component", "http")
 
@@ -310,7 +310,8 @@ func main() {
 	mux.Handle("/aws/sendTestAlert", halaws.MakeHandler(aws, httpLogger, machineLearningService))
 	mux.Handle("/callout/", callout.MakeHandler(calloutService, httpLogger, machineLearningService))
 	mux.Handle("/github/", github.MakeHandler(githubService, httpLogger, machineLearningService))
-	mux.Handle("/telegram/",telegram.MakeHandler(telegramService,httpLogger,machineLearningService))
+	mux.Handle("/telegram/", telegram.MakeHandler(telegramService, httpLogger, machineLearningService))
+	mux.Handle("/httpEndpoints", httpSmoke.MakeHandler(httpService, httpLogger, machineLearningService))
 
 	http.Handle("/", panicHandler{accessControl(mux), jiraService, alertService})
 	http.Handle("/metrics", promhttp.Handler())
@@ -351,7 +352,8 @@ func accessControl(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Origin, Content-Type")
+		w.Header().Set("Access-Control-Allow-Headers", "Origin, Content-Type, Authorization")
+		w.Header().Set("Access-Control-Expose-Headers", "Content-Type, Authorization")
 
 		if r.Method == "OPTIONS" {
 			return
