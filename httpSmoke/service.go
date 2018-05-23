@@ -59,6 +59,8 @@ func (s *service) addHttpEndpoint(name, url, method string, parameters []paramet
 		return
 	}
 
+	s.alert.SendAlert(context.TODO(), chat, emoji.Sprintf(":new: Successfully added endpoint %v %v. The bot will now alert you once the checks fails %v times in succession. ", name, url, threshold))
+
 	return s.store.addHTMLEndpoint(v)
 }
 
