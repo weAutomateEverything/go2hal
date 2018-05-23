@@ -6,8 +6,11 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	gokitjwt "github.com/go-kit/kit/auth/jwt"
 	kitlog "github.com/go-kit/kit/log"
 	kithttp "github.com/go-kit/kit/transport/http"
+
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/weAutomateEverything/go2hal/machineLearning"
@@ -15,6 +18,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 )
@@ -221,7 +225,7 @@ func GetServerOpts(logger kitlog.Logger, service machineLearning.Service) []kith
 	return []kithttp.ServerOption{
 		kithttp.ServerErrorLogger(logger),
 		kithttp.ServerErrorEncoder(EncodeError),
-		kithttp.ServerBefore(logRequest(service)),
+		kithttp.ServerBefore(logRequest(service), gokitjwt.HTTPToContext()),
 	}
 }
 
@@ -232,4 +236,12 @@ func GetClientOpts(logger kitlog.Logger) []kithttp.ClientOption {
 	return []kithttp.ClientOption{
 		kithttp.ClientAfter(logResponse()),
 	}
+}
+
+func GetJWTKeys() jwt.Keyfunc {
+	key := []byte(os.Getenv("JWT_KEY"))
+	return func(token *jwt.Token) (interface{}, error) {
+		return key, nil
+	}
+
 }

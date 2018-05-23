@@ -8,20 +8,6 @@ import (
 	"time"
 )
 
-type Store interface {
-	addHTMLEndpoint(endpoint httpEndpoint)
-
-	getHTMLEndpoints() []httpEndpoint
-
-	successfulEndpointTest(endpoint *httpEndpoint) error
-
-	failedEndpointTest(endpoint *httpEndpoint, errorMessage string) error
-}
-
-type mongoStore struct {
-	mongo *mgo.Database
-}
-
 func NewMongoStore(db *mgo.Database) Store {
 	return &mongoStore{db}
 }
@@ -33,7 +19,7 @@ type httpEndpoint struct {
 	Method     string
 	Parameters []parameters
 	Threshold  int
-	Chats      []uint32
+	Chat       uint32
 
 	LastChecked time.Time
 	LastSuccess time.Time
@@ -46,9 +32,29 @@ type parameters struct {
 	Name, Value string
 }
 
-func (s *mongoStore) addHTMLEndpoint(endpoint httpEndpoint) {
+type Store interface {
+	addHTMLEndpoint(endpoint httpEndpoint) error
+	getHTMLEndpoints() []httpEndpoint
+	getHTMLEndpointsByChat(chat uint32) ([]httpEndpoint, error)
+	successfulEndpointTest(endpoint *httpEndpoint) error
+	failedEndpointTest(endpoint *httpEndpoint, errorMessage string) error
+}
+
+type mongoStore struct {
+	mongo *mgo.Database
+}
+
+func (s *mongoStore) getHTMLEndpointsByChat(chat uint32) (result []httpEndpoint, err error) {
 	c := s.mongo.C("MonitorHtmlEndpoints")
-	c.Insert(endpoint)
+	q := c.Find(bson.M{"chat": chat})
+	err = q.All(&result)
+	return
+
+}
+
+func (s *mongoStore) addHTMLEndpoint(endpoint httpEndpoint) error {
+	c := s.mongo.C("MonitorHtmlEndpoints")
+	return c.Insert(endpoint)
 }
 
 func (s *mongoStore) getHTMLEndpoints() []httpEndpoint {
