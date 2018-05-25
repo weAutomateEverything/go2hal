@@ -169,7 +169,7 @@ func (s service) requestAuthorisation(chat uint32, name string) (authtoken strin
 	if err != nil {
 		return
 	}
-	id, err := s.SendKeyboard(context.TODO(), []string{"Approve access", "Decline access"}, fmt.Sprintf("A user %v has requested access to edit the configuration for the room. To approve /approveAccess", name), room)
+	id, err := s.SendKeyboard(context.TODO(), []string{"Approve access", "Decline access"}, fmt.Sprintf("A user %v has requested access to edit the configuration for the room.", name), room)
 	if err != nil {
 		return "", err
 	}
