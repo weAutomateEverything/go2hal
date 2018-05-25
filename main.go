@@ -295,6 +295,7 @@ func main() {
 	telegramService.RegisterCommand(firstCall.NewWhosOnFirstCallCommand(alertService, telegramService,
 		firstcallService, telegramStore))
 	telegramService.RegisterCommand(httpSmoke.NewQuietHttpAlertCommand(telegramService, httpService))
+	telegramService.RegisterCommand(telegram.NewIDCommand(telegramService, telegramStore))
 
 	telegramService.RegisterCommandLet(telegram.NewTelegramAuthApprovalCommand(telegramService, telegramStore))
 

@@ -41,3 +41,38 @@ func (s approveAuth) NextState(update tgbotapi.Update, state State) string {
 func (s approveAuth) Fields(update tgbotapi.Update, state State) []string {
 	return nil
 }
+
+//-------------------------------------------
+
+func NewIDCommand(telegram Service, store Store) Command {
+	return &id{
+		telegram: telegram,
+		store:    store,
+	}
+}
+
+type id struct {
+	telegram Service
+	store    Store
+}
+
+func (id) CommandIdentifier() string {
+	return "id"
+}
+
+func (id) CommandDescription() string {
+	return "Displays the groups ID"
+}
+
+func (id) RestrictToAuthorised() bool {
+	return false
+}
+
+func (s id) Execute(update tgbotapi.Update) {
+	id, err := s.store.GetUUID(update.Message.Chat.ID)
+	if err != nil {
+		s.telegram.SendMessage(context.TODO(), update.Message.Chat.ID, fmt.Sprintf("There was an error fetching your group %v", err.Error()), update.Message.MessageID)
+	} else {
+		s.telegram.SendMessage(context.TODO(), update.Message.Chat.ID, fmt.Sprintf("The group ID is %v", id), update.Message.MessageID)
+	}
+}

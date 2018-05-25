@@ -57,6 +57,18 @@ func (mr *MockServiceMockRecorder) SendImageToAlertGroup(ctx, chatid, image inte
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendImageToAlertGroup", reflect.TypeOf((*MockService)(nil).SendImageToAlertGroup), ctx, chatid, image)
 }
 
+// SendDocumentToAlertGroup mocks base method
+func (m *MockService) SendDocumentToAlertGroup(ctx context.Context, chatid uint32, document []byte, extension string) error {
+	ret := m.ctrl.Call(m, "SendDocumentToAlertGroup", ctx, chatid, document, extension)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SendDocumentToAlertGroup indicates an expected call of SendDocumentToAlertGroup
+func (mr *MockServiceMockRecorder) SendDocumentToAlertGroup(ctx, chatid, document, extension interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendDocumentToAlertGroup", reflect.TypeOf((*MockService)(nil).SendDocumentToAlertGroup), ctx, chatid, document, extension)
+}
+
 // SendError mocks base method
 func (m *MockService) SendError(ctx context.Context, err error) error {
 	ret := m.ctrl.Call(m, "SendError", ctx, err)
