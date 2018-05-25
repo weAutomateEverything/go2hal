@@ -13,10 +13,10 @@ func addHTTPEndpoint(s Service) endpoint.Endpoint {
 		claim := ctx.Value(jwt.JWTClaimsContextKey).(*telegram.CustomClaims)
 
 		var v []parameters
-		for key, val := range req.Parameters {
+		for _, val := range req.Parameters {
 			v = append(v, parameters{
-				Name:  key,
-				Value: val,
+				Name:  val.Name,
+				Value: val.Value,
 			})
 		}
 
@@ -42,5 +42,8 @@ type addHttpRequest struct {
 	Method     string
 	URL        string
 	Threshold  int
-	Parameters map[string]string
+	Parameters []struct {
+		Name  string
+		Value string
+	}
 }
