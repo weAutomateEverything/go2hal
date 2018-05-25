@@ -11,6 +11,7 @@ import (
 	"io/ioutil"
 	"log"
 	"math"
+	"net"
 	"net/http"
 	"net/url"
 	"strings"
@@ -171,15 +172,21 @@ func (s service) doHTTPEndpoint(endpoint httpEndpoint) (*http.Response, error) {
 		if len(endpoint.Parameters) == 1 {
 			body = endpoint.Parameters[0].Value
 		}
-		return http.Post(endpoint.Endpoint, "application/json", bytes.NewBufferString(body))
+
+		c := &http.Client{Transport: defaultTransport}
+		return c.Post(endpoint.Endpoint, "application/json", bytes.NewBufferString(body))
 	case "POST_FORM":
 		values := url.Values{}
 		for _, value := range endpoint.Parameters {
 			values.Add(value.Name, value.Value)
 		}
-		return http.PostForm(endpoint.Endpoint, values)
+		c := &http.Client{Transport: defaultTransport}
+
+		return c.PostForm(endpoint.Endpoint, values)
 	default:
-		return http.Get(endpoint.Endpoint)
+		c := &http.Client{Transport: defaultTransport}
+
+		return c.Get(endpoint.Endpoint)
 	}
 
 }
@@ -216,4 +223,17 @@ func (s *service) confirmCertExpiry(expiryDate time.Time, endpoint string, expir
 		return emoji.Sprintf(":rotating_light: SSL certificate for %v expires withing 120 days!\nExpiry date: %v", endpoint, expiryDate)
 	}
 	return ""
+}
+
+var defaultTransport http.RoundTripper = &http.Transport{
+	Proxy: nil,
+	DialContext: (&net.Dialer{
+		Timeout:   30 * time.Second,
+		KeepAlive: 30 * time.Second,
+		DualStack: true,
+	}).DialContext,
+	MaxIdleConns:          100,
+	IdleConnTimeout:       90 * time.Second,
+	TLSHandshakeTimeout:   10 * time.Second,
+	ExpectContinueTimeout: 1 * time.Second,
 }
