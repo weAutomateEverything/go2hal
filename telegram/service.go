@@ -19,6 +19,8 @@ type Service interface {
 	SendMessage(ctx context.Context, chatID int64, message string, messageID int) (msgid int, err error)
 	SendMessagePlainText(ctx context.Context, chatID int64, message string, messageID int) (msgid int, err error)
 	SendImageToGroup(ctx context.Context, image []byte, group int64) error
+	SendDocumentToGroup(ctx context.Context, document []byte, extension string, group int64) error
+
 	SendKeyboard(ctx context.Context, buttons []string, text string, chat int64) (int, error)
 	RegisterCommand(command Command)
 	RegisterCommandLet(commandlet Commandlet)
@@ -97,6 +99,32 @@ func (s *service) SendImageToGroup(ctx context.Context, image []byte, group int6
 	}
 
 	return nil
+}
+
+func (s *service) SendDocumentToGroup(ctx context.Context, document []byte, extension string, group int64) error {
+	path := ""
+
+	if runtime.GOOS == "windows" {
+		path = "c:/temp/"
+	} else {
+		path = "/tmp/"
+	}
+	path = path + string(rand.Int()) + "." + extension
+	err := ioutil.WriteFile(path, document, os.ModePerm)
+
+	if err != nil {
+		return err
+	}
+
+	msg := tgbotapi.NewDocumentUpload(group, path)
+
+	_, err = telegramBot.Send(msg)
+	if err != nil {
+		return err
+	}
+
+	return nil
+
 }
 
 func (s *service) RegisterCommand(command Command) {

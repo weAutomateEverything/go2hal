@@ -28,3 +28,16 @@ func makeAlertErrorHandler(s Service) endpoint.Endpoint {
 
 	}
 }
+
+func makeDocumentAlertEndpoint(s Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+
+		req := request.(sendDocumentRequest)
+		return nil, s.SendDocumentToAlertGroup(ctx, gokit.GetChatId(ctx), req.document, req.exension)
+	}
+}
+
+type sendDocumentRequest struct {
+	document []byte
+	exension string
+}

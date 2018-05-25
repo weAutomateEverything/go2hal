@@ -34,6 +34,10 @@ func (s *ml) SendKeyboard(ctx context.Context, buttons []string, text string, ch
 	return s.s.SendKeyboard(ctx, buttons, text, chat)
 }
 
+func (s *ml) SendDocumentToGroup(ctx context.Context, document []byte, extension string, group int64) error {
+	return s.s.SendDocumentToGroup(ctx, document, extension, group)
+}
+
 func (s *ml) RegisterCommand(command Command) {
 	s.s.RegisterCommand(command)
 }

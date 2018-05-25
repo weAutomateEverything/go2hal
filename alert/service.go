@@ -14,6 +14,7 @@ Service interface
 type Service interface {
 	SendAlert(ctx context.Context, chatId uint32, message string) error
 	SendImageToAlertGroup(ctx context.Context, chatid uint32, image []byte) error
+	SendDocumentToAlertGroup(ctx context.Context, chatid uint32, document []byte, extension string) error
 
 	SendError(ctx context.Context, err error) error
 	SendErrorImage(ctx context.Context, image []byte) error
@@ -54,6 +55,15 @@ func (s *service) SendImageToAlertGroup(ctx context.Context, chatid uint32, imag
 	}
 
 	return s.telegram.SendImageToGroup(ctx, image, group)
+}
+
+func (s *service) SendDocumentToAlertGroup(ctx context.Context, chatid uint32, document []byte, extension string) error {
+	group, err := s.store.GetRoomKey(chatid)
+	if err != nil {
+		return err
+	}
+
+	return s.telegram.SendDocumentToGroup(ctx, document, extension, group)
 }
 
 func (s *service) SendError(ctx context.Context, err error) error {

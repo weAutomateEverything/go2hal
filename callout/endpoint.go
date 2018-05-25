@@ -17,3 +17,8 @@ func makeCalloutEndpoint(service Service) endpoint.Endpoint {
 		return nil, service.InvokeCallout(ctx, gokit.GetChatId(ctx), req.Title, req.Message, nil)
 	}
 }
+
+type SendCalloutRequest struct {
+	Title   string
+	Message string
+}
