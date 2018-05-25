@@ -11,12 +11,13 @@ if [ -z "$TRAVIS_PULL_REQUEST" ] || [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
     eval $(aws ecr get-login --region $AWS_DEFAULT_REGION)
 
     # Build and push
-    docker build -t $IMAGE_NAME:1.$TRAVIS_JOB_NUMBER .
-    echo "Pushing $IMAGE_NAME:2.$TRAVIS_JOB_NUMBER"
-    docker tag $IMAGE_NAME:2.$TRAVIS_JOB_NUMBER "$IMAGE_NAME:1.$TRAVIS_JOB_NUMBER"
+    docker build -t $IMAGE_NAME:$TRAVIS_JOB_NUMBER .
+    echo "Pushing $IMAGE_NAME:$TRAVIS_JOB_NUMBER"
+    docker tag $IMAGE_NAME:$TRAVIS_JOB_NUMBER "$IMAGE_NAME:latest"
     docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
-    docker push "$IMAGE_NAME:1.$TRAVIS_JOB_NUMBER"
-    echo "Pushed $IMAGE_NAME:1.$TRAVIS_JOB_NUMBER"
+    docker push "$IMAGE_NAME:$TRAVIS_JOB_NUMBER"
+    docker push "$IMAGE_NAME:latest"
+    echo "Pushed $IMAGE_NAME:$TRAVIS_JOB_NUMBER"
   else
     echo "Skipping deploy because branch is not 'master'"
   fi
