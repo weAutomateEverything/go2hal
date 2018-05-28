@@ -59,7 +59,7 @@ func (s *service) checkSend(ctx context.Context, message string) (result []uint3
 	for _, recipe := range recipes {
 		check := "RECIPE[" + strings.ToUpper(recipe.Recipe) + "]"
 		if strings.Contains(message, check) {
-			result = append(result, recipe.ChatID...)
+			result = append(result, recipe.ChatID)
 		}
 	}
 	return result

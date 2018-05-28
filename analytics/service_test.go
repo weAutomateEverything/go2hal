@@ -20,7 +20,7 @@ func TestService_SendAnalyticsAlert(t *testing.T) {
 
 	msg := "{\"text\": \"Chef Converge success - legion-minion-s3\", \"attachments\": [{\"color\": \"#58B957\", \"fields\": [{\"short\": true, \"value\": \"pchfsvr1v.standardbank.co.za\", \"title\": \"Chef Server\"}, {\"short\": true, \"value\": \"chopchop\", \"title\": \"Organisation\"}, {\"short\": true, \"value\": \"Updated: 1, Total: 330\", \"title\": \"Resources\"}, {\"value\": \"[recipe[puff-base-server], recipe[legion::worker], recipe[trevor]]\", \"title\": \"Run List\"}], \"title\": \"legion-minion-s3\"}]}"
 
-	recipes := []chef.Recipe{{Recipe: "puff-base-server", ChatID: []uint32{1234}}}
+	recipes := []chef.Recipe{{Recipe: "puff-base-server", ChatID: uint32(1234)}}
 	mockStore.EXPECT().GetRecipes().Return(recipes, nil)
 	ctx := context.TODO()
 

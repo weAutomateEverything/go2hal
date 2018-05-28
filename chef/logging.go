@@ -27,15 +27,16 @@ func (s *loggingService) sendDeliveryAlert(ctx context.Context, chatId uint32, m
 	s.Service.sendDeliveryAlert(ctx, chatId, message)
 
 }
-func (s *loggingService) FindNodesFromFriendlyNames(recipe, environment string) []Node {
+func (s *loggingService) FindNodesFromFriendlyNames(recipe, environment string, chat uint32) []Node {
 	defer func(begin time.Time) {
 		s.logger.Log(
 			"method", "findNodesFromFriendlyNames",
 			"recipe", recipe,
+			"chat", chat,
 			"environment", environment,
 			"took", time.Since(begin),
 		)
 	}(time.Now())
-	return s.Service.FindNodesFromFriendlyNames(recipe, environment)
+	return s.Service.FindNodesFromFriendlyNames(recipe, environment, chat)
 
 }
