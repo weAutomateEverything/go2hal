@@ -23,7 +23,7 @@ func MakeHandler(service Service, logger kitlog.Logger, ml machineLearning.Servi
 }
 
 func decodeCalloutRequest(_ context.Context, r *http.Request) (interface{}, error) {
-	v := SendCalloutRequest{}
+	v := &SendCalloutRequest{}
 	err := json.NewDecoder(r.Body).Decode(&v)
 	return v, err
 }
