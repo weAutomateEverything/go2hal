@@ -19,12 +19,10 @@ before_script:
   - go get github.com/axw/gocov/gocov
   - go get -u github.com/go-swagger/go-swagger/cmd/swagger
 
-
-
 script:
  - go test -coverprofile=c.out ./...
  - go build
- - swagger generate spec -o -m ./swagger.json
+ - swagger generate spec -m -o ./swagger.json
 
 after_success:
   - bin/docker_push.sh
