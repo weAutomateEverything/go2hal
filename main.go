@@ -40,7 +40,46 @@ import (
 
 	"github.com/weAutomateEverything/go2hal/auth"
 )
-
+//go:generate swagger generate spec
+//     Schemes: http
+//     BasePath: /api
+//     Version: 0.0.1
+//     License: MIT http://opensource.org/licenses/MIT
+//     Contact: Marc Arndt<marc@marcarndt.com> http://www.marcarndt.com
+//
+//     Consumes:
+//     - application/json
+//
+//     Produces:
+//     - application/json
+//
+//     Security:
+//     - api_key:
+//
+//     SecurityDefinitions:
+//     api_key:
+//          type: apiKey
+//          name: bearer
+//          in: header
+//     oauth2:
+//         type: oauth2
+//         authorizationUrl: /oauth2/auth
+//         tokenUrl: /oauth2/token
+//         in: header
+//         scopes:
+//           bar: foo
+//         flow: accessCode
+//
+//     Extensions:
+//     x-meta-value: value
+//     x-meta-array:
+//       - value1
+//       - value2
+//     x-meta-array-obj:
+//       - name: obj
+//         value: field
+//
+// swagger:meta
 func main() {
 
 	var logger log.Logger
@@ -305,8 +344,8 @@ func main() {
 	mux.Handle("/alert/", alert.MakeHandler(alertService, httpLogger, machineLearningService))
 	mux.Handle("/chefAudit", analytics.MakeHandler(analyticsService, httpLogger, machineLearningService))
 	mux.Handle("/appdynamics/", appdynamics.MakeHandler(appdynamicsService, httpLogger, machineLearningService))
-	mux.Handle("/delivery", chef.MakeHandler(chefService, httpLogger, machineLearningService))
-	mux.Handle("/sensu", sensu.MakeHandler(sensuService, httpLogger, machineLearningService))
+	mux.Handle("/chef/", chef.MakeHandler(chefService, httpLogger, machineLearningService))
+	mux.Handle("/sensu/", sensu.MakeHandler(sensuService, httpLogger, machineLearningService))
 	mux.Handle("/users/", user.MakeHandler(userService, httpLogger, machineLearningService))
 	mux.Handle("/aws/sendTestAlert", halaws.MakeHandler(aws, httpLogger, machineLearningService))
 	mux.Handle("/callout/", callout.MakeHandler(calloutService, httpLogger, machineLearningService))
