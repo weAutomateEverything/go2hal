@@ -20,12 +20,6 @@ func makeChefDeliveryAlertEndpoint(s Service) endpoint.Endpoint {
 	}
 }
 
-func makeGetAllRecipesEndpoint(s Service) endpoint.Endpoint {
-	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
-		return s.getAllRecipes()
-	}
-}
-
 func makeAddRecipeToGroupEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		r := request.(*addRecipeRequest)
@@ -41,7 +35,27 @@ func makeGetAllGrouRecipesEndpoint(s Service) endpoint.Endpoint {
 	}
 }
 
+func makeAddEnvironmentToGroupEndpoint(s Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		claim := ctx.Value(jwt.JWTClaimsContextKey).(*telegram.CustomClaims)
+		req := request.(*addEnvironmentRequest)
+		return nil, s.addEnvironmentToGroup(claim.RoomToken, req.EnvironmentName, req.FriendlyName)
+	}
+}
+
+func makeGetEnvironmentForGroupEndpoint(s Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		claim := ctx.Value(jwt.JWTClaimsContextKey).(*telegram.CustomClaims)
+		return s.getEnvironmentForGroup(claim.RoomToken)
+	}
+}
+
 type addRecipeRequest struct {
 	RecipeName   string
 	FriendlyName string
+}
+
+type addEnvironmentRequest struct {
+	EnvironmentName string
+	FriendlyName    string
 }
