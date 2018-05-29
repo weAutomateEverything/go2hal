@@ -3,25 +3,25 @@ package chef
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	json2 "encoding/json"
 	"fmt"
 	"github.com/go-chef/chef"
 	"github.com/weAutomateEverything/go2hal/alert"
 	"github.com/weAutomateEverything/go2hal/util"
 	"gopkg.in/kyokomi/emoji.v1"
+	"os"
 	"strings"
 	"time"
 )
 
 type Service interface {
 	sendDeliveryAlert(ctx context.Context, chatId uint32, message string)
-	FindNodesFromFriendlyNames(recipe, environment string) []Node
-}
+	FindNodesFromFriendlyNames(recipe, environment string, chat uint32) []Node
 
-type service struct {
-	alert alert.Service
-
-	chefStore Store
+	getAllRecipes() ([]string, error)
+	getRecipesForGroup(group uint32) ([]Recipe, error)
+	addRecipeToGroup(ctx context.Context, group uint32, recipeName, friendlyName string) error
 }
 
 func NewService(alert alert.Service, chefStore Store) Service {
@@ -30,6 +30,61 @@ func NewService(alert alert.Service, chefStore Store) Service {
 		s.monitorQuarentined()
 	}()
 	return s
+}
+
+type service struct {
+	alert alert.Service
+
+	chefStore Store
+}
+
+func (s *service) addRecipeToGroup(ctx context.Context, group uint32, recipeName, friendlyName string) error {
+	err := s.chefStore.AddRecipe(recipeName, friendlyName, group)
+	if err != nil {
+		return err
+	}
+	s.alert.SendAlert(ctx, group, emoji.Sprintf(":new: Chef Recipe %v has been added to the group for monitoring. The friendly name for the recipe is %v", recipeName, friendlyName))
+	return nil
+}
+
+func (s *service) getAllRecipes() (result []string, err error) {
+	c, err := s.getChefClient()
+	if err != nil {
+		return
+	}
+	query, err := c.Search.NewQuery("cookbooks", "name:*")
+	if err != nil {
+		return
+	}
+
+	part := make(map[string]interface{})
+	part["name"] = []string{"name"}
+
+	res, err := query.DoPartial(c, part)
+
+	if err != nil {
+		return
+	}
+
+	result = make([]string, res.Total)
+
+	for i, x := range res.Rows {
+		s := x.(map[string]interface{})
+		data := s["data"].(map[string]interface{})
+		name := data["name"].(string)
+		result[i] = name
+	}
+
+	return
+
+}
+
+func (s *service) getRecipesForGroup(group uint32) (result []Recipe, err error) {
+	result, err = s.chefStore.GetRecipesForGroup(group)
+	if result == nil && err != nil {
+		result = make([]Recipe, 0)
+	}
+	return
 }
 
 func (s *service) sendDeliveryAlert(ctx context.Context, chatId uint32, message string) {
@@ -118,25 +173,18 @@ func (s *service) checkQuarentined() {
 		return
 	}
 
-	env, err := s.chefStore.GetChefEnvironments()
-	if err != nil {
-		s.alert.SendError(context.TODO(), err)
-		return
-	}
-
 	for _, r := range recipes {
+		env, err := s.chefStore.GetEnvironmentForGroup(r.ChatID)
+		if err != nil {
+			s.alert.SendError(context.TODO(), err)
+			continue
+		}
 		for _, e := range env {
-			nodes := s.FindNodesFromFriendlyNames(r.FriendlyName, e.FriendlyName)
+			nodes := s.FindNodesFromFriendlyNames(r.FriendlyName, e.FriendlyName, r.ChatID)
 			for _, n := range nodes {
 				if strings.Index(n.Environment, "quar") > 0 {
 					//We have found a quarentined Node - Now we need to check the recipes and environment to find out who wants to know about this, in this environment
-					for _, rid := range r.ChatID {
-						for _, eid := range e.ChatID {
-							if rid == eid {
-								s.alert.SendAlert(context.TODO(), rid, emoji.Sprintf(":hospital: *Node Quarantined* \n node %v has been placed in environment %v. Application %v ", n.Name, strings.Replace(n.Environment, "_", " ", -1), r.FriendlyName))
-							}
-						}
-					}
+					s.alert.SendAlert(context.TODO(), r.ChatID, emoji.Sprintf(":hospital: *Node Quarantined* \n node %v has been placed in environment %v. Application %v ", n.Name, strings.Replace(n.Environment, "_", " ", -1), r.FriendlyName))
 				}
 			}
 		}
@@ -144,14 +192,14 @@ func (s *service) checkQuarentined() {
 
 }
 
-func (s *service) FindNodesFromFriendlyNames(recipe, environment string) []Node {
-	chefRecipe, err := s.chefStore.GetRecipeFromFriendlyName(recipe)
+func (s *service) FindNodesFromFriendlyNames(recipe, environment string, chat uint32) []Node {
+	chefRecipe, err := s.chefStore.GetRecipeFromFriendlyName(recipe, chat)
 	if err != nil {
 		s.alert.SendError(context.TODO(), err)
 		return nil
 	}
 
-	chefEnv, err := s.chefStore.GetEnvironmentFromFriendlyName(environment)
+	chefEnv, err := s.chefStore.GetEnvironmentFromFriendlyName(environment, chat)
 	if err != nil {
 		s.alert.SendError(context.TODO(), err)
 		return nil
@@ -194,11 +242,7 @@ func (s *service) FindNodesFromFriendlyNames(recipe, environment string) []Node 
 }
 
 func (s *service) getChefClient() (client *chef.Client, err error) {
-	c, err := s.chefStore.GetChefClientDetails()
-	if err != nil {
-		return nil, err
-	}
-	client, err = connect(c.Name, c.Key, c.URL)
+	client, err = connect(getChefUserName(), getChefUserKey(), getChefURL())
 	return client, err
 }
 
@@ -215,4 +259,21 @@ func connect(name, key, url string) (client *chef.Client, err error) {
 type Node struct {
 	Name        string
 	Environment string
+}
+
+func getChefUserName() string {
+	return os.Getenv("CHEF_USER")
+}
+
+func getChefUserKey() string {
+	s := os.Getenv("CHEF_KEY")
+	r, err := base64.StdEncoding.DecodeString(s)
+	if err != nil {
+		panic(err)
+	}
+	return string(r)
+}
+
+func getChefURL() string {
+	return os.Getenv("CHEF_URL")
 }
