@@ -1,6 +1,7 @@
 package alert
 
 import (
+	"errors"
 	"github.com/weAutomateEverything/go2hal/telegram"
 	"golang.org/x/net/context"
 	"gopkg.in/kyokomi/emoji.v1"
@@ -70,7 +71,8 @@ func (s *service) SendError(ctx context.Context, err error) error {
 	g := os.Getenv("ERROR_GROUP")
 	group, errs := strconv.ParseInt(g, 10, 64)
 	if errs != nil {
-		return errs
+		err = errors.New("ERROR_GROUP has not been set to a valid chat group")
+		return err
 	}
 	_, err = s.telegram.SendMessagePlainText(ctx, group, emoji.Sprintf(":poop: %s", err.Error()), 0)
 	return err
