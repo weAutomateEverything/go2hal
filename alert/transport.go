@@ -29,8 +29,102 @@ func MakeHandler(service Service, logger kitlog.Logger, ml machineLearning.Servi
 
 	r := mux.NewRouter()
 
+	// swagger:operation POST /alert/{chatid} sendTextAlert
+	//
+	// Send a text alert to a telegram group
+	//
+	//
+	// ---
+	// consumes:
+	// - text/plain
+	// produces:
+	// - application/json
+	// parameters:
+	// - name: chatid
+	//   in: path
+	//   description: chat id
+	//   required: true
+	//   type: integer
+	// - name: message
+	//   in: body
+	//   description: message you want to send
+	//   required: true
+	//   schema:
+	//     type: string
+	// responses:
+	//   '200':
+	//     description: Message Sent successfully
+	//   default:
+	//     description: unexpected error
+	//     schema:
+	//       "$ref": "#/definitions/errorResponse"
 	r.Handle("/alert/{chatid:[0-9]+}", alertHandler).Methods("POST")
+
+	// swagger:operation POST /alert/{chatid}/image sendImageAlert
+	//
+	// Send a image to a telegram group
+	//
+	//
+	// ---
+	// consumes:
+	// - text/plain
+	// produces:
+	// - application/json
+	// parameters:
+	// - name: chatid
+	//   in: path
+	//   description: chat id
+	//   required: true
+	//   type: integer
+	// - name: message
+	//   in: body
+	//   description: message you want to send enocded in base64 format
+	//   required: true
+	//   schema:
+	//     type: string
+	// responses:
+	//   '200':
+	//     description: Message Sent successfully
+	//   default:
+	//     description: unexpected error
+	//     schema:
+	//       "$ref": "#/definitions/errorResponse"
 	r.Handle("/alert/{chatid:[0-9]+}/image", imageAlertHandler).Methods("POST")
+
+	// swagger:operation POST /alert/{chatid}/document/{extension} sendDocumentAlert
+	//
+	// Send a text alert to a telegram group
+	//
+	//
+	// ---
+	// consumes:
+	// - text/plain
+	// produces:
+	// - application/json
+	// parameters:
+	// - name: chatid
+	//   in: path
+	//   description: chat id
+	//   required: true
+	//   type: integer
+	// - name: extension
+	//   in: path
+	//   description: document extension (pdf, doc, xls)
+	//   required: true
+	//   type: string
+	// - name: message
+	//   in: body
+	//   description: raw document data encoded in base64
+	//   required: true
+	//   schema:
+	//     type: string
+	// responses:
+	//   '200':
+	//     description: Message Sent successfully
+	//   default:
+	//     description: unexpected error
+	//     schema:
+	//       "$ref": "#/definitions/errorResponse"
 	r.Handle("/alert/{chatid:[0-9]+}/document/{extension}", documentAlertHandler).Methods("POST")
 
 	r.Handle("/alert/error", alertErrorHandler).Methods("POST")

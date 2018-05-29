@@ -1,3 +1,29 @@
+// Terms Of Service:
+//
+// there are no TOS at this moment, use at your own risk we take no responsibility
+//
+//     Schemes: http
+//     Version: 0.0.1
+//     License: MIT http://opensource.org/licenses/MIT
+//     Contact: Marc Arndt<marc@marcarndt.com> http://www.marcarndt.com
+//
+//     Consumes:
+//     - application/json
+//
+//     Produces:
+//     - application/json
+//
+//     Security:
+//     - api_key:
+//
+//     SecurityDefinitions:
+//     api_key:
+//          type: apiKey
+//          name: bearer
+//          in: header
+//
+//
+// swagger:meta
 package main
 
 import (
@@ -39,47 +65,11 @@ import (
 	"syscall"
 
 	"github.com/weAutomateEverything/go2hal/auth"
+	"io/ioutil"
 )
+
 //go:generate swagger generate spec
-//     Schemes: http
-//     BasePath: /api
-//     Version: 0.0.1
-//     License: MIT http://opensource.org/licenses/MIT
-//     Contact: Marc Arndt<marc@marcarndt.com> http://www.marcarndt.com
-//
-//     Consumes:
-//     - application/json
-//
-//     Produces:
-//     - application/json
-//
-//     Security:
-//     - api_key:
-//
-//     SecurityDefinitions:
-//     api_key:
-//          type: apiKey
-//          name: bearer
-//          in: header
-//     oauth2:
-//         type: oauth2
-//         authorizationUrl: /oauth2/auth
-//         tokenUrl: /oauth2/token
-//         in: header
-//         scopes:
-//           bar: foo
-//         flow: accessCode
-//
-//     Extensions:
-//     x-meta-value: value
-//     x-meta-array:
-//       - value1
-//       - value2
-//     x-meta-array-obj:
-//       - name: obj
-//         value: field
-//
-// swagger:meta
+
 func main() {
 
 	var logger log.Logger
@@ -355,6 +345,7 @@ func main() {
 
 	http.Handle("/", panicHandler{accessControl(mux), jiraService, alertService})
 	http.Handle("/metrics", promhttp.Handler())
+	http.Handle("/swagger.json", swagger{})
 
 	grpc := grpc.NewServer()
 	remoteTelegramCommands.RegisterRemoteCommandServer(grpc, remoteTelegramCommand)
@@ -383,9 +374,6 @@ func main() {
 
 	logger.Log("terminated", <-errs)
 
-}
-func getTechnicalUser() string {
-	return os.Getenv("TECH_USER")
 }
 
 func accessControl(h http.Handler) http.Handler {
@@ -421,4 +409,19 @@ func (h panicHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 	h.Handler.ServeHTTP(w, r)
+}
+
+type swagger struct {
+	http.Handler
+}
+
+func (h swagger) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	b, err := ioutil.ReadFile("swagger.json")
+	if err != nil {
+		w.WriteHeader(500)
+		w.Write([]byte(err.Error()))
+	} else {
+		w.WriteHeader(200)
+		w.Write(b)
+	}
 }

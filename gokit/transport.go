@@ -29,14 +29,25 @@ type nopCloser struct {
 
 func (nopCloser) Close() error { return nil }
 
+// User represents a generic error
+//
+// swagger:model errorResponse
+type ErrorResponse struct {
+	// error message
+	//
+	// required: true
+	// min: 1
+	Error string `json:"error"`
+}
+
 // EncodeError response back to the client
 func EncodeError(c context.Context, err error, w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 
 	w.WriteHeader(http.StatusInternalServerError)
 
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"error": err.Error(),
+	json.NewEncoder(w).Encode(&ErrorResponse{
+		Error: err.Error(),
 	})
 
 }
