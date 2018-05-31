@@ -17,7 +17,38 @@ func MakeHandler(service Service, logger kitlog.Logger, ml machineLearning.Servi
 	calloutHandler := kithttp.NewServer(makeCalloutEndpoint(service), decodeCalloutRequest, gokit.EncodeResponse, opts...)
 	r := mux.NewRouter()
 
-	r.Handle("/callout/", calloutHandler).Methods("POST")
+	// swagger:operation POST /api/callout/{chatid} invokeCallout
+	//
+	// Invokes callout by sending a telegram message to the telegram group specified by the chat id.
+	// If JIRA has been configured, a JIRA ticket will be created
+	// If CALLOUT has been defined, then the bot will invoke callout via alexa
+	//
+	//
+	// ---
+	// consumes:
+	// - application/json
+	// produces:
+	// - application/json
+	// parameters:
+	// - name: chatid
+	//   in: path
+	//   description: chat id
+	//   required: true
+	//   type: integer
+	// - name: body
+	//   description: message you want to send enocded in base64 format
+	//   required: true
+	//   in: body
+	//   schema:
+	//     "$ref": "#/definitions/SendCalloutRequest"
+	// responses:
+	//   '200':
+	//     description: Message Sent successfully
+	//   default:
+	//     description: unexpected error
+	//     schema:
+	//       "$ref": "#/definitions/errorResponse"
+	r.Handle("/api/callout/{chatid:[0-9]+}", calloutHandler).Methods("POST")
 
 	return r
 }

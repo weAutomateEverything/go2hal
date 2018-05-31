@@ -29,7 +29,7 @@ func MakeHandler(service Service, logger kitlog.Logger, ml machineLearning.Servi
 
 	r := mux.NewRouter()
 
-	// swagger:operation POST /alert/{chatid} sendTextAlert
+	// swagger:operation POST /api//alert/{chatid} alert sendTextAlert
 	//
 	// Send a text alert to a telegram group
 	//
@@ -58,9 +58,9 @@ func MakeHandler(service Service, logger kitlog.Logger, ml machineLearning.Servi
 	//     description: unexpected error
 	//     schema:
 	//       "$ref": "#/definitions/errorResponse"
-	r.Handle("/alert/{chatid:[0-9]+}", alertHandler).Methods("POST")
+	r.Handle("/api/alert/{chatid:[0-9]+}", alertHandler).Methods("POST")
 
-	// swagger:operation POST /alert/{chatid}/image sendImageAlert
+	// swagger:operation POST /api/alert/{chatid}/image alert sendImageAlert
 	//
 	// Send a image to a telegram group
 	//
@@ -89,9 +89,9 @@ func MakeHandler(service Service, logger kitlog.Logger, ml machineLearning.Servi
 	//     description: unexpected error
 	//     schema:
 	//       "$ref": "#/definitions/errorResponse"
-	r.Handle("/alert/{chatid:[0-9]+}/image", imageAlertHandler).Methods("POST")
+	r.Handle("/api/alert/{chatid:[0-9]+}/image", imageAlertHandler).Methods("POST")
 
-	// swagger:operation POST /alert/{chatid}/document/{extension} sendDocumentAlert
+	// swagger:operation POST /api/alert/{chatid}/document/{extension} alert sendDocumentAlert
 	//
 	// Send a text alert to a telegram group
 	//
@@ -125,9 +125,9 @@ func MakeHandler(service Service, logger kitlog.Logger, ml machineLearning.Servi
 	//     description: unexpected error
 	//     schema:
 	//       "$ref": "#/definitions/errorResponse"
-	r.Handle("/alert/{chatid:[0-9]+}/document/{extension}", documentAlertHandler).Methods("POST")
+	r.Handle("/api/alert/{chatid:[0-9]+}/document/{extension}", documentAlertHandler).Methods("POST")
 
-	r.Handle("/alert/error", alertErrorHandler).Methods("POST")
+	r.Handle("/api/alert/error", alertErrorHandler).Methods("POST")
 
 	return r
 }

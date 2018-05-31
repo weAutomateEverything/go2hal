@@ -31,8 +31,8 @@ func MakeHandler(service Service, logger kitlog.Logger, ml machineLearning.Servi
 
 	r := mux.NewRouter()
 
-	r.Handle("/httpEndpoints", addEndpoint).Methods("POST")
-	r.Handle("/httpEndpoints", getEndpoints).Methods("GET")
+	r.Handle("/api/httpEndpoints", addEndpoint).Methods("POST")
+	r.Handle("/api/httpEndpoints", getEndpoints).Methods("GET")
 	//r.Handle("/httpendpoints/{id}", authpoll).Methods("DELETE")
 
 	return r

@@ -18,7 +18,7 @@ func MakeHandler(service Service, logger kitlog.Logger, ml machineLearning.Servi
 
 	r := mux.NewRouter()
 
-	r.Handle("/chefAudit", analyticsHandler).Methods("POST")
+	r.Handle("/api/chefAudit", analyticsHandler).Methods("POST")
 
 	return r
 
