@@ -27,8 +27,8 @@ func MakeHandler(service Service, logger kitlog.Logger, ml machineLearning.Servi
 
 	r := mux.NewRouter()
 
-	r.Handle("/telegram/auth", requestAuth).Methods("POST")
-	r.Handle("/telegram/auth/{id}", authpoll).Methods("GET")
+	r.Handle("/api/telegram/auth", requestAuth).Methods("POST")
+	r.Handle("/api/telegram/auth/{id}", authpoll).Methods("GET")
 
 	return r
 

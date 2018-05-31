@@ -18,7 +18,17 @@ func makeCalloutEndpoint(service Service) endpoint.Endpoint {
 	}
 }
 
+// Callout Request
+//
+// swagger:model
 type SendCalloutRequest struct {
-	Title   string
-	Message string
+	// Title for the JIRA ticket
+	//
+	// required: true
+	Title string `json:"title"`
+
+	// Message that will be used for the Telegram Alert, the Jira Ticket and the Alexa Callout
+	//
+	// required: true
+	Message string `json:"message"`
 }

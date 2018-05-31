@@ -37,11 +37,11 @@ func MakeHandler(service Service, logger kitlog.Logger, ml machineLearning.Servi
 
 	r := mux.NewRouter()
 
-	r.Handle("/chef/delivery/{chatid:[0-9]+}", chefDeliveryEndpoint).Methods("POST")
-	r.Handle("/chef/recipe", addChefRecipeToGroup).Methods("POST")
-	r.Handle("/chef/recipes", getChefRecipesForGroup).Methods("GET")
-	r.Handle("/chef/environment", addEnvironmentToGroup).Methods("POST")
-	r.Handle("/chef/environments", getEnvironmentForGroup).Methods("GET")
+	r.Handle("/api/chef/delivery/{chatid:[0-9]+}", chefDeliveryEndpoint).Methods("POST")
+	r.Handle("/api/chef/recipe", addChefRecipeToGroup).Methods("POST")
+	r.Handle("/api/chef/recipes", getChefRecipesForGroup).Methods("GET")
+	r.Handle("/api/chef/environment", addEnvironmentToGroup).Methods("POST")
+	r.Handle("/api/chef/environments", getEnvironmentForGroup).Methods("GET")
 
 	return r
 

@@ -19,7 +19,7 @@ func MakeHandler(service Service, logger kitlog.Logger, ml machineLearning.Servi
 	sendAlertHandler := kithttp.NewServer(MakeSendAlertEndpoint(service), gokit.DecodeString, gokit.EncodeResponse, opts...)
 	r := mux.NewRouter()
 
-	r.Handle("/aws/{chatid:[0-9]+}/sendTestAlert", sendAlertHandler).Methods("POST")
+	r.Handle("/api/aws/{chatid:[0-9]+}/sendTestAlert", sendAlertHandler).Methods("POST")
 
 	return r
 

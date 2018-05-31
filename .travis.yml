@@ -19,11 +19,6 @@ before_script:
   - go get github.com/axw/gocov/gocov
   - go get -u github.com/go-swagger/go-swagger/cmd/swagger
 
-script:
- - go test -coverprofile=c.out ./...
- - go build
- - swagger generate spec -m -o ./swagger.json
-
 after_success:
   - bin/docker_push.sh
 
@@ -32,6 +27,11 @@ after_script:
 
 jobs:
   include:
+    - stage: build
+      script:
+      - go test -coverprofile=c.out ./...
+      - go build
+      - swagger generate spec -m -o ./swagger.json
     - stage: trigger downstream
       jdk: oraclejdk8
       script: |

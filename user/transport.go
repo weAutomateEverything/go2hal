@@ -19,7 +19,7 @@ func MakeHandler(service Service, logger kitlog.Logger, ml machineLearning.Servi
 
 	r := mux.NewRouter()
 
-	r.Handle("/users/", addBulkUserEndpoint).Methods("POST")
+	r.Handle("/api/users/", addBulkUserEndpoint).Methods("POST")
 
 	return r
 

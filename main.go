@@ -1,3 +1,5 @@
+// Package classification GO2HAL API.
+//
 // Terms Of Service:
 //
 // there are no TOS at this moment, use at your own risk we take no responsibility
@@ -6,22 +8,15 @@
 //     Version: 0.0.1
 //     License: MIT http://opensource.org/licenses/MIT
 //     Contact: Marc Arndt<marc@marcarndt.com> http://www.marcarndt.com
+//     Title: go2hal API
+//
+//     basePath: /api
 //
 //     Consumes:
 //     - application/json
 //
 //     Produces:
 //     - application/json
-//
-//     Security:
-//     - api_key:
-//
-//     SecurityDefinitions:
-//     api_key:
-//          type: apiKey
-//          name: bearer
-//          in: header
-//
 //
 // swagger:meta
 package main
@@ -331,21 +326,21 @@ func main() {
 	httpLogger := log.With(logger, "component", "http")
 
 	mux := http.NewServeMux()
-	mux.Handle("/alert/", alert.MakeHandler(alertService, httpLogger, machineLearningService))
-	mux.Handle("/chefAudit", analytics.MakeHandler(analyticsService, httpLogger, machineLearningService))
-	mux.Handle("/appdynamics/", appdynamics.MakeHandler(appdynamicsService, httpLogger, machineLearningService))
-	mux.Handle("/chef/", chef.MakeHandler(chefService, httpLogger, machineLearningService))
-	mux.Handle("/sensu/", sensu.MakeHandler(sensuService, httpLogger, machineLearningService))
-	mux.Handle("/users/", user.MakeHandler(userService, httpLogger, machineLearningService))
-	mux.Handle("/aws/sendTestAlert", halaws.MakeHandler(aws, httpLogger, machineLearningService))
-	mux.Handle("/callout/", callout.MakeHandler(calloutService, httpLogger, machineLearningService))
-	mux.Handle("/github/", github.MakeHandler(githubService, httpLogger, machineLearningService))
-	mux.Handle("/telegram/", telegram.MakeHandler(telegramService, httpLogger, machineLearningService))
-	mux.Handle("/httpEndpoints", httpSmoke.MakeHandler(httpService, httpLogger, machineLearningService))
+	mux.Handle("/api/alert/", alert.MakeHandler(alertService, httpLogger, machineLearningService))
+	mux.Handle("/api/chefAudit", analytics.MakeHandler(analyticsService, httpLogger, machineLearningService))
+	mux.Handle("/api/appdynamics/", appdynamics.MakeHandler(appdynamicsService, httpLogger, machineLearningService))
+	mux.Handle("/api/chef/", chef.MakeHandler(chefService, httpLogger, machineLearningService))
+	mux.Handle("/api/sensu/", sensu.MakeHandler(sensuService, httpLogger, machineLearningService))
+	mux.Handle("/api/users/", user.MakeHandler(userService, httpLogger, machineLearningService))
+	mux.Handle("/api/aws/sendTestAlert", halaws.MakeHandler(aws, httpLogger, machineLearningService))
+	mux.Handle("/api/callout/", callout.MakeHandler(calloutService, httpLogger, machineLearningService))
+	mux.Handle("/api/github/", github.MakeHandler(githubService, httpLogger, machineLearningService))
+	mux.Handle("/api/telegram/", telegram.MakeHandler(telegramService, httpLogger, machineLearningService))
+	mux.Handle("/api/httpEndpoints", httpSmoke.MakeHandler(httpService, httpLogger, machineLearningService))
 
-	http.Handle("/", panicHandler{accessControl(mux), jiraService, alertService})
-	http.Handle("/metrics", promhttp.Handler())
-	http.Handle("/swagger.json", swagger{})
+	http.Handle("/api/", panicHandler{accessControl(mux), jiraService, alertService})
+	http.Handle("/api/metrics", promhttp.Handler())
+	http.Handle("/api/swagger.json", swagger{})
 
 	grpc := grpc.NewServer()
 	remoteTelegramCommands.RegisterRemoteCommandServer(grpc, remoteTelegramCommand)

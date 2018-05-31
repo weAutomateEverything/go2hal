@@ -36,7 +36,6 @@ type ErrorResponse struct {
 	// error message
 	//
 	// required: true
-	// min: 1
 	Error string `json:"error"`
 }
 

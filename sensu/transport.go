@@ -23,7 +23,7 @@ func MakeHandler(service Service, logger kitlog.Logger, ml machineLearning.Servi
 
 	r := mux.NewRouter()
 
-	r.Handle("/sensu/{chatid:[0-9]+}", sensuAlert).Methods("POST")
+	r.Handle("/api/sensu/{chatid:[0-9]+}", sensuAlert).Methods("POST")
 
 	return r
 
