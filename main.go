@@ -22,7 +22,7 @@
 package main
 
 import (
-	go2hal2 "github.com/weAutomateEverything/go2hal/go2hal"
+	go2hal2 "github.com/weAutomateEverything/go2hal/go2halStartup"
 )
 
 //go:generate swagger generate spec
