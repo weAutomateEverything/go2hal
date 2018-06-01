@@ -10,8 +10,6 @@
 //     Contact: Marc Arndt<marc@marcarndt.com> http://www.marcarndt.com
 //     Title: go2hal API
 //
-//     basePath: /api
-//
 //     Consumes:
 //     - application/json
 //
