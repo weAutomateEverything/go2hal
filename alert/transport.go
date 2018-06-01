@@ -29,7 +29,7 @@ func MakeHandler(service Service, logger kitlog.Logger, ml machineLearning.Servi
 
 	r := mux.NewRouter()
 
-	// swagger:operation POST /api//alert/{chatid} alert sendTextAlert
+	// swagger:operation POST /api/alert/{chatid} alert sendTextAlert
 	//
 	// Send a text alert to a telegram group
 	//
