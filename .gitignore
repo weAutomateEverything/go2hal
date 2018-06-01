@@ -1,6 +1,7 @@
 .idea
 go2hal.exe
 go2hal
+!go2hal/
 go2hal~
 .DS_Store
 
