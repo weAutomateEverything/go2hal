@@ -1,4 +1,4 @@
-package go2hal
+package go2halStartup
 
 import (
 	"fmt"
