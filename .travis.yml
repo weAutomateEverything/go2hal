@@ -12,26 +12,22 @@ addons:
 sudo: false
 services:
  - docker
-before_script:
-  - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
-  - chmod +x ./cc-test-reporter
-  - ./cc-test-reporter before-build
-  - go get github.com/axw/gocov/gocov
-  - go get -u github.com/go-swagger/go-swagger/cmd/swagger
-
-after_success:
-  - bin/docker_push.sh
-
-after_script:
-  - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT -t gocov
 
 jobs:
   include:
     - stage: build
       script:
+      - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+      - chmod +x ./cc-test-reporter
+      - ./cc-test-reporter before-build
+      - go get github.com/axw/gocov/gocov
+      - go get -u github.com/go-swagger/go-swagger/cmd/swagger
       - go test -coverprofile=c.out ./...
       - go build
       - swagger generate spec -m -o ./swagger.json
+      - bin/docker_push.sh
+      - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT -t gocov
+
     - stage: trigger downstream
       jdk: oraclejdk8
       script: |
