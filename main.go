@@ -29,5 +29,5 @@ import (
 
 func main() {
 	go2hal := go2hal2.NewGo2Hal()
-	go2hal.Logger.Log("terminated", <-go2hal.Err)
+	go2hal.Start()
 }
