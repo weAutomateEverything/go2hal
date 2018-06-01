@@ -280,7 +280,7 @@ func NewGo2Hal() Go2Hal {
 			Help:      "Total duration of requests in microseconds.",
 		}, fieldKeys), go2hal.AWSService)
 
-	go2hal.FirstCallService = firstCall.NewDefaultFirstcallService()
+	go2hal.FirstCallService = firstCall.NewCalloutService()
 
 	go2hal.CalloutService = callout.NewService(go2hal.AlertService, go2hal.FirstCallService, go2hal.SNMPService, go2hal.JiraService, go2hal.AWSService)
 	go2hal.CalloutService = callout.NewLoggingService(log.With(go2hal.Logger, "component", "callout"), go2hal.CalloutService)

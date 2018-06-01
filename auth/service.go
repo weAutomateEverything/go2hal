@@ -11,6 +11,6 @@ func NewAlwaysTrustEveryoneAuthService() Service {
 	return &alwaysTrueAuthService{}
 }
 
-func (alwaysTrueAuthService) Authorize(user string) bool {
+func (*alwaysTrueAuthService) Authorize(user string) bool {
 	return true
 }
