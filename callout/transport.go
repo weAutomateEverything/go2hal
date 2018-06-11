@@ -8,6 +8,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/weAutomateEverything/go2hal/gokit"
 	"github.com/weAutomateEverything/go2hal/machineLearning"
+	"io/ioutil"
 	"net/http"
 )
 
@@ -53,8 +54,12 @@ func MakeHandler(service Service, logger kitlog.Logger, ml machineLearning.Servi
 	return r
 }
 
-func decodeCalloutRequest(_ context.Context, r *http.Request) (interface{}, error) {
-	v := &SendCalloutRequest{}
-	err := json.NewDecoder(r.Body).Decode(&v)
-	return v, err
+func decodeCalloutRequest(_ context.Context, r *http.Request) (resp interface{}, err error) {
+	res := &SendCalloutRequest{}
+	b, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return
+	}
+	err = json.Unmarshal(b, &res)
+	return res, err
 }
