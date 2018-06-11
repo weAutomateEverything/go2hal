@@ -3,8 +3,7 @@ package firstCall
 import (
 	"context"
 	"fmt"
-	"github.com/pkg/errors"
-	"os"
+	"github.com/weAutomateEverything/go2hal/alert"
 )
 
 type Service interface {
@@ -18,7 +17,7 @@ type CalloutFunction interface {
 
 func NewCalloutService() Service {
 	v := &calloutService{}
-	v.services = []CalloutFunction{newDefaultFirstcallService()}
+	v.services = make([]CalloutFunction, 0)
 	return v
 }
 
@@ -41,18 +40,35 @@ func (s *calloutService) AddCalloutFunc(function CalloutFunction) {
 	s.services = append([]CalloutFunction{function}, s.services...)
 }
 
+//-----
+type DefaultCalloutService interface {
+	setDefaultCallout(chat uint32, number string) error
+}
+
 type defaultFirstCallService struct {
+	store Store
+	alert alert.Service
 }
 
-func newDefaultFirstcallService() CalloutFunction {
-	return &defaultFirstCallService{}
-}
-
-func (*defaultFirstCallService) GetFirstCallDetails(ctx context.Context, chat uint32) (name string, number string, err error) {
-	num := os.Getenv("DEFAULT_CALLOUT_NUMBER")
-	if num == "" {
-		err = errors.New("No DEFAULT_CALLOUT_NUMBER environment variable has been defined.")
+func (s *defaultFirstCallService) setDefaultCallout(chat uint32, number string) (err error) {
+	number = "0" + number
+	err = s.store.setDefaultNumber(chat, number)
+	if err != nil {
 		return
 	}
-	return "DEFAULT", os.Getenv("DEFAULT_CALLOUT_NUMBER"), nil
+	s.alert.SendAlert(context.TODO(), chat, fmt.Sprintf("Default Callout for your group has been set to %v", number))
+	return
+}
+
+func NewDefaultFirstcallService(store Store, service alert.Service) CalloutFunction {
+	return &defaultFirstCallService{
+		store: store,
+		alert: service,
+	}
+}
+
+func (s *defaultFirstCallService) GetFirstCallDetails(ctx context.Context, chat uint32) (name string, number string, err error) {
+	number, err = s.store.getDefaultNumber(chat)
+	name = "DEFAULT"
+	return
 }

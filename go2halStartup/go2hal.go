@@ -51,33 +51,35 @@ type Go2Hal struct {
 
 	DB *mgo.Database
 
-	TelegramStore        telegram.Store
-	AppdynamicsStore     appdynamics.Store
-	ChefStore            chef.Store
-	SSHStore             ssh.Store
-	UserStore            user.Store
-	SeleniumStore        seleniumTests.Store
-	HTTPStore            httpSmoke.Store
-	MachineLearningStore machineLearning.Store
+	TelegramStore         telegram.Store
+	AppdynamicsStore      appdynamics.Store
+	ChefStore             chef.Store
+	SSHStore              ssh.Store
+	UserStore             user.Store
+	SeleniumStore         seleniumTests.Store
+	HTTPStore             httpSmoke.Store
+	MachineLearningStore  machineLearning.Store
+	DefaultFirstcallStore firstCall.Store
 
-	AuthService            auth.Service
-	MachineLearningService machineLearning.Service
-	TelegramService        telegram.Service
-	AlertService           alert.Service
-	JiraService            jira.Service
-	AnalticsServics        analytics.Service
-	SSHService             ssh.Service
-	AppdynamicsService     appdynamics.Service
-	SNMPService            snmp.Service
-	AWSService             halaws.Service
-	FirstCallService       firstCall.Service
-	CalloutService         callout.Service
-	ChefService            chef.Service
-	SensuService           sensu.Service
-	UserService            user.Service
-	GithubService          github.Service
-	SeleniumService        seleniumTests.Service
-	HTTPService            httpSmoke.Service
+	AuthService             auth.Service
+	MachineLearningService  machineLearning.Service
+	TelegramService         telegram.Service
+	AlertService            alert.Service
+	JiraService             jira.Service
+	AnalticsServics         analytics.Service
+	SSHService              ssh.Service
+	AppdynamicsService      appdynamics.Service
+	SNMPService             snmp.Service
+	AWSService              halaws.Service
+	DefaultFirstcallService firstCall.CalloutFunction
+	FirstCallService        firstCall.Service
+	CalloutService          callout.Service
+	ChefService             chef.Service
+	SensuService            sensu.Service
+	UserService             user.Service
+	GithubService           github.Service
+	SeleniumService         seleniumTests.Service
+	HTTPService             httpSmoke.Service
 
 	RemoteTelegramCommandService remoteTelegramCommands.RemoteCommandServer
 }
@@ -130,6 +132,7 @@ func NewGo2Hal() Go2Hal {
 	go2hal.SeleniumStore = seleniumTests.NewMongoStore(go2hal.DB)
 	go2hal.HTTPStore = httpSmoke.NewMongoStore(go2hal.DB)
 	go2hal.MachineLearningStore = machineLearning.NewMongoStore(go2hal.DB)
+	go2hal.DefaultFirstcallStore = firstCall.NewMongoStore(go2hal.DB)
 
 	fieldKeys := []string{"method"}
 
@@ -280,6 +283,7 @@ func NewGo2Hal() Go2Hal {
 			Help:      "Total duration of requests in microseconds.",
 		}, fieldKeys), go2hal.AWSService)
 
+	go2hal.DefaultFirstcallService = firstCall.NewDefaultFirstcallService(go2hal.DefaultFirstcallStore, go2hal.AlertService)
 	go2hal.FirstCallService = firstCall.NewCalloutService()
 
 	go2hal.CalloutService = callout.NewService(go2hal.AlertService, go2hal.FirstCallService, go2hal.SNMPService, go2hal.JiraService, go2hal.AWSService)
@@ -385,6 +389,7 @@ func NewGo2Hal() Go2Hal {
 	go2hal.Mux.Handle("/api/github/", github.MakeHandler(go2hal.GithubService, go2hal.HTTPLogger, go2hal.MachineLearningService))
 	go2hal.Mux.Handle("/api/telegram/", telegram.MakeHandler(go2hal.TelegramService, go2hal.HTTPLogger, go2hal.MachineLearningService))
 	go2hal.Mux.Handle("/api/httpEndpoints", httpSmoke.MakeHandler(go2hal.HTTPService, go2hal.HTTPLogger, go2hal.MachineLearningService))
+	go2hal.Mux.Handle("/api/firstcall/defaultCallout", firstCall.MakeHandler(go2hal.DefaultFirstcallService, go2hal.HTTPLogger, go2hal.MachineLearningService))
 
 	http.Handle("/api/", panicHandler{accessControl(go2hal.Mux), go2hal.JiraService, go2hal.AlertService})
 	http.Handle("/api/metrics", promhttp.Handler())
