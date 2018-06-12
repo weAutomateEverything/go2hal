@@ -83,7 +83,7 @@ func newProxy(namespace string, logger log.Logger) Service {
 	}
 }
 
-func (s *calloutProxy) InvokeCallout(ctx context.Context, chatId uint32, title, message string, variables map[string]string) error {
+func (s *calloutProxy) InvokeCallout(ctx context.Context, chatId uint32, title, message string) error {
 
 	callout := makeCalloutHttpProxy(s.namespace, chatId, s.logger)
 	callout = circuitbreaker.Gobreaker(gobreaker.NewCircuitBreaker(gobreaker.Settings{}))(callout)

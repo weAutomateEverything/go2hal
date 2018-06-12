@@ -141,7 +141,7 @@ func (s *service) checkAlert(endpoint httpEndpoint, msg string) {
 	if endpoint.Threshold > 0 {
 		if endpoint.Threshold == endpoint.ErrorCount {
 			msg = fmt.Sprintf("We have dectected a problem with HTTP Endpoint %v, it has failed %v times in a row. The error is %v", endpoint.Name, endpoint.Threshold, msg)
-			s.callout.InvokeCallout(context.TODO(), endpoint.Chat, fmt.Sprintf("Some Test failur)es for %s", endpoint.Name), msg, map[string]string{"Message": msg})
+			s.callout.InvokeCallout(context.TODO(), endpoint.Chat, fmt.Sprintf("Some Test failur)es for %s", endpoint.Name), msg)
 
 		}
 		if endpoint.ErrorCount >= endpoint.Threshold {

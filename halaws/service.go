@@ -1,6 +1,7 @@
 package halaws
 
 import (
+	"crypto/tls"
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -9,6 +10,7 @@ import (
 	"github.com/kyokomi/emoji"
 	"github.com/weAutomateEverything/go2hal/alert"
 	"golang.org/x/net/context"
+	"net/http"
 	"os"
 	"time"
 )
@@ -35,7 +37,11 @@ func (s *service) SendAlert(ctx context.Context, chatId uint32, destination stri
 
 	c := credentials.NewEnvCredentials()
 
-	config := aws.Config{Credentials: c, Region: aws.String("us-east-1"), LogLevel: aws.LogLevel(aws.LogDebugWithHTTPBody)}
+	client := http.DefaultClient
+	transport := http.DefaultTransport
+	transport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+	client.Transport = transport
+	config := aws.Config{Credentials: c, Region: aws.String("us-east-1"), LogLevel: aws.LogLevel(aws.LogDebugWithHTTPBody), HTTPClient: client}
 	sess, _ := session.NewSession(&config)
 
 	outbound := connect.New(sess, &config)
