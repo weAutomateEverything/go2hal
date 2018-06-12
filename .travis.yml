@@ -1,21 +1,18 @@
-language: go
-go:
-- master
-
-env:
-  global:
-      - CGO_ENABLED=0
-      - CC_TEST_REPORTER_ID=30b34f215584a5f9ec0677996496d4ffb60567ddd88b73a41a0c167f262338c6
-
-addons:
-  artifacts: true
-sudo: false
-services:
- - docker
-
 jobs:
   include:
     - stage: build
+      language: go
+      go:
+      - master
+      env:
+        global:
+            - CGO_ENABLED=0
+            - CC_TEST_REPORTER_ID=30b34f215584a5f9ec0677996496d4ffb60567ddd88b73a41a0c167f262338c6
+      addons:
+        artifacts: true
+      sudo: false
+      services:
+       - docker
       script:
       - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
       - chmod +x ./cc-test-reporter
