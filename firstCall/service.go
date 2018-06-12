@@ -51,7 +51,6 @@ type defaultFirstCallService struct {
 }
 
 func (s *defaultFirstCallService) setDefaultCallout(chat uint32, number string) (err error) {
-	number = "0" + number
 	err = s.store.setDefaultNumber(chat, number)
 	if err != nil {
 		return
