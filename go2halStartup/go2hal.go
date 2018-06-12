@@ -285,6 +285,7 @@ func NewGo2Hal() Go2Hal {
 
 	go2hal.DefaultFirstcallService = firstCall.NewDefaultFirstcallService(go2hal.DefaultFirstcallStore, go2hal.AlertService)
 	go2hal.FirstCallService = firstCall.NewCalloutService()
+	go2hal.FirstCallService.AddCalloutFunc(go2hal.DefaultFirstcallService)
 
 	go2hal.CalloutService = callout.NewService(go2hal.AlertService, go2hal.FirstCallService, go2hal.SNMPService, go2hal.JiraService, go2hal.AWSService)
 	go2hal.CalloutService = callout.NewLoggingService(log.With(go2hal.Logger, "component", "callout"), go2hal.CalloutService)
