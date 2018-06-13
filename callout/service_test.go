@@ -2,11 +2,9 @@ package callout
 
 import (
 	"github.com/golang/mock/gomock"
-	"github.com/pkg/errors"
 	"github.com/weAutomateEverything/go2hal/alert"
 	"github.com/weAutomateEverything/go2hal/firstCall"
 	"github.com/weAutomateEverything/go2hal/halaws"
-	"github.com/weAutomateEverything/go2hal/halmock"
 	"github.com/weAutomateEverything/go2hal/jira"
 	snmp2 "github.com/weAutomateEverything/go2hal/snmp"
 	"golang.org/x/net/context"
@@ -22,7 +20,7 @@ func TestService_FirstCall(t *testing.T) {
 	aws := halaws.NewMockService(ctrl)
 	firstCallService := firstCall.NewMockService(ctrl)
 
-	alert.EXPECT().SendError(context.TODO(), halmock.ErrorMsgMatches(errors.New("invoking callout for: Test, Sample")))
+	alert.EXPECT().SendAlert(context.TODO(), uint32(12345), "invoking callout for: Test, Sample")
 	snmp.EXPECT().SendSNMPMessage(context.TODO(), uint32(12345))
 	jira.EXPECT().CreateJira(context.TODO(), uint32(12345), "Test", "Sample", "BOB1")
 	aws.EXPECT().SendAlert(context.TODO(), uint32(12345), "+27841231234", "BOB1", map[string]string{"Message": "Sample"})
