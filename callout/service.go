@@ -42,7 +42,7 @@ func NewService(alert alert.Service, firstcall firstCall.Service, snmp snmp.Serv
 // InvokeCallout will invoke snmp if configured, then create a jira ticket if configured, finally it will invoke a phone
 // call via alexa connect, if configured.
 func (s *service) InvokeCallout(ctx context.Context, chat uint32, title, message string) error {
-	s.alert.SendError(ctx, fmt.Errorf("invoking callout for: %s, %s", title, message))
+	s.alert.SendAlert(ctx, chat, fmt.Sprintf("invoking callout for: %s, %s", title, message))
 	if s.snmp != nil {
 		s.snmp.SendSNMPMessage(ctx, chat)
 	}
