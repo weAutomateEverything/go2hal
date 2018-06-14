@@ -22,7 +22,7 @@ type Service interface {
 type service struct {
 	alert alert.Service
 
-	lastcall time.Time
+	lastcall map[uint32]time.Time
 }
 
 func NewService(alert alert.Service) Service {
@@ -30,8 +30,7 @@ func NewService(alert alert.Service) Service {
 }
 
 func (s *service) SendAlert(ctx context.Context, chatId uint32, destination string, name string, variables map[string]string) error {
-	if time.Since(s.lastcall) < time.Duration(30*time.Minute) {
-		s.alert.SendAlert(ctx, chatId, ":phone: :negative_squared_cross_mark: Not invoking callout since its been less than 30 minutes since the last phone call")
+	if !s.checkCallout(chatId) {
 		return nil
 	}
 
@@ -66,10 +65,21 @@ func (s *service) SendAlert(ctx context.Context, chatId uint32, destination stri
 		return err
 	}
 
-	s.lastcall = time.Now()
+	s.lastcall[chatId] = time.Now()
 	s.alert.SendAlert(ctx, chatId, emoji.Sprintf(":phone: HAL has phoned %v on %v. Reference %v ", name, destination, output.ContactId))
 	return nil
 
+}
+
+func (s service) checkCallout(chatid uint32) bool {
+	t, ok := s.lastcall[chatid]
+	if ok {
+		if time.Since(t) < time.Duration(30*time.Minute) {
+			s.alert.SendAlert(context.TODO(), chatid, emoji.Sprintf(":phone: :negative_squared_cross_mark: Not invoking callout since its been less than 30 minutes since the last phone call"))
+			return false
+		}
+	}
+	return true
 }
 
 func getInstanceID() string {
