@@ -43,6 +43,10 @@ type Commandlet interface {
 	Fields(update tgbotapi.Update, state State) []string
 }
 
+type RemoteCommand interface {
+	GetCommandGroup() uint32
+}
+
 type service struct {
 	store       Store
 	authService auth.Service
@@ -277,7 +281,8 @@ func sendMessage(chatID int64, message string, messageID int, markup bool) (msgi
 }
 
 func (s service) executeCommand(update tgbotapi.Update) bool {
-	command := findCommand(update.Message.Command())
+	group, _ := s.store.GetUUID(update.Message.Chat.ID)
+	command := findCommand(update.Message.Command(), group)
 	if command != nil {
 		if command.RestrictToAuthorised() {
 			if !(s.authService.Authorize(strconv.Itoa(update.Message.From.ID))) {
@@ -304,11 +309,18 @@ func (s service) executeCommandLet(update tgbotapi.Update) bool {
 	return false
 }
 
-func findCommand(command string) (a Command) {
+func findCommand(command string, group uint32) (a Command) {
 	for _, item := range commandList {
 		a = item()
 		if strings.ToLower(a.CommandIdentifier()) == strings.ToLower(command) {
-			return a
+			r, ok := a.(RemoteCommand)
+			if ok {
+				if r.GetCommandGroup() == group {
+					return a
+				}
+			} else {
+				return a
+			}
 		}
 	}
 	return nil
@@ -325,10 +337,11 @@ func registerCommandlet(newFunc commandletCtor) {
 
 type help struct {
 	telegram Service
+	store    Store
 }
 
-func NewHelpCommand(telegram Service) Command {
-	return &help{telegram}
+func NewHelpCommand(telegram Service, store Store) Command {
+	return &help{telegram, store}
 }
 
 func (s *help) RestrictToAuthorised() bool {
@@ -346,6 +359,15 @@ func (s *help) CommandDescription() string {
 func (s *help) Execute(update tgbotapi.Update) {
 	var buffer bytes.Buffer
 	for _, x := range getCommands() {
+		if x.Group != 0 {
+			g, err := s.store.GetRoomKey(x.Group)
+			if err != nil {
+				continue
+			}
+			if g != update.Message.Chat.ID {
+				continue
+			}
+		}
 		buffer.WriteString("/")
 		buffer.WriteString(x.Name)
 		buffer.WriteString(" - ")
@@ -359,7 +381,12 @@ func getCommands() []commandDescription {
 	result := make([]commandDescription, len(commandList))
 	count := 0
 	for _, x := range commandList {
-		result[count] = commandDescription{x().CommandIdentifier(), x().CommandDescription()}
+		r, ok := x().(RemoteCommand)
+		if ok {
+			result[count] = commandDescription{x().CommandIdentifier(), x().CommandDescription(), r.GetCommandGroup()}
+		} else {
+			result[count] = commandDescription{x().CommandIdentifier(), x().CommandDescription(), 0}
+		}
 		count++
 	}
 	return result
@@ -370,4 +397,5 @@ Basic information about a command
 */
 type commandDescription struct {
 	Name, Description string
+	Group             uint32
 }

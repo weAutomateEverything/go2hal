@@ -367,7 +367,7 @@ func NewGo2Hal() Go2Hal {
 	go2hal.HTTPService = httpSmoke.NewService(go2hal.AlertService, go2hal.HTTPStore, go2hal.CalloutService)
 
 	//Telegram Commands
-	go2hal.TelegramService.RegisterCommand(telegram.NewHelpCommand(go2hal.TelegramService))
+	go2hal.TelegramService.RegisterCommand(telegram.NewHelpCommand(go2hal.TelegramService, go2hal.TelegramStore))
 	go2hal.TelegramService.RegisterCommand(firstCall.NewWhosOnFirstCallCommand(go2hal.AlertService, go2hal.TelegramService,
 		go2hal.FirstCallService, go2hal.TelegramStore))
 	go2hal.TelegramService.RegisterCommand(httpSmoke.NewQuietHttpAlertCommand(go2hal.TelegramService, go2hal.HTTPService))

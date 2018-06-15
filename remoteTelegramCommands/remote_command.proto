@@ -10,6 +10,7 @@ service RemoteCommand {
 message RemoteCommandRequest {
     string name = 1;
     string description = 2;
+    int64 group = 3;
 }
 
 message RemoteRequest {
