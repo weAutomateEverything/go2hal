@@ -26,7 +26,9 @@ type service struct {
 }
 
 func NewService(alert alert.Service) Service {
-	return &service{alert: alert}
+	s := &service{alert: alert}
+	s.lastcall = make(map[uint32]time.Time)
+	return s
 }
 
 func (s *service) SendAlert(ctx context.Context, chatId uint32, destination string, name string, variables map[string]string) error {
