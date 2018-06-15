@@ -16,7 +16,8 @@ func NewService(telegram telegram.Service) RemoteCommandServer {
 }
 
 func (s *service) RegisterCommand(request *RemoteCommandRequest, response RemoteCommand_RegisterCommandServer) error {
-	s.telegram.RegisterCommand(newRemoteCommand(request.Name, request.Description, response))
+
+	s.telegram.RegisterCommand(newRemoteCommand(request.Name, request.Description, uint32(request.Group), response))
 	for {
 		time.Sleep(10 * time.Minute)
 	}
@@ -24,16 +25,16 @@ func (s *service) RegisterCommand(request *RemoteCommandRequest, response Remote
 
 type remoteCommand struct {
 	name, help string
+	grounp     uint32
 	remote     RemoteCommand_RegisterCommandServer
+}
+
+func newRemoteCommand(name, help string, group uint32, remote RemoteCommand_RegisterCommandServer) telegram.Command {
+	return &remoteCommand{name: name, help: help, remote: remote, grounp: group}
 }
 
 func (s remoteCommand) RestrictToAuthorised() bool {
 	return true
-}
-
-func newRemoteCommand(name, help string, remote RemoteCommand_RegisterCommandServer) telegram.Command {
-	return &remoteCommand{name: name, help: help, remote: remote}
-
 }
 
 func (s remoteCommand) CommandIdentifier() string {
@@ -42,6 +43,10 @@ func (s remoteCommand) CommandIdentifier() string {
 
 func (s remoteCommand) CommandDescription() string {
 	return s.help
+}
+
+func (s remoteCommand) GetCommandGroup() uint32 {
+	return s.grounp
 }
 
 func (s remoteCommand) Execute(update tgbotapi.Update) {
