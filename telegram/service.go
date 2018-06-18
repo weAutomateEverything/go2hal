@@ -276,6 +276,7 @@ func sendMessage(chatID int64, message string, messageID int, markup bool) (msgi
 	out, err := telegramBot.Send(msg)
 	if err != nil {
 		log.Println(err)
+		return
 	}
 	return out.MessageID, nil
 }
