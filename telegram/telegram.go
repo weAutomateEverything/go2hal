@@ -69,7 +69,7 @@ func (id) RestrictToAuthorised() bool {
 }
 
 func (s id) Execute(update tgbotapi.Update) {
-	id, err := s.store.GetUUID(update.Message.Chat.ID)
+	id, err := s.store.GetUUID(update.Message.Chat.ID, update.Message.Chat.Title)
 	if err != nil {
 		s.telegram.SendMessage(context.TODO(), update.Message.Chat.ID, fmt.Sprintf("There was an error fetching your group %v", err.Error()), update.Message.MessageID)
 	} else {

@@ -8,6 +8,10 @@ import (
 	"time"
 )
 
+func NewMongoStore(mongo *mgo.Database) Store {
+	return &mongoStore{mongo}
+}
+
 /*
 State is the current user state when flowing through a multi step process.
 */
@@ -19,8 +23,9 @@ type State struct {
 }
 
 type botRoom struct {
-	ChatId int64 `json:"id" bson:"_id,omitempty"`
-	Uuid   uint32
+	ChatId   int64 `json:"id" bson:"_id,omitempty"`
+	Uuid     uint32
+	RoomName string `json:"room_name"`
 }
 
 type authRequest struct {
@@ -39,9 +44,9 @@ type Store interface {
 	SetState(user int, chat int64, state string, field []string) error
 	getState(user int, chat int64) State
 
-	addBot(chat int64) (id uint32, err error)
+	addBot(chat int64, name string) (id uint32, err error)
 	GetRoomKey(chat uint32) (roomid int64, err error)
-	GetUUID(chat int64) (uuid uint32, err error)
+	GetUUID(chat int64, name string) (uuid uint32, err error)
 
 	newAuthRequest(msgid int, chat int64, name string) (string, error)
 	approveAuthRequest(id int, chat int64, approvedByName string, approvedById int) error
@@ -121,10 +126,6 @@ func (s mongoStore) approveAuthRequest(id int, chat int64, approvedByName string
 
 }
 
-func NewMongoStore(mongo *mgo.Database) Store {
-	return &mongoStore{mongo}
-}
-
 func (s mongoStore) SetState(user int, chat int64, state string, field []string) error {
 	ss := State{Userid: user, State: state, Field: field, ChatId: chat}
 	c := s.mongo.C("userstate")
@@ -139,7 +140,7 @@ func (s mongoStore) getState(user int, chat int64) State {
 	return state
 }
 
-func (s mongoStore) addBot(chat int64) (id uint32, err error) {
+func (s mongoStore) addBot(chat int64, room string) (id uint32, err error) {
 	c := s.mongo.C("botroom")
 	q := c.FindId(chat)
 	n, err := q.Count()
@@ -154,7 +155,7 @@ func (s mongoStore) addBot(chat int64) (id uint32, err error) {
 		return
 	}
 
-	g := botRoom{ChatId: chat, Uuid: uuid.New().ID()}
+	g := botRoom{ChatId: chat, Uuid: uuid.New().ID(), RoomName: room}
 	err = c.Insert(&g)
 	id = g.Uuid
 
@@ -180,7 +181,7 @@ func (s mongoStore) GetRoomKey(chat uint32) (roomid int64, err error) {
 	return
 }
 
-func (s mongoStore) GetUUID(chat int64) (uuid uint32, err error) {
+func (s mongoStore) GetUUID(chat int64, room string) (uuid uint32, err error) {
 	c := s.mongo.C("botroom")
 	q := c.FindId(chat)
 	n, err := q.Count()
@@ -192,6 +193,11 @@ func (s mongoStore) GetUUID(chat int64) (uuid uint32, err error) {
 		g := botRoom{}
 		q.One(&g)
 		uuid = g.Uuid
+
+		if room != "" {
+			g.RoomName = room
+			c.UpdateId(chat, g)
+		}
 		return
 	}
 

@@ -193,7 +193,7 @@ func (s service) pollAuthorisation(token string) (room uint32, err error) {
 		return
 	}
 
-	return s.store.GetUUID(roomId)
+	return s.store.GetUUID(roomId, "")
 
 }
 
@@ -232,7 +232,7 @@ func (s service) pollMessage() {
 				for _, user := range *update.Message.NewChatMembers {
 					// Looks like the bot has been added to a new group - lets register the details.
 					if user.ID == telegramBot.Self.ID {
-						id, err := s.store.addBot(update.Message.Chat.ID)
+						id, err := s.store.addBot(update.Message.Chat.ID, update.Message.Chat.Title)
 						if err != nil {
 							sendMessage(update.Message.Chat.ID, fmt.Sprintf("There was an error registering your bot: %v", err.Error()), update.Message.MessageID, false)
 							continue
@@ -282,7 +282,7 @@ func sendMessage(chatID int64, message string, messageID int, markup bool) (msgi
 }
 
 func (s service) executeCommand(update tgbotapi.Update) bool {
-	group, _ := s.store.GetUUID(update.Message.Chat.ID)
+	group, _ := s.store.GetUUID(update.Message.Chat.ID, update.Message.Chat.Title)
 	command := findCommand(update.Message.Command(), group)
 	if command != nil {
 		if command.RestrictToAuthorised() {
