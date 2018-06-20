@@ -3,6 +3,7 @@ package telegram
 import (
 	"context"
 	"github.com/go-kit/kit/metrics"
+	"strconv"
 	"time"
 )
 
@@ -24,10 +25,10 @@ func NewInstrumentService(counter metrics.Counter, errorCount metrics.Counter, l
 
 func (s *instrumentingService) SendMessage(ctx context.Context, chatID int64, message string, messageID int) (msgid int, err error) {
 	defer func(begin time.Time) {
-		s.requestCount.With("method", "SendMessage", "chat", string(chatID)).Add(1)
-		s.requestLatency.With("method", "SendMessage").Observe(time.Since(begin).Seconds())
+		s.requestCount.With("method", "SendMessage", "chat", strconv.FormatInt(chatID, 10)).Add(1)
+		s.requestLatency.With("method", "SendMessage", "chat", strconv.FormatInt(chatID, 10)).Observe(time.Since(begin).Seconds())
 		if err != nil {
-			s.errorCount.With("method", "SendMessage", "chat", string(chatID)).Add(1)
+			s.errorCount.With("method", "SendMessage", "chat", strconv.FormatInt(chatID, 10)).Add(1)
 		}
 	}(time.Now())
 	_, err = s.Service.SendMessage(ctx, chatID, message, messageID)
@@ -35,10 +36,10 @@ func (s *instrumentingService) SendMessage(ctx context.Context, chatID int64, me
 }
 func (s *instrumentingService) SendMessagePlainText(ctx context.Context, chatID int64, message string, messageID int) (msgid int, err error) {
 	defer func(begin time.Time) {
-		s.requestCount.With("method", "SendMessagePlainText", "chat", string(chatID)).Add(1)
-		s.requestLatency.With("method", "SendMessagePlainText").Observe(time.Since(begin).Seconds())
+		s.requestCount.With("method", "SendMessagePlainText", "chat", strconv.FormatInt(chatID, 10)).Add(1)
+		s.requestLatency.With("method", "SendMessagePlainText", "chat", strconv.FormatInt(chatID, 10)).Observe(time.Since(begin).Seconds())
 		if err != nil {
-			s.errorCount.With("method", "SendMessagePlainText", "chat", string(chatID)).Add(1)
+			s.errorCount.With("method", "SendMessagePlainText", "chat", strconv.FormatInt(chatID, 10)).Add(1)
 		}
 	}(time.Now())
 	_, err = s.Service.SendMessagePlainText(ctx, chatID, message, messageID)
@@ -47,31 +48,31 @@ func (s *instrumentingService) SendMessagePlainText(ctx context.Context, chatID 
 func (s *instrumentingService) SendImageToGroup(ctx context.Context, image []byte, group int64) (err error) {
 	defer func(begin time.Time) {
 		s.requestCount.With("method", "SendImageToGroup", "chat", string(group)).Add(1)
-		s.requestLatency.With("method", "SendImageToGroup").Observe(time.Since(begin).Seconds())
+		s.requestLatency.With("method", "SendImageToGroup", "chat", strconv.FormatInt(group, 10)).Observe(time.Since(begin).Seconds())
 		if err != nil {
-			s.errorCount.With("method", "SendImageToGroup", "chat", string(group)).Add(1)
+			s.errorCount.With("method", "SendImageToGroup", "chat", strconv.FormatInt(group, 10)).Add(1)
 		}
 	}(time.Now())
 	return s.Service.SendImageToGroup(ctx, image, group)
 }
 func (s *instrumentingService) SendKeyboard(ctx context.Context, buttons []string, text string, chat int64) (int, error) {
 	defer func(begin time.Time) {
-		s.requestCount.With("method", "SendKeyboard", "chat", string(chat)).Add(1)
-		s.requestLatency.With("method", "SendKeyboard").Observe(time.Since(begin).Seconds())
+		s.requestCount.With("method", "SendKeyboard", "chat", strconv.FormatInt(chat, 10)).Add(1)
+		s.requestLatency.With("method", "SendKeyboard", "chat", strconv.FormatInt(chat, 10)).Observe(time.Since(begin).Seconds())
 	}(time.Now())
 	return s.Service.SendKeyboard(ctx, buttons, text, chat)
 }
 func (s *instrumentingService) RegisterCommand(command Command) {
 	defer func(begin time.Time) {
-		s.requestCount.With("method", "RegisterCommand").Add(1)
-		s.requestLatency.With("method", "RegisterCommand").Observe(time.Since(begin).Seconds())
+		s.requestCount.With("method", "RegisterCommand", "chat", "0").Add(1)
+		s.requestLatency.With("method", "RegisterCommand", "chat", "0").Observe(time.Since(begin).Seconds())
 	}(time.Now())
 	s.Service.RegisterCommand(command)
 }
 func (s *instrumentingService) RegisterCommandLet(commandlet Commandlet) {
 	defer func(begin time.Time) {
-		s.requestCount.With("method", "RegisterCommandLet").Add(1)
-		s.requestLatency.With("method", "RegisterCommandLet").Observe(time.Since(begin).Seconds())
+		s.requestCount.With("method", "RegisterCommandLet", "chat", "0").Add(1)
+		s.requestLatency.With("method", "RegisterCommandLet", "chat", "0").Observe(time.Since(begin).Seconds())
 	}(time.Now())
 	s.Service.RegisterCommandLet(commandlet)
 }

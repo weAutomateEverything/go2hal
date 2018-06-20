@@ -152,19 +152,19 @@ func NewGo2Hal() Go2Hal {
 		Subsystem: "telgram_service",
 		Name:      "request_count",
 		Help:      "Number of requests received.",
-	}, fieldKeys),
+	}, []string{"method", "chat"}),
 		kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
 			Namespace: "api",
 			Subsystem: "telgram_service",
 			Name:      "error_count",
 			Help:      "Number of errors encountered.",
-		}, fieldKeys),
+		}, []string{"method", "chat"}),
 		kitprometheus.NewSummaryFrom(stdprometheus.SummaryOpts{
 			Namespace: "api",
 			Subsystem: "telegram_service",
 			Name:      "request_latency_microseconds",
 			Help:      "Total duration of requests in microseconds.",
-		}, fieldKeys), go2hal.TelegramService)
+		}, []string{"method", "chat"}), go2hal.TelegramService)
 
 	go2hal.AlertService = alert.NewService(go2hal.TelegramService, go2hal.TelegramStore)
 	go2hal.AlertService = alert.NewLoggingService(log.With(go2hal.Logger, "component", "alert"), go2hal.AlertService)
