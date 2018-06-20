@@ -364,7 +364,20 @@ func NewGo2Hal() Go2Hal {
 	go2hal.GithubService = github.NewService(go2hal.AlertService)
 
 	go2hal.SeleniumService = seleniumTests.NewService(go2hal.SeleniumStore, go2hal.AlertService, go2hal.CalloutService)
-	go2hal.HTTPService = httpSmoke.NewService(go2hal.AlertService, go2hal.HTTPStore, go2hal.CalloutService)
+	go2hal.HTTPService = httpSmoke.NewService(go2hal.AlertService, go2hal.HTTPStore, go2hal.CalloutService,
+		kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
+			Namespace: "service",
+			Subsystem: "http",
+			Name:      "test_count",
+			Help:      "Number of http tests executed.",
+		}, []string{"endpoint"}),
+		kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
+			Namespace: "service",
+			Subsystem: "http",
+			Name:      "test_error_count",
+			Help:      "number of http tests failed.",
+		}, []string{"endpoint"}),
+	)
 
 	//Telegram Commands
 	go2hal.TelegramService.RegisterCommand(telegram.NewHelpCommand(go2hal.TelegramService, go2hal.TelegramStore))

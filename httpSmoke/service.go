@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"github.com/go-kit/kit/metrics"
 	"github.com/weAutomateEverything/go2hal/alert"
 	"github.com/weAutomateEverything/go2hal/callout"
 	"golang.org/x/net/context"
@@ -18,8 +19,14 @@ import (
 	"time"
 )
 
-func NewService(alertService alert.Service, store Store, callout callout.Service) Service {
-	s := &service{alert: alertService, store: store, callout: callout}
+func NewService(alertService alert.Service, store Store, callout callout.Service, checkCount, ErrorCount metrics.Counter) Service {
+	s := &service{
+		alert:      alertService,
+		store:      store,
+		callout:    callout,
+		checkCount: checkCount,
+		errorCount: ErrorCount,
+	}
 	go func() {
 		s.monitorEndpoints()
 	}()
@@ -39,6 +46,9 @@ type service struct {
 	callout    callout.Service
 	timeout    time.Time
 	timeoutSet bool
+
+	checkCount metrics.Counter
+	errorCount metrics.Counter
 }
 
 func (s *service) getEndpoints(group uint32) ([]httpEndpoint, error) {
@@ -98,15 +108,18 @@ func (s *service) monitorEndpoints() {
 
 func (s *service) checkHTTP(endpoint httpEndpoint) {
 	response, err := s.doHTTPEndpoint(endpoint)
+	s.checkCount.With("endpoint", endpoint.Name).Add(1)
 	if err != nil {
 		msg := emoji.Sprintf(":smoking: :x: *Smoke Test  Alert*\nName: %s \nEndpoint: %s \nError: %s", endpoint.Name,
 			endpoint.Endpoint, err.Error())
 		s.checkAlert(endpoint, msg)
+		s.errorCount.With("endpoint", endpoint.Name).Add(1)
 		return
 	}
 	defer response.Body.Close()
 
 	if response.StatusCode != 200 {
+		s.errorCount.With("endpoint", endpoint.Name).Add(1)
 		msg, _ := ioutil.ReadAll(response.Body)
 		error := emoji.Sprintf(":smoking: :x: *HTTP Alert*\nName: %s \nEndpoint: %s \nDid not receive a 200 success "+
 			"response code. Received %d response code. Body Message %s", endpoint.Name, endpoint.Endpoint,
