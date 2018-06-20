@@ -38,7 +38,7 @@ func (s *whosOnFirstCall) CommandDescription() string {
 }
 
 func (s *whosOnFirstCall) Execute(update tgbotapi.Update) {
-	uuid, err := s.telegramStore.GetUUID(update.Message.Chat.ID)
+	uuid, err := s.telegramStore.GetUUID(update.Message.Chat.ID, update.Message.Chat.Title)
 	if err != nil {
 		s.alert.SendError(context.TODO(), err)
 		return

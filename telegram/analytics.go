@@ -24,10 +24,10 @@ func NewInstrumentService(counter metrics.Counter, errorCount metrics.Counter, l
 
 func (s *instrumentingService) SendMessage(ctx context.Context, chatID int64, message string, messageID int) (msgid int, err error) {
 	defer func(begin time.Time) {
-		s.requestCount.With("method", "SendMessage").Add(1)
+		s.requestCount.With("method", "SendMessage", "chat", string(chatID)).Add(1)
 		s.requestLatency.With("method", "SendMessage").Observe(time.Since(begin).Seconds())
 		if err != nil {
-			s.errorCount.With("method", "SendMessage").Add(1)
+			s.errorCount.With("method", "SendMessage", "chat", string(chatID)).Add(1)
 		}
 	}(time.Now())
 	_, err = s.Service.SendMessage(ctx, chatID, message, messageID)
@@ -35,10 +35,10 @@ func (s *instrumentingService) SendMessage(ctx context.Context, chatID int64, me
 }
 func (s *instrumentingService) SendMessagePlainText(ctx context.Context, chatID int64, message string, messageID int) (msgid int, err error) {
 	defer func(begin time.Time) {
-		s.requestCount.With("method", "SendMessagePlainText").Add(1)
+		s.requestCount.With("method", "SendMessagePlainText", "chat", string(chatID)).Add(1)
 		s.requestLatency.With("method", "SendMessagePlainText").Observe(time.Since(begin).Seconds())
 		if err != nil {
-			s.errorCount.With("method", "SendMessagePlainText").Add(1)
+			s.errorCount.With("method", "SendMessagePlainText", "chat", string(chatID)).Add(1)
 		}
 	}(time.Now())
 	_, err = s.Service.SendMessagePlainText(ctx, chatID, message, messageID)
@@ -46,17 +46,17 @@ func (s *instrumentingService) SendMessagePlainText(ctx context.Context, chatID 
 }
 func (s *instrumentingService) SendImageToGroup(ctx context.Context, image []byte, group int64) (err error) {
 	defer func(begin time.Time) {
-		s.requestCount.With("method", "SendImageToGroup").Add(1)
+		s.requestCount.With("method", "SendImageToGroup", "chat", string(group)).Add(1)
 		s.requestLatency.With("method", "SendImageToGroup").Observe(time.Since(begin).Seconds())
 		if err != nil {
-			s.errorCount.With("method", "SendImageToGroup").Add(1)
+			s.errorCount.With("method", "SendImageToGroup", "chat", string(group)).Add(1)
 		}
 	}(time.Now())
 	return s.Service.SendImageToGroup(ctx, image, group)
 }
 func (s *instrumentingService) SendKeyboard(ctx context.Context, buttons []string, text string, chat int64) (int, error) {
 	defer func(begin time.Time) {
-		s.requestCount.With("method", "SendKeyboard").Add(1)
+		s.requestCount.With("method", "SendKeyboard", "chat", string(chat)).Add(1)
 		s.requestLatency.With("method", "SendKeyboard").Observe(time.Since(begin).Seconds())
 	}(time.Now())
 	return s.Service.SendKeyboard(ctx, buttons, text, chat)
