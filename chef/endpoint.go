@@ -6,6 +6,7 @@ import (
 	"github.com/go-kit/kit/endpoint"
 	"github.com/weAutomateEverything/go2hal/gokit"
 	"github.com/weAutomateEverything/go2hal/telegram"
+	"strconv"
 )
 
 type AddChefClientRequest struct {
@@ -49,7 +50,53 @@ func makeGetEnvironmentForGroupEndpoint(s Service) endpoint.Endpoint {
 		return s.getEnvironmentForGroup(claim.RoomToken)
 	}
 }
+func makeGetChefRecipesByGroupEndpoint(s Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req :=request.(string)
+		i, _ := strconv.ParseUint(req, 10, 32)
+		recipes,err:=s.getRecipesForGroup(uint32(i))
+		l := make([]string, len(recipes))
+		for x, i := range recipes {
+			l[x] = i.FriendlyName
+		}
+		response = &recipeResponse{
+			Recipes:l,
+		}
 
+		return response,nil
+
+	}
+}
+func makeGetChefNodesEndpoint(s Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req :=request.(*chefNodeRequest)
+		nodes:=s.FindNodesFromFriendlyNames(req.Recipe,req.Environment,req.Chat)
+		res := make([]string, len(nodes))
+		for i, x := range nodes {
+			res[i] = x.Name
+		}
+		response = &nodeResponse{
+			Nodes:res,
+		}
+		return response,nil
+
+	}
+}
+func makeGetChefEnvironmentsByGroupEndpoint(s Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req :=request.(string)
+		i, _ := strconv.ParseUint(req, 10, 32)
+		environments,err:=s.getEnvironmentForGroup(uint32(i))
+		l := make([]string, len(environments))
+		for x, i := range environments {
+			l[x] = i.FriendlyName
+		}
+		response = &environmentResponse{
+			Environments:l,
+		}
+		return response,nil
+	}
+}
 type addRecipeRequest struct {
 	RecipeName   string
 	FriendlyName string
@@ -58,4 +105,18 @@ type addRecipeRequest struct {
 type addEnvironmentRequest struct {
 	EnvironmentName string
 	FriendlyName    string
+}
+type recipeResponse struct{
+	Recipes []string
+}
+type nodeResponse struct{
+	Nodes []string
+}
+type environmentResponse struct{
+	Environments []string
+}
+type chefNodeRequest struct{
+	Recipe string
+	Environment string
+	Chat uint32
 }

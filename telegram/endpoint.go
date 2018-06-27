@@ -6,6 +6,7 @@ import (
 	"github.com/go-kit/kit/endpoint"
 	"os"
 	"time"
+	"strconv"
 )
 
 type CustomClaims struct {
@@ -21,7 +22,17 @@ type authRequestObject struct {
 type authResponse struct {
 	Key string
 }
-
+type sendKeyBoardRequest struct{
+	Recipes []string
+	Message string
+	GroupId int64
+}
+type setStateRequest struct{
+	User string
+	Chat string
+	State string
+	Field []string
+}
 func makeTelegramAuthRequestEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(authRequestObject)
@@ -57,7 +68,25 @@ func makeTelegramAuthPollEndpoint(s Service) endpoint.Endpoint {
 		return token.SignedString([]byte(os.Getenv("JWT_KEY")))
 	}
 }
-
+func makeSetStateRequestEndpoint(s Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(setStateRequest)
+		user, err := strconv.Atoi(req.User)
+		chat, err := strconv.ParseInt(req.Chat, 10, 32)
+		err=s.SetState(user,chat,req.State,req.Field)
+		if(err!=nil){
+			return nil,err
+		}
+		return "success",nil
+	}
+}
+func makeSendKeyboardEndpoint(s Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(sendKeyBoardRequest)
+		id,err:=s.SendKeyboard(ctx,req.Recipes,req.Message,req.GroupId)
+		return id,err
+	}
+}
 func CustomClaimFactory() jwt.Claims {
 	return &CustomClaims{}
 }

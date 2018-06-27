@@ -53,3 +53,6 @@ func (s *ml) requestAuthorisation(chat uint32, name string) (string, error) {
 func (s *ml) pollAuthorisation(token string) (uint32, error) {
 	return s.s.pollAuthorisation(token)
 }
+func (s *ml)SetState(user int, chat int64, state string, field []string) error {
+	return s.s.SetState(user,chat,state,field)
+}
