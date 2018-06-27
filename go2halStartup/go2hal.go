@@ -39,6 +39,7 @@ import (
 
 	kitprometheus "github.com/go-kit/kit/metrics/prometheus"
 	stdprometheus "github.com/prometheus/client_golang/prometheus"
+	"github.com/weAutomateEverything/go2hal/grafana"
 )
 
 type Go2Hal struct {
@@ -80,6 +81,7 @@ type Go2Hal struct {
 	GithubService           github.Service
 	SeleniumService         seleniumTests.Service
 	HTTPService             httpSmoke.Service
+	grafanaService         grafana.Service
 
 	RemoteTelegramCommandService remoteTelegramCommands.RemoteCommandServer
 }
@@ -379,6 +381,30 @@ func NewGo2Hal() Go2Hal {
 		}, []string{"endpoint"}),
 	)
 
+	go2hal.grafanaService = grafana.NewService(go2hal.AlertService)
+	go2hal.grafanaService = grafana.NewLoggingService(log.With(go2hal.Logger, "component", "grafana_service"),go2hal.grafanaService)
+	go2hal.grafanaService = grafana.NewInstrumentService(
+		kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
+			Namespace: "api",
+			Subsystem: "grafana_service",
+			Name:      "request_count",
+			Help:      "Number of requests received.",
+		}, fieldKeys),
+		kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
+			Namespace: "api",
+			Subsystem: "grafana_service",
+			Name:      "error_count",
+			Help:      "Number of errors encountered.",
+		}, fieldKeys),
+		kitprometheus.NewSummaryFrom(stdprometheus.SummaryOpts{
+			Namespace: "api",
+			Subsystem: "grafana_service",
+			Name:      "request_latency_microseconds",
+			Help:      "Total duration of requests in microseconds.",
+		}, fieldKeys),
+		go2hal.grafanaService,
+	)
+
 	//Telegram Commands
 	go2hal.TelegramService.RegisterCommand(telegram.NewHelpCommand(go2hal.TelegramService, go2hal.TelegramStore))
 	go2hal.TelegramService.RegisterCommand(firstCall.NewWhosOnFirstCallCommand(go2hal.AlertService, go2hal.TelegramService,
@@ -404,6 +430,7 @@ func NewGo2Hal() Go2Hal {
 	go2hal.Mux.Handle("/api/telegram/", telegram.MakeHandler(go2hal.TelegramService, go2hal.HTTPLogger, go2hal.MachineLearningService))
 	go2hal.Mux.Handle("/api/httpEndpoints", httpSmoke.MakeHandler(go2hal.HTTPService, go2hal.HTTPLogger, go2hal.MachineLearningService))
 	go2hal.Mux.Handle("/api/firstcall/defaultCallout", firstCall.MakeHandler(go2hal.DefaultFirstcallService, go2hal.HTTPLogger, go2hal.MachineLearningService))
+	go2hal.Mux.Handle("/api/grafana/", grafana.MakeHandler(go2hal.grafanaService,go2hal.HTTPLogger,go2hal.MachineLearningService))
 
 	http.Handle("/api/", panicHandler{accessControl(go2hal.Mux), go2hal.JiraService, go2hal.AlertService})
 	http.Handle("/api/metrics", promhttp.Handler())
