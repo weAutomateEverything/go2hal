@@ -311,25 +311,29 @@ func (s service) executeCommandLet(update tgbotapi.Update) bool {
 }
 
 func findCommand(command string, group uint32) (a Command) {
-	for _, item := range commandList {
-		a = item()
-		if strings.ToLower(a.CommandIdentifier()) == strings.ToLower(command) {
-			r, ok := a.(RemoteCommand)
-			if ok {
-				if r.GetCommandGroup() == group {
-					return a
-				}
-			} else {
-				return a
-			}
-		}
+	//Check if its a standard command
+	c, ok := commandList[strings.ToLower(command)]
+	if ok {
+		return c()
 	}
+
+	//see if its a command for a certain group
+	c, ok = commandList[strings.ToLower(command)+strconv.FormatUint(uint64(group), 10)]
+
+	if ok {
+		return c()
+	}
+
 	return nil
 }
 
 func register(newfunc commandCtor) {
 	id := newfunc().CommandIdentifier()
-	commandList[id] = newfunc
+	remote, ok := newfunc().(RemoteCommand)
+	if ok {
+		id = id + strconv.FormatUint(uint64(remote.GetCommandGroup()), 10)
+	}
+	commandList[strings.ToLower(id)] = newfunc
 }
 
 func registerCommandlet(newFunc commandletCtor) {
