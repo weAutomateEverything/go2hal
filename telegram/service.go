@@ -9,12 +9,10 @@ import (
 	"io/ioutil"
 	"log"
 	"math/rand"
-	"net/http"
 	"os"
 	"runtime"
 	"strconv"
 	"strings"
-	"time"
 )
 
 type Service interface {
@@ -201,10 +199,7 @@ func (s service) pollAuthorisation(token string) (room uint32, err error) {
 
 func (s service) useBot(botkey string) error {
 	var err error
-
-	c := http.DefaultClient
-	c.Timeout = 20 * time.Second
-	telegramBot, err = tgbotapi.NewBotAPIWithClient(botkey, c)
+	telegramBot, err = tgbotapi.NewBotAPI(botkey)
 	if err != nil {
 		return err
 	}
