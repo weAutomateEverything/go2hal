@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 	"strconv"
+	"log"
 )
 
 type CustomClaims struct {
@@ -23,7 +24,7 @@ type authResponse struct {
 	Key string
 }
 type sendKeyBoardRequest struct{
-	Recipes []string
+	Options []string
 	Message string
 	GroupId int64
 }
@@ -83,7 +84,8 @@ func makeSetStateRequestEndpoint(s Service) endpoint.Endpoint {
 func makeSendKeyboardEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(sendKeyBoardRequest)
-		id,err:=s.SendKeyboard(ctx,req.Recipes,req.Message,req.GroupId)
+		log.Println(req)
+		id,err:=s.SendKeyboard(ctx,req.Options,req.Message,req.GroupId)
 		return id,err
 	}
 }
