@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/weAutomateEverything/go2hal/alert"
 	"golang.org/x/net/context"
+	"sort"
 )
 
 type Service interface {
@@ -34,8 +35,15 @@ func (s *service) sendPrometheusAlert(chat uint32, message string) (err error) {
 		a := alert.(map[string]interface{})
 		msg := a["status"].(string) + "\n"
 		labels := a["labels"].(map[string]interface{})
-		for key, value := range labels {
-			msg = msg + fmt.Sprintf("*%v*: %v\n", key, value)
+		keys := make([]string, 1)
+		for key, _ := range labels {
+			keys = append(keys, key)
+		}
+		sort.Strings(keys)
+		for _, key := range keys {
+			if key != "" {
+				msg = msg + fmt.Sprintf("*%v*: %v\n", key, labels[key])
+			}
 		}
 		annotation := a["annotations"].(map[string]interface{})
 		for key, value := range annotation {
