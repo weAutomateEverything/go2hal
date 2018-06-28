@@ -2,6 +2,7 @@ package prometheus
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/weAutomateEverything/go2hal/alert"
 	"golang.org/x/net/context"
 )
@@ -32,8 +33,14 @@ func (s *service) sendPrometheusAlert(chat uint32, message string) (err error) {
 	for _, alert := range alerts {
 		a := alert.(map[string]interface{})
 		msg := a["status"].(string) + "\n"
-		msg = msg + a["labels"].(string) + "\n"
-		msg = msg + a["annotations"].(string)
+		labels := a["labels"].(map[string]interface{})
+		for key, value := range labels {
+			msg = msg + fmt.Sprintf("*%v*: %v\n", key, value)
+		}
+		annotation := a["annotations"].(map[string]interface{})
+		for key, value := range annotation {
+			msg = msg + fmt.Sprintf("*%v*: %v\n", key, value)
+		}
 		s.alertService.SendAlert(context.TODO(), chat, msg)
 	}
 
