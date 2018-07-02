@@ -4,3 +4,20 @@
 # * 'gtrp' and 'gtr' create a GET request with or without query parameters;
 # * 'ptr' and 'ptrp' create a POST request with a simple or parameter-like body;
 # * 'mptr' and 'fptr' create a POST request to submit a form with a text or file field (multipart/form-data);
+
+POST http://localhost:8000/telegram/auth
+Content-Type: application/json
+
+{
+"name": "Marc Arndt",
+"RoomID": 2590996185
+}
+
+###item
+Accept: application/json
+
+###
+GET http://localhost:8000/telegram/auth/5b039e4008570ebd9d3f0d97
+Accept: application/json
+
+###

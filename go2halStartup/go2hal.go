@@ -40,6 +40,7 @@ import (
 	kitprometheus "github.com/go-kit/kit/metrics/prometheus"
 	stdprometheus "github.com/prometheus/client_golang/prometheus"
 	"github.com/weAutomateEverything/go2hal/grafana"
+	"github.com/weAutomateEverything/go2hal/prometheus"
 )
 
 type Go2Hal struct {
@@ -81,7 +82,8 @@ type Go2Hal struct {
 	GithubService           github.Service
 	SeleniumService         seleniumTests.Service
 	HTTPService             httpSmoke.Service
-	grafanaService         grafana.Service
+	grafanaService          grafana.Service
+	prometheusService       prometheus.Service
 
 	RemoteTelegramCommandService remoteTelegramCommands.RemoteCommandServer
 }
@@ -382,7 +384,7 @@ func NewGo2Hal() Go2Hal {
 	)
 
 	go2hal.grafanaService = grafana.NewService(go2hal.AlertService)
-	go2hal.grafanaService = grafana.NewLoggingService(log.With(go2hal.Logger, "component", "grafana_service"),go2hal.grafanaService)
+	go2hal.grafanaService = grafana.NewLoggingService(log.With(go2hal.Logger, "component", "grafana_service"), go2hal.grafanaService)
 	go2hal.grafanaService = grafana.NewInstrumentService(
 		kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
 			Namespace: "api",
@@ -403,6 +405,30 @@ func NewGo2Hal() Go2Hal {
 			Help:      "Total duration of requests in microseconds.",
 		}, fieldKeys),
 		go2hal.grafanaService,
+	)
+
+	go2hal.prometheusService = prometheus.NewService(go2hal.AlertService)
+	go2hal.prometheusService = prometheus.NewLoggingService(log.With(go2hal.Logger, "component", "prometheus_service"), go2hal.prometheusService)
+	go2hal.prometheusService = prometheus.NewInstrumentService(
+		kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
+			Namespace: "api",
+			Subsystem: "prometheus_service",
+			Name:      "request_count",
+			Help:      "Number of requests received.",
+		}, fieldKeys),
+		kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
+			Namespace: "api",
+			Subsystem: "prometheus_service",
+			Name:      "error_count",
+			Help:      "Number of errors encountered.",
+		}, fieldKeys),
+		kitprometheus.NewSummaryFrom(stdprometheus.SummaryOpts{
+			Namespace: "api",
+			Subsystem: "prometheus_service",
+			Name:      "request_latency_microseconds",
+			Help:      "Total duration of requests in microseconds.",
+		}, fieldKeys),
+		go2hal.prometheusService,
 	)
 
 	//Telegram Commands
@@ -430,7 +456,8 @@ func NewGo2Hal() Go2Hal {
 	go2hal.Mux.Handle("/api/telegram/", telegram.MakeHandler(go2hal.TelegramService, go2hal.HTTPLogger, go2hal.MachineLearningService))
 	go2hal.Mux.Handle("/api/httpEndpoints", httpSmoke.MakeHandler(go2hal.HTTPService, go2hal.HTTPLogger, go2hal.MachineLearningService))
 	go2hal.Mux.Handle("/api/firstcall/defaultCallout", firstCall.MakeHandler(go2hal.DefaultFirstcallService, go2hal.HTTPLogger, go2hal.MachineLearningService))
-	go2hal.Mux.Handle("/api/grafana/", grafana.MakeHandler(go2hal.grafanaService,go2hal.HTTPLogger,go2hal.MachineLearningService))
+	go2hal.Mux.Handle("/api/grafana/", grafana.MakeHandler(go2hal.grafanaService, go2hal.HTTPLogger, go2hal.MachineLearningService))
+	go2hal.Mux.Handle("/api/prometheus/", prometheus.MakeHandler(go2hal.prometheusService, go2hal.HTTPLogger, go2hal.MachineLearningService))
 
 	http.Handle("/api/", panicHandler{accessControl(go2hal.Mux), go2hal.JiraService, go2hal.AlertService})
 	http.Handle("/api/metrics", promhttp.Handler())
