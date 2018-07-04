@@ -56,3 +56,6 @@ func (s *ml) pollAuthorisation(token string) (uint32, error) {
 func (s *ml)SetState(user int, chat int64, state string, field []string) error {
 	return s.s.SetState(user,chat,state,field)
 }
+func (s *ml) GetRoomKey(chat uint32) (roomid int64, err error) {
+	return s.s.GetRoomKey(chat)
+}

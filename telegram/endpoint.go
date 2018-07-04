@@ -7,7 +7,6 @@ import (
 	"os"
 	"time"
 	"strconv"
-	"log"
 )
 
 type CustomClaims struct {
@@ -84,11 +83,25 @@ func makeSetStateRequestEndpoint(s Service) endpoint.Endpoint {
 func makeSendKeyboardEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(sendKeyBoardRequest)
-		log.Println(req)
 		id,err:=s.SendKeyboard(ctx,req.Options,req.Message,req.GroupId)
 		return id,err
 	}
 }
 func CustomClaimFactory() jwt.Claims {
 	return &CustomClaims{}
+}
+func makeGetRoomEndpoint(s Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req :=request.(string)
+		i, _ := strconv.ParseUint(req, 10, 32)
+		room,err:=s.GetRoomKey(uint32(i))
+		response = &roomResponse{
+			Id: room,
+		}
+		return response,nil
+
+	}
+}
+type roomResponse struct {
+	Id int64
 }
