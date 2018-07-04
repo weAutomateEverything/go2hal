@@ -153,6 +153,6 @@ func (s *mongoStore) GetRecipes() ([]Recipe, error) {
 func (s *mongoStore) GetRecipeFromFriendlyName(recipe string, chat uint32) (string, error) {
 	c := s.mongo.C("recipes")
 	var r Recipe
-	err := c.Find(bson.M{"friendlyname": recipe, "chatit": chat}).One(&r)
+	err := c.Find(bson.M{"friendlyname": recipe, "chatid": chat}).One(&r)
 	return r.Recipe, err
 }

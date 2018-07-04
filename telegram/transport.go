@@ -24,12 +24,19 @@ func MakeHandler(service Service, logger kitlog.Logger, ml machineLearning.Servi
 
 	authpoll := kithttp.NewServer(makeTelegramAuthPollEndpoint(service),
 		decodeAuthPoll, encodeAuthResoinse)
-
+	sendKeyboardOptions :=kithttp.NewServer(makeSendKeyboardEndpoint(service),
+		decodeSendKeyBoardRequest, gokit.EncodeResponse)
+	setState :=kithttp.NewServer(makeSetStateRequestEndpoint(service),
+		decodeSetStateRequest, gokit.EncodeResponse)
+	getroom:=kithttp.NewServer(makeGetRoomEndpoint(service),
+		handleRequest, gokit.EncodeResponse)
 	r := mux.NewRouter()
 
 	r.Handle("/api/telegram/auth", requestAuth).Methods("POST")
 	r.Handle("/api/telegram/auth/{id}", authpoll).Methods("GET")
-
+	r.Handle("/api/telegram/keyboard", sendKeyboardOptions).Methods("POST")
+	r.Handle("/api/telegram/state", setState).Methods("POST")
+	r.Handle("/api/telegram/room/{groupid}", getroom).Methods("GET")
 	return r
 
 }
@@ -46,7 +53,16 @@ func decodeAuthPoll(ctx context.Context, r *http.Request) (interface{}, error) {
 	return vars["id"], nil
 
 }
-
+func decodeSendKeyBoardRequest(ctx context.Context, r *http.Request) (interface{}, error) {
+	v := sendKeyBoardRequest{}
+	err := json.NewDecoder(r.Body).Decode(&v)
+	return v, err
+}
+func decodeSetStateRequest(ctx context.Context, r *http.Request) (interface{}, error) {
+	v := setStateRequest{}
+	err := json.NewDecoder(r.Body).Decode(&v)
+	return v, err
+}
 type errorer interface {
 	error() error
 }
@@ -63,4 +79,8 @@ func encodeAuthResoinse(ctx context.Context, w http.ResponseWriter, response int
 	}
 	w.Header().Add("Authorization", "Bearer "+response.(string))
 	return nil
+}
+func handleRequest(ctx context.Context, r *http.Request) (interface{}, error) {
+	var q = mux.Vars(r)
+	return q["groupid"],nil
 }

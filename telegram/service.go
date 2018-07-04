@@ -27,6 +27,8 @@ type Service interface {
 
 	requestAuthorisation(chat uint32, name string) (string, error)
 	pollAuthorisation(token string) (uint32, error)
+	SetState(user int, chat int64, state string, field []string) error
+	GetRoomKey(chat uint32) (roomid int64, err error)
 }
 
 type Command interface {
@@ -196,7 +198,17 @@ func (s service) pollAuthorisation(token string) (room uint32, err error) {
 	return s.store.GetUUID(roomId, "")
 
 }
-
+func (s service) SetState(user int, chat int64, state string, field []string) error {
+	err:=s.store.SetState(user,chat,state,field)
+	return err
+}
+func (s service) GetRoomKey(chat uint32) (roomid int64, err error) {
+	roomid,er:=s.store.GetRoomKey(chat)
+	if(er!=nil){
+		return
+	}
+	return
+}
 func (s service) useBot(botkey string) error {
 	var err error
 	telegramBot, err = tgbotapi.NewBotAPI(botkey)
