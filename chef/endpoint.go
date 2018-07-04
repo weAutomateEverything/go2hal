@@ -85,8 +85,8 @@ func makeGetChefNodesEndpoint(s Service) endpoint.Endpoint {
 func makeGetChefEnvironmentsByGroupEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req :=request.(string)
-		i, _ := strconv.ParseUint(req, 10, 32)
-		environments,err:=s.getEnvironmentForGroup(uint32(i))
+		groupid, _ := strconv.ParseUint(req, 10, 32)
+		environments,err:=s.getEnvironmentForGroup(uint32(groupid))
 		l := make([]string, len(environments))
 		for x, i := range environments {
 			l[x] = i.FriendlyName
