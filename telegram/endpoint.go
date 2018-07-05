@@ -28,8 +28,8 @@ type sendKeyBoardRequest struct{
 	GroupId int64
 }
 type setStateRequest struct{
-	User string
-	Chat string
+	User int
+	Chat int64
 	State string
 	Field []string
 }
@@ -71,13 +71,11 @@ func makeTelegramAuthPollEndpoint(s Service) endpoint.Endpoint {
 func makeSetStateRequestEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(setStateRequest)
-		user, err := strconv.Atoi(req.User)
-		chat, err := strconv.ParseInt(req.Chat, 10, 32)
-		err=s.SetState(user,chat,req.State,req.Field)
+		err=s.SetState(req.User,req.Chat,req.State,req.Field)
 		if(err!=nil){
 			return nil,err
 		}
-		return "success",nil
+		return nil,nil
 	}
 }
 func makeSendKeyboardEndpoint(s Service) endpoint.Endpoint {

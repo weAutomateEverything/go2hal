@@ -17,8 +17,7 @@ message RemoteCommandRequest {
 message RemoteRequest {
     string from = 1;
     string message = 2;
-    string chat =3;
- }
+    }
 message Request {
     string state = 1;
     string nextstate = 2;
