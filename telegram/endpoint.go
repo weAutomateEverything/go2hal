@@ -6,7 +6,6 @@ import (
 	"github.com/go-kit/kit/endpoint"
 	"os"
 	"time"
-	"strconv"
 )
 
 type CustomClaims struct {
@@ -25,11 +24,11 @@ type authResponse struct {
 type sendKeyBoardRequest struct{
 	Options []string
 	Message string
-	GroupId int64
+	GroupId uint32
 }
 type setStateRequest struct{
 	User int
-	Chat int64
+	Chat uint32
 	State string
 	Field []string
 }
@@ -81,25 +80,12 @@ func makeSetStateRequestEndpoint(s Service) endpoint.Endpoint {
 func makeSendKeyboardEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(sendKeyBoardRequest)
-		id,err:=s.SendKeyboard(ctx,req.Options,req.Message,req.GroupId)
-		return id,err
+		err=s.SendKeyboardGroup(ctx,req.Options,req.Message,req.GroupId)
+		return nil,err
 	}
 }
 func CustomClaimFactory() jwt.Claims {
 	return &CustomClaims{}
 }
-func makeGetRoomEndpoint(s Service) endpoint.Endpoint {
-	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
-		req :=request.(string)
-		i, _ := strconv.ParseUint(req, 10, 32)
-		room,err:=s.GetRoomKey(uint32(i))
-		response = &roomResponse{
-			Id: room,
-		}
-		return response,nil
 
-	}
-}
-type roomResponse struct {
-	Id int64
-}
+

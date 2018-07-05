@@ -28,15 +28,12 @@ func MakeHandler(service Service, logger kitlog.Logger, ml machineLearning.Servi
 		decodeSendKeyBoardRequest, gokit.EncodeResponse)
 	setState :=kithttp.NewServer(makeSetStateRequestEndpoint(service),
 		decodeSetStateRequest, gokit.EncodeResponse)
-	getroom:=kithttp.NewServer(makeGetRoomEndpoint(service),
-		handleRequest, gokit.EncodeResponse)
 	r := mux.NewRouter()
 
 	r.Handle("/api/telegram/auth", requestAuth).Methods("POST")
 	r.Handle("/api/telegram/auth/{id}", authpoll).Methods("GET")
 	r.Handle("/api/telegram/keyboard", sendKeyboardOptions).Methods("POST")
 	r.Handle("/api/telegram/state", setState).Methods("POST")
-	r.Handle("/api/telegram/room/{groupid}", getroom).Methods("GET")
 	return r
 
 }
@@ -79,8 +76,4 @@ func encodeAuthResoinse(ctx context.Context, w http.ResponseWriter, response int
 	}
 	w.Header().Add("Authorization", "Bearer "+response.(string))
 	return nil
-}
-func handleRequest(ctx context.Context, r *http.Request) (interface{}, error) {
-	var q = mux.Vars(r)
-	return q["groupid"],nil
 }

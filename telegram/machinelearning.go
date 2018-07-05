@@ -53,9 +53,9 @@ func (s *ml) requestAuthorisation(chat uint32, name string) (string, error) {
 func (s *ml) pollAuthorisation(token string) (uint32, error) {
 	return s.s.pollAuthorisation(token)
 }
-func (s *ml)SetState(user int, chat int64, state string, field []string) error {
+func (s *ml)SetState(user int, chat uint32, state string, field []string) error {
 	return s.s.SetState(user,chat,state,field)
 }
-func (s *ml) GetRoomKey(chat uint32) (roomid int64, err error) {
-	return s.s.GetRoomKey(chat)
+func (s *ml) SendKeyboardGroup(ctx context.Context,buttons []string, text string, groupid uint32) (error) {
+	return s.s.SendKeyboardGroup(ctx, buttons, text, groupid)
 }

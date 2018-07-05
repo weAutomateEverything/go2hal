@@ -22,13 +22,14 @@ type Service interface {
 	SendDocumentToGroup(ctx context.Context, document []byte, extension string, group int64) error
 
 	SendKeyboard(ctx context.Context, buttons []string, text string, chat int64) (int, error)
+	SendKeyboardGroup(ctx context.Context,buttons []string, text string, chat uint32) (error)
 	RegisterCommand(command Command)
 	RegisterCommandLet(commandlet Commandlet)
 
 	requestAuthorisation(chat uint32, name string) (string, error)
 	pollAuthorisation(token string) (uint32, error)
-	SetState(user int, chat int64, state string, field []string) error
-	GetRoomKey(chat uint32) (roomid int64, err error)
+	SetState(user int, chat uint32, state string, field []string) error
+
 }
 
 type Command interface {
@@ -169,7 +170,6 @@ func (s *service) SendKeyboard(ctx context.Context, buttons []string, text strin
 	}
 	return m.MessageID, nil
 }
-
 func (s service) requestAuthorisation(chat uint32, name string) (authtoken string, err error) {
 	room, err := s.store.GetRoomKey(chat)
 	if err != nil {
@@ -198,16 +198,21 @@ func (s service) pollAuthorisation(token string) (room uint32, err error) {
 	return s.store.GetUUID(roomId, "")
 
 }
-func (s service) SetState(user int, chat int64, state string, field []string) error {
-	err:=s.store.SetState(user,chat,state,field)
+func (s service) SetState(user int, groupid uint32, state string, field []string) error {
+	chatid,er:=s.store.GetRoomKey(groupid)
+	if er!=nil {
+		return er
+	}
+	err:=s.store.SetState(user,chatid,state,field)
 	return err
 }
-func (s service) GetRoomKey(chat uint32) (roomid int64, err error) {
-	roomid,er:=s.store.GetRoomKey(chat)
-	if(er!=nil){
-		return
+func (s *service) SendKeyboardGroup(ctx context.Context,buttons []string, text string, groupid uint32) (error){
+	chatid,er:=s.store.GetRoomKey(groupid)
+	if er!=nil {
+		return er
 	}
-	return
+   _,err:=s.SendKeyboard(ctx,buttons,text,chatid)
+   return err
 }
 func (s service) useBot(botkey string) error {
 	var err error
