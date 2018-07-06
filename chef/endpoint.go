@@ -49,7 +49,49 @@ func makeGetEnvironmentForGroupEndpoint(s Service) endpoint.Endpoint {
 		return s.getEnvironmentForGroup(claim.RoomToken)
 	}
 }
+func makeGetChefRecipesByGroupEndpoint(s Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		recipes,err:=s.getRecipesForGroup(gokit.GetChatId(ctx))
+		l := make([]string, len(recipes))
+		for x, i := range recipes {
+			l[x] = i.FriendlyName
+		}
+		response = &recipeResponse{
+			Recipes:l,
+		}
 
+		return response,nil
+
+	}
+}
+func makeGetChefNodesEndpoint(s Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req :=request.(*chefNodeRequest)
+		nodes:=s.FindNodesFromFriendlyNames(req.Recipe,req.Environment,gokit.GetChatId(ctx))
+		res := make([]string, len(nodes))
+		for i, x := range nodes {
+			res[i] = x.Name
+		}
+		response = &nodeResponse{
+			Nodes:res,
+		}
+		return response,nil
+
+	}
+}
+func makeGetChefEnvironmentsByGroupEndpoint(s Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		environments,err:=s.getEnvironmentForGroup(gokit.GetChatId(ctx))
+		l := make([]string, len(environments))
+		for x, i := range environments {
+			l[x] = i.FriendlyName
+		}
+		response = &environmentResponse{
+			Environments:l,
+		}
+		return response,nil
+	}
+}
 type addRecipeRequest struct {
 	RecipeName   string
 	FriendlyName string
@@ -58,4 +100,17 @@ type addRecipeRequest struct {
 type addEnvironmentRequest struct {
 	EnvironmentName string
 	FriendlyName    string
+}
+type recipeResponse struct{
+	Recipes []string
+}
+type nodeResponse struct{
+	Nodes []string
+}
+type environmentResponse struct{
+	Environments []string
+}
+type chefNodeRequest struct{
+	Recipe string
+	Environment string
 }

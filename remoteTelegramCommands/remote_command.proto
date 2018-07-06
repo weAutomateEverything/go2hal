@@ -1,10 +1,11 @@
 syntax = "proto3";
-package telegram;
+package remoteTelegramCommands;
 
 
 
 service RemoteCommand {
  rpc RegisterCommand(RemoteCommandRequest) returns (stream RemoteRequest) {}
+ rpc RegisterCommandLet(Request) returns (stream Response) {}
 }
 
 message RemoteCommandRequest {
@@ -16,4 +17,14 @@ message RemoteCommandRequest {
 message RemoteRequest {
     string from = 1;
     string message = 2;
+    }
+message Request {
+    string state = 1;
+    string nextstate = 2;
 }
+
+message Response {
+    string from = 1;
+    string message = 2;
+    repeated string fields=3;
+    }
