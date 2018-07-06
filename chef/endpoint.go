@@ -67,7 +67,7 @@ func makeGetChefRecipesByGroupEndpoint(s Service) endpoint.Endpoint {
 func makeGetChefNodesEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req :=request.(*chefNodeRequest)
-		nodes:=s.FindNodesFromFriendlyNames(req.Recipe,req.Environment,req.Chat)
+		nodes:=s.FindNodesFromFriendlyNames(req.Recipe,req.Environment,gokit.GetChatId(ctx))
 		res := make([]string, len(nodes))
 		for i, x := range nodes {
 			res[i] = x.Name
@@ -113,5 +113,4 @@ type environmentResponse struct{
 type chefNodeRequest struct{
 	Recipe string
 	Environment string
-	Chat uint32
 }

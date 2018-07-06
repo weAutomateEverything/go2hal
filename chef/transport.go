@@ -63,6 +63,6 @@ func decodeAddEnvironmentfRequest(ctx context.Context, r *http.Request) (interfa
 	return q, err
 }
 func handleGetNodesRequest(ctx context.Context, r *http.Request) (interface{}, error) {
-	var q = &chefNodeRequest{Recipe:r.FormValue("recipes"),Environment:r.FormValue("environment"),Chat:gokit.GetChatId(ctx)}
+	var q = &chefNodeRequest{Recipe:r.FormValue("recipes"),Environment:r.FormValue("environment")}
 	return q, nil
 }
