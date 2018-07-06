@@ -13,7 +13,6 @@ import (
 	"github.com/weAutomateEverything/go2hal/machineLearning"
 	"github.com/weAutomateEverything/go2hal/telegram"
 	"net/http"
-	"strconv"
 )
 
 //MakeHandler returns a restful http handler for the chef delivery service
@@ -35,8 +34,8 @@ func MakeHandler(service Service, logger kitlog.Logger, ml machineLearning.Servi
 
 	getEnvironmentForGroup := kithttp.NewServer(gokitjwt.NewParser(gokit.GetJWTKeys(), jwt.SigningMethodHS256,
 		telegram.CustomClaimFactory)(makeGetEnvironmentForGroupEndpoint(service)), gokit.DecodeString, gokit.EncodeResponse, opts...)
-	getChefRecipesByGroup := kithttp.NewServer(makeGetChefRecipesByGroupEndpoint(service), handleRequest, gokit.EncodeResponse, opts...)
-	getChefEnvironmentsByGroup := kithttp.NewServer(makeGetChefEnvironmentsByGroupEndpoint(service), handleRequest, gokit.EncodeResponse, opts...)
+	getChefRecipesByGroup := kithttp.NewServer(makeGetChefRecipesByGroupEndpoint(service), gokit.DecodeString, gokit.EncodeResponse, opts...)
+	getChefEnvironmentsByGroup := kithttp.NewServer(makeGetChefEnvironmentsByGroupEndpoint(service), gokit.DecodeString, gokit.EncodeResponse, opts...)
 	getChefNodes := kithttp.NewServer(makeGetChefNodesEndpoint(service), handleGetNodesRequest, gokit.EncodeResponse, opts...)
 	r := mux.NewRouter()
 
@@ -45,9 +44,9 @@ func MakeHandler(service Service, logger kitlog.Logger, ml machineLearning.Servi
 	r.Handle("/api/chef/recipes", getChefRecipesForGroup).Methods("GET")
 	r.Handle("/api/chef/environment", addEnvironmentToGroup).Methods("POST")
 	r.Handle("/api/chef/environments", getEnvironmentForGroup).Methods("GET")
-	r.Handle("/api/chef/environments/group/{groupid}", getChefEnvironmentsByGroup).Methods("GET")
-	r.Handle("/api/chef/nodes/{recipes}/{environment}/{groupid}", getChefNodes).Methods("GET")
-	r.Handle("/api/chef/recipes/group/{groupid}", getChefRecipesByGroup).Methods("GET")
+	r.Handle("/api/chef/environments/group/{chatid:[0-9]+}", getChefEnvironmentsByGroup).Methods("GET")
+	r.Handle("/api/chef/nodes/{chatid:[0-9]+}",getChefNodes).Queries("recipe","{recipe}","environment","{environment}").Methods("GET")
+	r.Handle("/api/chef/recipes/group/{chatid:[0-9]+}", getChefRecipesByGroup).Methods("GET")
 	return r
 
 }
@@ -63,14 +62,7 @@ func decodeAddEnvironmentfRequest(ctx context.Context, r *http.Request) (interfa
 	err := json.NewDecoder(r.Body).Decode(&q)
 	return q, err
 }
-func handleRequest(ctx context.Context, r *http.Request) (interface{}, error) {
-	var q = mux.Vars(r)
-	return q["groupid"],nil
-}
-
 func handleGetNodesRequest(ctx context.Context, r *http.Request) (interface{}, error) {
-	var param = mux.Vars(r)
-	i, _ := strconv.ParseUint(param["groupid"], 10, 32)
-	var q = &chefNodeRequest{Recipe:param["recipes"],Environment:param["environment"],Chat:uint32(i)}
+	var q = &chefNodeRequest{Recipe:r.FormValue("recipes"),Environment:r.FormValue("environment"),Chat:gokit.GetChatId(ctx)}
 	return q, nil
 }

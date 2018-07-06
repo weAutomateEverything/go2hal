@@ -6,7 +6,6 @@ import (
 	"github.com/go-kit/kit/endpoint"
 	"github.com/weAutomateEverything/go2hal/gokit"
 	"github.com/weAutomateEverything/go2hal/telegram"
-	"strconv"
 )
 
 type AddChefClientRequest struct {
@@ -52,9 +51,7 @@ func makeGetEnvironmentForGroupEndpoint(s Service) endpoint.Endpoint {
 }
 func makeGetChefRecipesByGroupEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
-		req :=request.(string)
-		i, _ := strconv.ParseUint(req, 10, 32)
-		recipes,err:=s.getRecipesForGroup(uint32(i))
+		recipes,err:=s.getRecipesForGroup(gokit.GetChatId(ctx))
 		l := make([]string, len(recipes))
 		for x, i := range recipes {
 			l[x] = i.FriendlyName
@@ -84,9 +81,7 @@ func makeGetChefNodesEndpoint(s Service) endpoint.Endpoint {
 }
 func makeGetChefEnvironmentsByGroupEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
-		req :=request.(string)
-		groupid, _ := strconv.ParseUint(req, 10, 32)
-		environments,err:=s.getEnvironmentForGroup(uint32(groupid))
+		environments,err:=s.getEnvironmentForGroup(gokit.GetChatId(ctx))
 		l := make([]string, len(environments))
 		for x, i := range environments {
 			l[x] = i.FriendlyName
