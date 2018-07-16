@@ -42,7 +42,7 @@ func (s *service) SendAlert(ctx context.Context, chatId uint32, destination stri
 	transport := http.DefaultTransport
 	transport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 	client.Transport = transport
-	config := aws.Config{Credentials: c, Region: aws.String("us-east-1"), LogLevel: aws.LogLevel(aws.LogDebugWithHTTPBody), HTTPClient: client}
+	config := aws.Config{Credentials: c, Region: aws.String(os.Getenv("AWS_REGION")), LogLevel: aws.LogLevel(aws.LogDebugWithHTTPBody), HTTPClient: client}
 	sess, _ := session.NewSession(&config)
 
 	outbound := connect.New(sess, &config)
