@@ -20,7 +20,7 @@ jobs:
       - go get github.com/axw/gocov/gocov
       - go get -u github.com/go-swagger/go-swagger/cmd/swagger
       - go test -coverprofile=c.out ./...
-      - go build
+      - CGO_ENABLED=0 GOOS=linux go build -a -installsuffix nocgo -o /go2hal .
       - swagger generate spec -m -o ./swagger.json
       - bin/docker_push.sh
       - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT -t gocov
