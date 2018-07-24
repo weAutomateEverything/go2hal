@@ -37,6 +37,7 @@ import (
 	"runtime/debug"
 	"syscall"
 
+	"github.com/elastic/apm-agent-go/module/apmhttp"
 	kitprometheus "github.com/go-kit/kit/metrics/prometheus"
 	stdprometheus "github.com/prometheus/client_golang/prometheus"
 	"github.com/weAutomateEverything/go2hal/grafana"
@@ -105,7 +106,7 @@ func (go2hal *Go2Hal) Start() {
 	}
 	go func() {
 		go2hal.Logger.Log("transport", "http", "address", ":8000", "msg", "listening")
-		errs <- http.ListenAndServe(":8000", nil)
+		errs <- http.ListenAndServe(":8000", apmhttp.Wrap(panicHandler{accessControl(go2hal.Mux), go2hal.JiraService, go2hal.AlertService}))
 	}()
 	go func() {
 		go2hal.Logger.Log("transport", "http", "address", ":8080", "msg", "listening")
@@ -458,10 +459,8 @@ func NewGo2Hal() Go2Hal {
 	go2hal.Mux.Handle("/api/firstcall/defaultCallout", firstCall.MakeHandler(go2hal.DefaultFirstcallService, go2hal.HTTPLogger, go2hal.MachineLearningService))
 	go2hal.Mux.Handle("/api/grafana/", grafana.MakeHandler(go2hal.grafanaService, go2hal.HTTPLogger, go2hal.MachineLearningService))
 	go2hal.Mux.Handle("/api/prometheus/", prometheus.MakeHandler(go2hal.prometheusService, go2hal.HTTPLogger, go2hal.MachineLearningService))
-
-	http.Handle("/api/", panicHandler{accessControl(go2hal.Mux), go2hal.JiraService, go2hal.AlertService})
-	http.Handle("/api/metrics", promhttp.Handler())
-	http.Handle("/api/swagger.json", swagger{})
+	go2hal.Mux.Handle("/api/metrics", promhttp.Handler())
+	go2hal.Mux.Handle("/api/swagger.json", swagger{})
 
 	return go2hal
 }

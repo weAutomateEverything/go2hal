@@ -10,30 +10,21 @@ type Store interface {
 	/*
 		GetAppDynamics wll return the app dynamics object in the ob, Else, error if nothing exists.
 	*/
-	GetAppDynamics() (*AppDynamics, error)
-
-	addAppDynamicsEndpoint(endpoint string) error
+	GetAppDynamics(chat uint32) (*AppDynamics, error)
+	addAppDynamicsEndpoint(chat uint32, endpoint string) error
 	addMqEndpoint(name, application string, metricPath string, chat uint32) error
+
+	getAllEndpoints() ([]AppDynamics, error)
 }
 
-type mongoStore struct {
-	mongo *mgo.Database
-}
-
-func NewMongoStore(mongo *mgo.Database) Store {
-	return &mongoStore{mongo}
-
-}
-
+// swagger:model
 type AppDynamics struct {
-	ID          bson.ObjectId `bson:"_id,omitempty"`
+	ChatId      uint32 `json:"id" bson:"_id,omitempty"`
 	Endpoint    string
 	MqEndpoints []MqEndpoint
 }
 
-/*
-MqEndpoint Object
-*/
+// swagger:model
 type MqEndpoint struct {
 	ID          bson.ObjectId `bson:"_id,omitempty"`
 	Name        string
@@ -42,27 +33,44 @@ type MqEndpoint struct {
 	Chat        []uint32
 }
 
-func (s *mongoStore) addAppDynamicsEndpoint(endpoint string) error {
-	a := AppDynamics{Endpoint: endpoint}
-	b, err := s.GetAppDynamics()
+func NewMongoStore(mongo *mgo.Database) Store {
+	return &mongoStore{mongo}
+
+}
+
+type mongoStore struct {
+	mongo *mgo.Database
+}
+
+func (s *mongoStore) getAllEndpoints() ([]AppDynamics, error) {
+	var r []AppDynamics
 	c := s.mongo.C("appDynamics")
 
+	err := c.Find(nil).All(r)
+
+	return r, err
+
+}
+
+func (s *mongoStore) addAppDynamicsEndpoint(chat uint32, endpoint string) error {
+	appd, err := s.GetAppDynamics(chat)
+	c := s.mongo.C("appDynamics")
+
+	//if the record already exists
 	if err == nil {
-		a.ID = b.ID
-		a.MqEndpoints = b.MqEndpoints
-		err = c.UpdateId(a.ID, a)
-		if err != nil {
-			return err
-		}
+		appd.Endpoint = endpoint
+		return c.UpdateId(appd.ChatId, appd)
 	} else {
-		c.Insert(a)
+		return c.Insert(AppDynamics{
+			ChatId:   chat,
+			Endpoint: endpoint,
+		})
 	}
-	return nil
 }
 
 func (s *mongoStore) addMqEndpoint(name, application string, metricPath string, chat uint32) error {
 	var mq = MqEndpoint{Application: application, MetricPath: metricPath, Name: name}
-	appd, err := s.GetAppDynamics()
+	appd, err := s.GetAppDynamics(chat)
 	if err != nil {
 		return err
 	}
@@ -76,18 +84,19 @@ func (s *mongoStore) addMqEndpoint(name, application string, metricPath string, 
 				}
 			}
 			mq.Chat = append(mq.Chat, chat)
-			return c.UpdateId(appd.ID, appd)
+			return c.UpdateId(appd.ChatId, appd)
 		}
 	}
 
 	appd.MqEndpoints = append(appd.MqEndpoints, mq)
-	return c.UpdateId(appd.ID, appd)
+	return c.UpdateId(appd.ChatId, appd)
 
 }
 
-func (s *mongoStore) GetAppDynamics() (*AppDynamics, error) {
+func (s *mongoStore) GetAppDynamics(chat uint32) (*AppDynamics, error) {
 	c := s.mongo.C("appDynamics")
-	i, err := c.Count()
+	q := c.FindId(chat)
+	i, err := q.Count()
 	if err != nil {
 		return nil, err
 	}
@@ -95,6 +104,6 @@ func (s *mongoStore) GetAppDynamics() (*AppDynamics, error) {
 		return nil, errors.New("no app dynamics config set")
 	}
 	a := AppDynamics{}
-	err = c.Find(nil).One(&a)
+	err = q.One(a)
 	return &a, err
 }

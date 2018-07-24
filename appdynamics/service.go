@@ -18,7 +18,7 @@ import (
 
 type Service interface {
 	sendAppdynamicsAlert(ctx context.Context, chatId uint32, message string)
-	addAppdynamicsEndpoint(endpoint string) error
+	addAppdynamicsEndpoint(chat uint32, endpoint string) error
 	addAppDynamicsQueue(chatId uint32, name, application, metricPath string) error
 	executeCommandFromAppd(ctx context.Context, chatId uint32, commandName, applicationID, nodeID string) error
 }
@@ -38,36 +38,18 @@ func NewService(alertService alert.Service, sshservice ssh.Service, store Store)
 
 func (s *service) sendAppdynamicsAlert(ctx context.Context, chatId uint32, message string) {
 
-	var dat map[string]interface{}
-	if err := json.Unmarshal([]byte(message), &dat); err != nil {
+	var m appdynamicsMessage
+
+	err := json.Unmarshal([]byte(message), m)
+
+	if err != nil {
 		s.alert.SendError(ctx, fmt.Errorf("error unmarshalling App Dynamics Message: %s", message))
 		return
 	}
 
-	if val, ok := dat["business"]; ok {
-		business := val.(map[string]interface{})
+	for _, event := range m.Events {
 
-		var NonTechBuffer bytes.Buffer
-
-		businessMessage := business["businessEvent"].(string)
-		NonTechBuffer.WriteString(emoji.Sprintf(":red_circle:"))
-		NonTechBuffer.WriteString(" ")
-		NonTechBuffer.WriteString(businessMessage)
-
-		log.Printf("Sending Non-Technical Alert %s", NonTechBuffer.String())
-		s.alert.SendAlert(ctx, chatId, NonTechBuffer.String())
-	}
-
-	events := dat["events"].([]interface{})
-	for _, event := range events {
-		event := event.(map[string]interface{})
-
-		message := event["eventMessage"].(string)
-
-		application := event["application"].(map[string]interface{})
-		tier := event["tier"].(map[string]interface{})
-		node := event["node"].(map[string]interface{})
-
+		message := event.EventMessage
 		message = strings.Replace(message, "<b>", "*", -1)
 		message = strings.Replace(message, "</b>", "*", -1)
 		message = strings.Replace(message, "<br>", "\n", -1)
@@ -78,25 +60,22 @@ func (s *service) sendAppdynamicsAlert(ctx context.Context, chatId uint32, messa
 		buffer.WriteString(message)
 		buffer.WriteString("\n")
 
-		if application != nil {
-			app := application["name"].(string)
-			app = strings.Replace(app, "_", "\\_", -1)
+		if event.Application.Name != "" {
+			app := strings.Replace(event.Application.Name, "_", "\\_", -1)
 			buffer.WriteString("*Application:* ")
 			buffer.WriteString(app)
 			buffer.WriteString("\n")
 		}
 
-		if tier != nil {
-			ti := tier["name"].(string)
-			ti = strings.Replace(ti, "_", "\\_", -1)
+		if event.Tier.Name != "" {
+			ti := strings.Replace(event.Tier.Name, "_", "\\_", -1)
 			buffer.WriteString("*Tier:* ")
 			buffer.WriteString(ti)
 			buffer.WriteString("\n")
 		}
 
-		if node != nil {
-			no := node["name"].(string)
-			no = strings.Replace(no, "_", "\\_", -1)
+		if event.Node.Name != "" {
+			no := strings.Replace(event.Node.Name, "_", "\\_", -1)
 			buffer.WriteString("*Node:* ")
 			buffer.WriteString(no)
 			buffer.WriteString("\n")
@@ -107,13 +86,13 @@ func (s *service) sendAppdynamicsAlert(ctx context.Context, chatId uint32, messa
 	}
 }
 
-func (s *service) addAppdynamicsEndpoint(endpoint string) error {
-	return s.store.addAppDynamicsEndpoint(endpoint)
+func (s *service) addAppdynamicsEndpoint(chat uint32, endpoint string) error {
+	return s.store.addAppDynamicsEndpoint(chat, endpoint)
 }
 
 func (s *service) addAppDynamicsQueue(chatId uint32, name, application, metricPath string) error {
 	endpointObject := MqEndpoint{MetricPath: metricPath, Application: application, Name: name}
-	err := checkQueues(endpointObject, s.alert, s.store)
+	err := checkQueues(endpointObject, s.alert, s.store, chatId)
 	if err != nil {
 		return err
 	}
@@ -122,7 +101,7 @@ func (s *service) addAppDynamicsQueue(chatId uint32, name, application, metricPa
 }
 
 func (s *service) executeCommandFromAppd(ctx context.Context, chatId uint32, commandName, applicationID, nodeID string) error {
-	ipaddress, err := s.getIPAddressForNode(applicationID, nodeID)
+	ipaddress, err := s.getIPAddressForNode(applicationID, nodeID, chatId)
 	if err != nil {
 		s.alert.SendError(ctx, err)
 		return err
@@ -132,21 +111,23 @@ func (s *service) executeCommandFromAppd(ctx context.Context, chatId uint32, com
 
 func monitorAppdynamicsQueue(s Store, a alert.Service) {
 	for true {
-		endpoints, err := s.GetAppDynamics()
+		endpoints, err := s.getAllEndpoints()
 		if err != nil {
 			log.Printf("Error on MQ query: %s", err.Error())
 		} else {
-			for _, endpoint := range endpoints.MqEndpoints {
-				checkQueues(endpoint, a, s)
+			for _, endpoint := range endpoints {
+				for _, queue := range endpoint.MqEndpoints {
+					checkQueues(queue, a, s, endpoint.ChatId)
+				}
 			}
 		}
 		time.Sleep(time.Minute * 10)
 	}
 }
 
-func checkQueues(endpoint MqEndpoint, a alert.Service, s Store) error {
+func checkQueues(endpoint MqEndpoint, a alert.Service, s Store, chat uint32) error {
 
-	response, err := doGet(buildQueryString(endpoint), s, a)
+	response, err := doGet(buildQueryString(endpoint), s, a, chat)
 	if err != nil {
 		log.Printf("Unable to query appdynamics: %s", err.Error())
 		a.SendError(context.TODO(), fmt.Errorf("we are unable to query app dynamics"))
@@ -168,7 +149,7 @@ func checkQueues(endpoint MqEndpoint, a alert.Service, s Store) error {
 	success := false
 	for _, queue := range dat {
 		queue2 := queue.(map[string]interface{})
-		err = checkQueue(endpoint, queue2["name"].(string), a, s)
+		err = checkQueue(endpoint, queue2["name"].(string), a, s, chat)
 		if err == nil {
 			success = true
 		}
@@ -179,13 +160,13 @@ func checkQueues(endpoint MqEndpoint, a alert.Service, s Store) error {
 	}
 	return nil
 }
-func checkQueue(endpoint MqEndpoint, name string, a alert.Service, s Store) error {
-	currDepth, err := getCurrentQueueDepthValue(buildQueryStringQueueDepth(endpoint, name), s, a)
+func checkQueue(endpoint MqEndpoint, name string, a alert.Service, s Store, chat uint32) error {
+	currDepth, err := getCurrentQueueDepthValue(buildQueryStringQueueDepth(endpoint, name), s, a, chat)
 	if err != nil {
 		return err
 	}
 
-	maxDepth, err := getCurrentQueueDepthValue(buildQueryStringMaxQueueDepth(endpoint, name), s, a)
+	maxDepth, err := getCurrentQueueDepthValue(buildQueryStringMaxQueueDepth(endpoint, name), s, a, chat)
 	if err != nil {
 		return err
 	}
@@ -213,8 +194,8 @@ func checkQueue(endpoint MqEndpoint, name string, a alert.Service, s Store) erro
 	return nil
 }
 
-func getCurrentQueueDepthValue(path string, s Store, a alert.Service) (float64, error) {
-	response, err := doGet(path, s, a)
+func getCurrentQueueDepthValue(path string, s Store, a alert.Service, chat uint32) (float64, error) {
+	response, err := doGet(path, s, a, chat)
 	if err != nil {
 		log.Printf("Error retreiving queue %s", err)
 		return 0, err
@@ -257,9 +238,9 @@ func buildQueryStringMaxQueueDepth(endpoint MqEndpoint, queue string) string {
 
 }
 
-func doGet(uri string, s Store, a alert.Service) (string, error) {
+func doGet(uri string, s Store, a alert.Service, chat uint32) (string, error) {
 
-	appd, err := s.GetAppDynamics()
+	appd, err := s.GetAppDynamics(chat)
 	if err != nil {
 		a.SendError(context.TODO(), err)
 		return "", err
@@ -289,9 +270,9 @@ func doGet(uri string, s Store, a alert.Service) (string, error) {
 	return res, nil
 }
 
-func (s *service) getIPAddressForNode(application, node string) (string, error) {
+func (s *service) getIPAddressForNode(application, node string, chat uint32) (string, error) {
 	uri := fmt.Sprintf("/controller/rest/applications/%s/nodes/%s?output=json", application, node)
-	response, err := doGet(uri, s.store, s.alert)
+	response, err := doGet(uri, s.store, s.alert, chat)
 	log.Println(response)
 	if err != nil {
 		s.alert.SendError(context.TODO(), err)
