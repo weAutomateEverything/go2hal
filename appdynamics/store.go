@@ -54,7 +54,7 @@ func (s *mongoStore) getAllEndpoints() ([]AppDynamics, error) {
 
 	r := make([]AppDynamics, count, count)
 
-	err = c.Find(nil).All(r)
+	err = q.All(&r)
 
 	return r, err
 
