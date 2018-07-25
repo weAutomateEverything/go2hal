@@ -37,11 +37,11 @@ import (
 	"runtime/debug"
 	"syscall"
 
+	"github.com/aws/aws-xray-sdk-go/xray"
 	kitprometheus "github.com/go-kit/kit/metrics/prometheus"
 	stdprometheus "github.com/prometheus/client_golang/prometheus"
 	"github.com/weAutomateEverything/go2hal/grafana"
 	"github.com/weAutomateEverything/go2hal/prometheus"
-	"github.com/aws/aws-xray-sdk-go/xray"
 )
 
 type Go2Hal struct {
@@ -441,9 +441,9 @@ func NewGo2Hal() Go2Hal {
 
 	//XRAY
 	xray.Configure(xray.Config{
-		DaemonAddr:       "127.0.0.1:2000", // default
-		LogLevel:         "info",           // default
-		ServiceVersion:   "1.2.3",
+		DaemonAddr:     "127.0.0.1:2000", // default
+		LogLevel:       "info",           // default
+		ServiceVersion: "1.2.3",
 	})
 
 	go2hal.TelegramService.RegisterCommandLet(telegram.NewTelegramAuthApprovalCommand(go2hal.TelegramService, go2hal.TelegramStore))
@@ -482,7 +482,6 @@ func accessControl(h http.Handler) http.Handler {
 		if r.Method == "OPTIONS" {
 			return
 		}
-
 
 		h.ServeHTTP(w, r)
 	})

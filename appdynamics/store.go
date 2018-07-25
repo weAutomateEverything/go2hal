@@ -43,10 +43,18 @@ type mongoStore struct {
 }
 
 func (s *mongoStore) getAllEndpoints() ([]AppDynamics, error) {
-	var r []AppDynamics
 	c := s.mongo.C("appDynamics")
 
-	err := c.Find(nil).All(r)
+	q := c.Find(nil)
+
+	count, err := q.Count()
+	if err != nil {
+		return nil, err
+	}
+
+	r := make([]AppDynamics, count, count)
+
+	err = c.Find(nil).All(r)
 
 	return r, err
 
