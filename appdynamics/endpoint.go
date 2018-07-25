@@ -16,8 +16,34 @@ type AddAppdynamicsEndpointRequest struct {
 	Endpoint string
 }
 
+// swagger:model
 type ExecuteAppDynamicsCommandRequest struct {
-	CommandName, NodeID, ApplicationID string
+	CommandName   string `json:"command_name"`
+	NodeID        string `json:"node_id"`
+	ApplicationID string `json:"application_id"`
+}
+
+// swagger:model
+type appdynamicsMessage struct {
+	Environment string `json:"environment"`
+	Policy      struct {
+		TriggerTime string `json:"triggerTime"`
+		Name        string `json:"name"`
+	}
+	Events []struct {
+		Severity    string `json:"severity"`
+		Application struct {
+			Name string `json:"name"`
+		}
+		Tier struct {
+			Name string `json:"name"`
+		}
+		Node struct {
+			Name string `json:"name"`
+		}
+		DisplayName  string `json:"displayName"`
+		EventMessage string `json:"eventMessage"`
+	}
 }
 
 type BusinessAlertRequest struct {
@@ -35,7 +61,7 @@ func makeAppDynamicsAlertEndpoint(s Service) endpoint.Endpoint {
 func makeAddAppdynamicsEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(AddAppdynamicsEndpointRequest)
-		return nil, s.addAppdynamicsEndpoint(req.Endpoint)
+		return nil, s.addAppdynamicsEndpoint(gokit.GetChatId(ctx), req.Endpoint)
 
 	}
 }

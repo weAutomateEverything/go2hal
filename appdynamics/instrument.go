@@ -27,12 +27,12 @@ func (s instrumentingService) sendAppdynamicsAlert(ctx context.Context, chatId u
 	}(time.Now())
 	s.Service.sendAppdynamicsAlert(ctx, chatId, message)
 }
-func (s instrumentingService) addAppdynamicsEndpoint(endpoint string) error {
+func (s instrumentingService) addAppdynamicsEndpoint(chat uint32, endpoint string) error {
 	defer func(begin time.Time) {
 		s.requestCount.With("method", "addAppdynamicsEndpoint").Add(1)
 		s.requestLatency.With("method", "addAppdynamicsEndpoint").Observe(time.Since(begin).Seconds())
 	}(time.Now())
-	return s.Service.addAppdynamicsEndpoint(endpoint)
+	return s.Service.addAppdynamicsEndpoint(chat, endpoint)
 }
 func (s instrumentingService) addAppDynamicsQueue(chatId uint32, name, application, metricPath string) error {
 	defer func(begin time.Time) {
