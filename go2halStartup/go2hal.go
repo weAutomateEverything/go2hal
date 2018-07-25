@@ -150,6 +150,7 @@ func NewGo2Hal() Go2Hal {
 	go2hal.AuthService = auth.NewAlwaysTrustEveryoneAuthService()
 
 	go2hal.TelegramService = telegram.NewService(go2hal.TelegramStore, go2hal.AuthService)
+	go2hal.TelegramService = telegram.NewXray(go2hal.TelegramService)
 	go2hal.TelegramService = telegram.NewLoggingService(log.With(go2hal.Logger, "component", "telegram"), go2hal.TelegramService)
 	go2hal.TelegramService = telegram.NewMachineLearning(go2hal.MachineLearningService, go2hal.TelegramService)
 	go2hal.TelegramService = telegram.NewInstrumentService(kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
@@ -172,6 +173,7 @@ func NewGo2Hal() Go2Hal {
 		}, []string{"method", "chat"}), go2hal.TelegramService)
 
 	go2hal.AlertService = alert.NewService(go2hal.TelegramService, go2hal.TelegramStore)
+	go2hal.AlertService = alert.NewXray(go2hal.AlertService)
 	go2hal.AlertService = alert.NewLoggingService(log.With(go2hal.Logger, "component", "alert"), go2hal.AlertService)
 	go2hal.AlertService = alert.NewInstrumentService(kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
 		Namespace: "api",
