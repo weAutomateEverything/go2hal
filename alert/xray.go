@@ -16,7 +16,7 @@ type s_xray struct {
 }
 
 func (s s_xray) SendAlert(ctx context.Context, chatId uint32, message string) (err error) {
-	ctx, seg := xray.BeginSegment(ctx, "SendAlert")
+	ctx, seg := xray.BeginSubsegment(ctx, "SendAlert")
 	defer func() {
 		seg.Close(err)
 	}()
@@ -24,7 +24,7 @@ func (s s_xray) SendAlert(ctx context.Context, chatId uint32, message string) (e
 }
 
 func (s s_xray) SendImageToAlertGroup(ctx context.Context, chatid uint32, image []byte) (err error) {
-	ctx, seg := xray.BeginSegment(ctx, "SendImageToAlertGroup")
+	ctx, seg := xray.BeginSubsegment(ctx, "SendImageToAlertGroup")
 	defer func() {
 		seg.Close(err)
 	}()
@@ -32,7 +32,7 @@ func (s s_xray) SendImageToAlertGroup(ctx context.Context, chatid uint32, image 
 }
 
 func (s s_xray) SendDocumentToAlertGroup(ctx context.Context, chatid uint32, document []byte, extension string) (err error) {
-	ctx, seg := xray.BeginSegment(ctx, "SendDocumentToAlertGroup")
+	ctx, seg := xray.BeginSubsegment(ctx, "SendDocumentToAlertGroup")
 	defer func() {
 		seg.Close(err)
 	}()
@@ -40,7 +40,7 @@ func (s s_xray) SendDocumentToAlertGroup(ctx context.Context, chatid uint32, doc
 }
 
 func (s s_xray) SendError(ctx context.Context, err error) (errout error) {
-	ctx, seg := xray.BeginSegment(ctx, "SendError")
+	ctx, seg := xray.BeginSubsegment(ctx, "SendError")
 	defer func() {
 		seg.Close(errout)
 	}()
@@ -48,7 +48,7 @@ func (s s_xray) SendError(ctx context.Context, err error) (errout error) {
 }
 
 func (s s_xray) SendErrorImage(ctx context.Context, image []byte) (err error) {
-	ctx, seg := xray.BeginSegment(ctx, "SendErrorImage")
+	ctx, seg := xray.BeginSubsegment(ctx, "SendErrorImage")
 	defer func() {
 		seg.Close(err)
 	}()

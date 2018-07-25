@@ -16,28 +16,28 @@ type sXray struct {
 }
 
 func (s sXray) SendMessage(ctx context.Context, chatID int64, message string, messageID int) (msgid int, err error) {
-	ctx, seg := xray.BeginSegment(ctx, "SendMessage")
+	ctx, seg := xray.BeginSubsegment(ctx, "SendMessage")
 	defer func() {
 		seg.Close(err)
 	}()
 	return s.Service.SendMessage(ctx, chatID, message, messageID)
 }
 func (s sXray) SendMessagePlainText(ctx context.Context, chatID int64, message string, messageID int) (msgid int, err error) {
-	ctx, seg := xray.BeginSegment(ctx, "SendMessagePlainText")
+	ctx, seg := xray.BeginSubsegment(ctx, "SendMessagePlainText")
 	defer func() {
 		seg.Close(err)
 	}()
 	return s.Service.SendMessagePlainText(ctx, chatID, message, messageID)
 }
 func (s sXray) SendImageToGroup(ctx context.Context, image []byte, group int64) (err error) {
-	ctx, seg := xray.BeginSegment(ctx, "SendImageToGroup")
+	ctx, seg := xray.BeginSubsegment(ctx, "SendImageToGroup")
 	defer func() {
 		seg.Close(err)
 	}()
 	return s.Service.SendImageToGroup(ctx, image, group)
 }
 func (s sXray) SendDocumentToGroup(ctx context.Context, document []byte, extension string, group int64) (err error) {
-	ctx, seg := xray.BeginSegment(ctx, "SendDocumentToGroup")
+	ctx, seg := xray.BeginSubsegment(ctx, "SendDocumentToGroup")
 	defer func() {
 		seg.Close(err)
 	}()
@@ -45,7 +45,7 @@ func (s sXray) SendDocumentToGroup(ctx context.Context, document []byte, extensi
 }
 
 func (s sXray) SendKeyboard(ctx context.Context, buttons []string, text string, chat int64) (message int, err error) {
-	ctx, seg := xray.BeginSegment(ctx, "SendKeyboard")
+	ctx, seg := xray.BeginSubsegment(ctx, "SendKeyboard")
 	defer func() {
 		seg.Close(err)
 	}()
