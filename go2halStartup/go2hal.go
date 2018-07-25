@@ -37,11 +37,11 @@ import (
 	"runtime/debug"
 	"syscall"
 
-	"github.com/elastic/apm-agent-go/module/apmhttp"
 	kitprometheus "github.com/go-kit/kit/metrics/prometheus"
 	stdprometheus "github.com/prometheus/client_golang/prometheus"
 	"github.com/weAutomateEverything/go2hal/grafana"
 	"github.com/weAutomateEverything/go2hal/prometheus"
+	"github.com/aws/aws-xray-sdk-go/xray"
 )
 
 type Go2Hal struct {
@@ -106,7 +106,7 @@ func (go2hal *Go2Hal) Start() {
 	}
 	go func() {
 		go2hal.Logger.Log("transport", "http", "address", ":8000", "msg", "listening")
-		errs <- http.ListenAndServe(":8000", apmhttp.Wrap(panicHandler{accessControl(go2hal.Mux), go2hal.JiraService, go2hal.AlertService}))
+		errs <- http.ListenAndServe(":8000", xray.Handler(xray.NewFixedSegmentNamer("go2hal"), panicHandler{accessControl(go2hal.Mux), go2hal.JiraService, go2hal.AlertService}))
 	}()
 	go func() {
 		go2hal.Logger.Log("transport", "http", "address", ":8080", "msg", "listening")
@@ -439,6 +439,13 @@ func NewGo2Hal() Go2Hal {
 	go2hal.TelegramService.RegisterCommand(httpSmoke.NewQuietHttpAlertCommand(go2hal.TelegramService, go2hal.HTTPService))
 	go2hal.TelegramService.RegisterCommand(telegram.NewIDCommand(go2hal.TelegramService, go2hal.TelegramStore))
 
+	//XRAY
+	xray.Configure(xray.Config{
+		DaemonAddr:       "127.0.0.1:2000", // default
+		LogLevel:         "info",           // default
+		ServiceVersion:   "1.2.3",
+	})
+
 	go2hal.TelegramService.RegisterCommandLet(telegram.NewTelegramAuthApprovalCommand(go2hal.TelegramService, go2hal.TelegramStore))
 
 	go2hal.HTTPLogger = log.With(go2hal.Logger, "component", "http")
@@ -475,6 +482,7 @@ func accessControl(h http.Handler) http.Handler {
 		if r.Method == "OPTIONS" {
 			return
 		}
+
 
 		h.ServeHTTP(w, r)
 	})
