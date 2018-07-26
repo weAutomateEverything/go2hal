@@ -121,6 +121,15 @@ func (go2hal *Go2Hal) Start() {
 }
 
 func NewGo2Hal() Go2Hal {
+	if os.Getenv("XRAY_URL") != "" {
+		//XRAY
+		xray.Configure(xray.Config{
+			DaemonAddr:     os.Getenv("XRAY_URL"), // default
+			LogLevel:       "info",                // default
+			ServiceVersion: "1.2.3",
+		})
+	}
+
 	go2hal := Go2Hal{}
 	go2hal.Logger = log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
 	go2hal.Logger = level.NewFilter(go2hal.Logger, level.AllowAll())
@@ -440,13 +449,6 @@ func NewGo2Hal() Go2Hal {
 		go2hal.FirstCallService, go2hal.TelegramStore))
 	go2hal.TelegramService.RegisterCommand(httpSmoke.NewQuietHttpAlertCommand(go2hal.TelegramService, go2hal.HTTPService))
 	go2hal.TelegramService.RegisterCommand(telegram.NewIDCommand(go2hal.TelegramService, go2hal.TelegramStore))
-
-	//XRAY
-	xray.Configure(xray.Config{
-		DaemonAddr:     "127.0.0.1:2000", // default
-		LogLevel:       "info",           // default
-		ServiceVersion: "1.2.3",
-	})
 
 	go2hal.TelegramService.RegisterCommandLet(telegram.NewTelegramAuthApprovalCommand(go2hal.TelegramService, go2hal.TelegramStore))
 
