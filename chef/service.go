@@ -191,7 +191,7 @@ func (s *service) monitorQuarentined() {
 	}
 }
 func (s *service) checkQuarentined() {
-	ctx, seg := xray.BeginSubsegment(context.Background(), "Chef Quarantine Check")
+	ctx, seg := xray.BeginSegment(context.Background(), "Chef Quarantine Check")
 	var err error
 	defer seg.Close(err)
 	recipes, err := s.chefStore.GetRecipes()
