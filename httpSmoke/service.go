@@ -9,6 +9,7 @@ import (
 	"github.com/weAutomateEverything/go2hal/alert"
 	"github.com/weAutomateEverything/go2hal/callout"
 	"golang.org/x/net/context"
+	"golang.org/x/net/context/ctxhttp"
 	"gopkg.in/kyokomi/emoji.v1"
 	"io/ioutil"
 	"log"
@@ -66,7 +67,7 @@ func (s *service) addHttpEndpoint(ctx context.Context, name, url, method string,
 		Threshold:  threshold,
 	}
 
-	err = s.checkEndpoint(v)
+	err = s.checkEndpoint(ctx, v)
 	if err != nil {
 		return
 	}
@@ -80,8 +81,8 @@ func (s *service) deleteEndpoint(id string, chat uint32) {
 	panic("implement me")
 }
 
-func (s *service) checkEndpoint(endpoint httpEndpoint) error {
-	response, err := s.doHTTPEndpoint(endpoint)
+func (s *service) checkEndpoint(ctx context.Context, endpoint httpEndpoint) error {
+	response, err := s.doHTTPEndpoint(ctx, endpoint)
 	if response != nil {
 		defer response.Body.Close()
 	}
@@ -108,11 +109,13 @@ func (s *service) monitorEndpoints() {
 }
 
 func (s *service) checkHTTP(endpoint httpEndpoint) {
-	ctx, seg := xray.BeginSegment(context.Background(), "httpcheck "+endpoint.Name)
+	ctx, seg := xray.BeginSegment(context.Background(), "httpSmoke")
+	ctx, subSeg := xray.BeginSubsegment(ctx, endpoint.Name)
 	var err error
 	defer seg.Close(err)
+	defer subSeg.Close(err)
 
-	response, err := s.doHTTPEndpoint(endpoint)
+	response, err := s.doHTTPEndpoint(ctx, endpoint)
 	s.checkCount.With("endpoint", endpoint.Name).Add(1)
 	if err != nil {
 		msg := emoji.Sprintf(":smoking: :x: *Smoke Test  Alert*\nName: %s \nEndpoint: %s \nError: %s", endpoint.Name,
@@ -180,7 +183,7 @@ func (s *service) checkTimeout(ctx context.Context, chat uint32, msg string) {
 	}
 }
 
-func (s service) doHTTPEndpoint(endpoint httpEndpoint) (*http.Response, error) {
+func (s service) doHTTPEndpoint(ctx context.Context, endpoint httpEndpoint) (*http.Response, error) {
 	switch method := strings.ToUpper(endpoint.Method); method {
 	case "POST":
 		if len(endpoint.Parameters) > 1 {
@@ -191,20 +194,16 @@ func (s service) doHTTPEndpoint(endpoint httpEndpoint) (*http.Response, error) {
 			body = endpoint.Parameters[0].Value
 		}
 
-		c := &http.Client{Transport: defaultTransport}
-		return c.Post(endpoint.Endpoint, "application/json", bytes.NewBufferString(body))
+		return ctxhttp.Post(ctx, xray.Client(nil), endpoint.Endpoint, "application/json", bytes.NewBufferString(body))
 	case "POST_FORM":
 		values := url.Values{}
 		for _, value := range endpoint.Parameters {
 			values.Add(value.Name, value.Value)
 		}
-		c := &http.Client{Transport: defaultTransport}
 
-		return c.PostForm(endpoint.Endpoint, values)
+		return ctxhttp.PostForm(ctx, xray.Client(nil), endpoint.Endpoint, values)
 	default:
-		c := &http.Client{Transport: defaultTransport}
-
-		return c.Get(endpoint.Endpoint)
+		return ctxhttp.Get(ctx, xray.Client(nil), endpoint.Endpoint)
 	}
 
 }

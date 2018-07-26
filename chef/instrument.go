@@ -27,10 +27,10 @@ func (s *instrumentingService) sendDeliveryAlert(ctx context.Context, chatId uin
 	}(time.Now())
 	s.Service.sendDeliveryAlert(ctx, chatId, message)
 }
-func (s *instrumentingService) FindNodesFromFriendlyNames(recipe, environment string, chat uint32) []Node {
+func (s *instrumentingService) FindNodesFromFriendlyNames(ctx context.Context, recipe, environment string, chat uint32) []Node {
 	defer func(begin time.Time) {
 		s.requestCount.With("method", "findNodesFromFriendlyNames").Add(1)
 		s.requestLatency.With("method", "findNodesFromFriendlyNames").Observe(time.Since(begin).Seconds())
 	}(time.Now())
-	return s.Service.FindNodesFromFriendlyNames(recipe, environment, chat)
+	return s.Service.FindNodesFromFriendlyNames(ctx, recipe, environment, chat)
 }
