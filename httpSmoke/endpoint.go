@@ -20,7 +20,7 @@ func addHTTPEndpoint(s Service) endpoint.Endpoint {
 			})
 		}
 
-		return nil, s.addHttpEndpoint(req.Name, req.URL, req.Method, v, req.Threshold, claim.RoomToken)
+		return nil, s.addHttpEndpoint(ctx, req.Name, req.URL, req.Method, v, req.Threshold, claim.RoomToken)
 	}
 }
 
