@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	json2 "encoding/json"
 	"fmt"
+	"github.com/aws/aws-xray-sdk-go/xray"
 	"github.com/go-chef/chef"
 	"github.com/weAutomateEverything/go2hal/alert"
 	"github.com/weAutomateEverything/go2hal/util"
@@ -17,7 +18,7 @@ import (
 
 type Service interface {
 	sendDeliveryAlert(ctx context.Context, chatId uint32, message string)
-	FindNodesFromFriendlyNames(recipe, environment string, chat uint32) []Node
+	FindNodesFromFriendlyNames(ctx context.Context, recipe, environment string, chat uint32) []Node
 
 	getAllRecipes() ([]string, error)
 	getRecipesForGroup(group uint32) ([]Recipe, error)
@@ -190,24 +191,27 @@ func (s *service) monitorQuarentined() {
 	}
 }
 func (s *service) checkQuarentined() {
+	ctx, seg := xray.BeginSubsegment(context.Background(), "Chef Quarantine Check")
+	var err error
+	defer seg.Close(err)
 	recipes, err := s.chefStore.GetRecipes()
 	if err != nil {
-		s.alert.SendError(context.TODO(), err)
+		s.alert.SendError(ctx, err)
 		return
 	}
 
 	for _, r := range recipes {
 		env, err := s.chefStore.GetEnvironmentForGroup(r.ChatID)
 		if err != nil {
-			s.alert.SendError(context.TODO(), err)
+			s.alert.SendError(ctx, err)
 			continue
 		}
 		for _, e := range env {
-			nodes := s.FindNodesFromFriendlyNames(r.FriendlyName, e.FriendlyName, r.ChatID)
+			nodes := s.FindNodesFromFriendlyNames(ctx, r.FriendlyName, e.FriendlyName, r.ChatID)
 			for _, n := range nodes {
 				if strings.Index(n.Environment, "quar") > 0 {
 					//We have found a quarentined Node - Now we need to check the recipes and environment to find out who wants to know about this, in this environment
-					s.alert.SendAlert(context.TODO(), r.ChatID, emoji.Sprintf(":hospital: *Node Quarantined* \n node %v has been placed in environment %v. Application %v ", n.Name, strings.Replace(n.Environment, "_", " ", -1), r.FriendlyName))
+					s.alert.SendAlert(ctx, r.ChatID, emoji.Sprintf(":hospital: *Node Quarantined* \n node %v has been placed in environment %v. Application %v ", n.Name, strings.Replace(n.Environment, "_", " ", -1), r.FriendlyName))
 				}
 			}
 		}
@@ -215,28 +219,28 @@ func (s *service) checkQuarentined() {
 
 }
 
-func (s *service) FindNodesFromFriendlyNames(recipe, environment string, chat uint32) []Node {
+func (s *service) FindNodesFromFriendlyNames(ctx context.Context, recipe, environment string, chat uint32) []Node {
 	chefRecipe, err := s.chefStore.GetRecipeFromFriendlyName(recipe, chat)
 	if err != nil {
-		s.alert.SendError(context.TODO(), err)
+		s.alert.SendError(ctx, err)
 		return nil
 	}
 
 	chefEnv, err := s.chefStore.GetEnvironmentFromFriendlyName(environment, chat)
 	if err != nil {
-		s.alert.SendError(context.TODO(), err)
+		s.alert.SendError(ctx, err)
 		return nil
 	}
 
 	client, err := s.getChefClient()
 	if err != nil {
-		s.alert.SendError(context.TODO(), err)
+		s.alert.SendError(ctx, err)
 		return nil
 	}
 
 	query, err := client.Search.NewQuery("node", fmt.Sprintf("recipe:%s AND chef_environment:%s", chefRecipe, chefEnv))
 	if err != nil {
-		s.alert.SendError(context.TODO(), err)
+		s.alert.SendError(ctx, err)
 		return nil
 	}
 
@@ -246,7 +250,7 @@ func (s *service) FindNodesFromFriendlyNames(recipe, environment string, chat ui
 
 	res, err := query.DoPartial(client, part)
 	if err != nil {
-		s.alert.SendError(context.TODO(), err)
+		s.alert.SendError(ctx, err)
 		return nil
 	}
 
