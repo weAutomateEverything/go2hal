@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"github.com/aws/aws-xray-sdk-go/xray"
 	"github.com/go-kit/kit/metrics"
 	"github.com/weAutomateEverything/go2hal/alert"
 	"github.com/weAutomateEverything/go2hal/callout"
@@ -36,7 +37,7 @@ func NewService(alertService alert.Service, store Store, callout callout.Service
 type Service interface {
 	setTimeOut(minutes int64)
 	getEndpoints(group uint32) ([]httpEndpoint, error)
-	addHttpEndpoint(name, url, method string, parameters []parameters, threshold int, chat uint32) error
+	addHttpEndpoint(ctx context.Context, name, url, method string, parameters []parameters, threshold int, chat uint32) error
 	deleteEndpoint(id string, chat uint32)
 }
 
@@ -55,7 +56,7 @@ func (s *service) getEndpoints(group uint32) ([]httpEndpoint, error) {
 	return s.store.getHTMLEndpointsByChat(group)
 }
 
-func (s *service) addHttpEndpoint(name, url, method string, parameters []parameters, threshold int, chat uint32) (err error) {
+func (s *service) addHttpEndpoint(ctx context.Context, name, url, method string, parameters []parameters, threshold int, chat uint32) (err error) {
 	v := httpEndpoint{
 		Chat:       chat,
 		Name:       name,
@@ -70,7 +71,7 @@ func (s *service) addHttpEndpoint(name, url, method string, parameters []paramet
 		return
 	}
 
-	s.alert.SendAlert(context.TODO(), chat, emoji.Sprintf(":new: Successfully added endpoint %v %v. The bot will now alert you once the checks fails %v times in succession. ", name, url, threshold))
+	s.alert.SendAlert(ctx, chat, emoji.Sprintf(":new: Successfully added endpoint %v %v. The bot will now alert you once the checks fails %v times in succession. ", name, url, threshold))
 
 	return s.store.addHTMLEndpoint(v)
 }
@@ -107,12 +108,16 @@ func (s *service) monitorEndpoints() {
 }
 
 func (s *service) checkHTTP(endpoint httpEndpoint) {
+	ctx, seg := xray.BeginSegment(context.Background(), "httpcheck "+endpoint.Name)
+	var err error
+	defer seg.Close(err)
+
 	response, err := s.doHTTPEndpoint(endpoint)
 	s.checkCount.With("endpoint", endpoint.Name).Add(1)
 	if err != nil {
 		msg := emoji.Sprintf(":smoking: :x: *Smoke Test  Alert*\nName: %s \nEndpoint: %s \nError: %s", endpoint.Name,
 			endpoint.Endpoint, err.Error())
-		s.checkAlert(endpoint, msg)
+		s.checkAlert(ctx, endpoint, msg)
 		s.errorCount.With("endpoint", endpoint.Name).Add(1)
 		return
 	}
@@ -124,16 +129,16 @@ func (s *service) checkHTTP(endpoint httpEndpoint) {
 		error := emoji.Sprintf(":smoking: :x: *HTTP Alert*\nName: %s \nEndpoint: %s \nDid not receive a 200 success "+
 			"response code. Received %d response code. Body Message %s", endpoint.Name, endpoint.Endpoint,
 			response.StatusCode, msg)
-		s.checkAlert(endpoint, error)
+		s.checkAlert(ctx, endpoint, error)
 		return
 	}
 	if !endpoint.Passing && endpoint.ErrorCount >= endpoint.Threshold {
-		s.alert.SendAlert(context.TODO(), endpoint.Chat, emoji.Sprintf(":smoking: :white_check_mark: smoke test %s back to normal", endpoint.Name))
+		s.alert.SendAlert(ctx, endpoint.Chat, emoji.Sprintf(":smoking: :white_check_mark: smoke test %s back to normal", endpoint.Name))
 
 	}
 
 	if err := s.store.successfulEndpointTest(&endpoint); err != nil {
-		s.alert.SendError(context.TODO(), err)
+		s.alert.SendError(ctx, err)
 	}
 	if response.TLS != nil && len(response.TLS.PeerCertificates) != 0 {
 		certExpiry := response.TLS.PeerCertificates[0].NotAfter
@@ -142,33 +147,33 @@ func (s *service) checkHTTP(endpoint httpEndpoint) {
 
 		if expiryStatus != "" {
 			err := errors.New(expiryStatus)
-			s.alert.SendError(context.TODO(), err)
+			s.alert.SendError(ctx, err)
 		}
 	}
 }
 
-func (s *service) checkAlert(endpoint httpEndpoint, msg string) {
+func (s *service) checkAlert(ctx context.Context, endpoint httpEndpoint, msg string) {
 	if err := s.store.failedEndpointTest(&endpoint, msg); err != nil {
-		s.alert.SendError(context.TODO(), err)
+		s.alert.SendError(ctx, err)
 	}
 	if endpoint.Threshold > 0 {
 		if endpoint.Threshold == endpoint.ErrorCount {
 			msg = fmt.Sprintf("We have dectected a problem with HTTP Endpoint %v, it has failed %v times in a row. The error is %v", endpoint.Name, endpoint.Threshold, msg)
-			s.callout.InvokeCallout(context.TODO(), endpoint.Chat, fmt.Sprintf("Some Test failur)es for %s", endpoint.Name), msg)
+			s.callout.InvokeCallout(ctx, endpoint.Chat, fmt.Sprintf("Some Test failur)es for %s", endpoint.Name), msg)
 
 		}
 		if endpoint.ErrorCount >= endpoint.Threshold {
-			s.checkTimeout(endpoint.Chat, msg)
+			s.checkTimeout(ctx, endpoint.Chat, msg)
 		}
 	}
 }
 
-func (s *service) checkTimeout(chat uint32, msg string) {
+func (s *service) checkTimeout(ctx context.Context, chat uint32, msg string) {
 	if !s.timeoutSet || time.Now().Local().After(s.timeout) {
-		s.alert.SendAlert(context.TODO(), chat, msg)
+		s.alert.SendAlert(ctx, chat, msg)
 
 		if s.timeoutSet {
-			s.alert.SendAlert(context.TODO(), chat, emoji.Sprintf(":alarm_clock: - Smoke Alerts expired. The bot will now be sending alerts for smoke failures again"))
+			s.alert.SendAlert(ctx, chat, emoji.Sprintf(":alarm_clock: - Smoke Alerts expired. The bot will now be sending alerts for smoke failures again"))
 
 			s.timeoutSet = false
 		}
