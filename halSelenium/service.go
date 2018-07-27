@@ -13,7 +13,7 @@ import (
 
 type Service interface {
 	NewClient(seleniumServer string) error
-	HandleSeleniumError(chatId uint32, internal bool, err error)
+	HandleSeleniumError(ctx context.Context, chatId uint32, internal bool, err error)
 	Driver() selenium.WebDriver
 
 	ClickByClassName(cn string)
@@ -71,19 +71,19 @@ func (s *chromeService) NewClient(seleniumServer string) error {
 	return nil
 }
 
-func (s chromeService) HandleSeleniumError(chatId uint32, internal bool, err error) {
+func (s chromeService) HandleSeleniumError(ctx context.Context, chatId uint32, internal bool, err error) {
 	msg := err.Error()
 	if s.driver == nil {
-		s.sendError(msg, chatId, nil, internal)
+		s.sendError(ctx, msg, chatId, nil, internal)
 		return
 	}
 	bytes, error := s.driver.Screenshot()
 	if error != nil {
 		// Couldnt get a screenshot - lets end the original error
-		s.sendError(msg, chatId, nil, internal)
+		s.sendError(ctx, msg, chatId, nil, internal)
 		return
 	}
-	s.sendError(msg, chatId, bytes, internal)
+	s.sendError(ctx, msg, chatId, bytes, internal)
 }
 
 func (s chromeService) ClickByClassName(cn string) {
@@ -138,16 +138,16 @@ func (s *chromeService) WaitFor(findBy, selector string) {
 	}
 }
 
-func (s chromeService) sendError(message string, chatId uint32, image []byte, internalError bool) error {
+func (s chromeService) sendError(ctx context.Context, message string, chatId uint32, image []byte, internalError bool) error {
 
 	if image != nil {
 		if internalError {
-			err := s.alert.SendErrorImage(context.TODO(), image)
+			err := s.alert.SendErrorImage(ctx, image)
 			if err != nil {
 				return err
 			}
 		} else {
-			err := s.alert.SendImageToAlertGroup(context.TODO(), chatId, image)
+			err := s.alert.SendImageToAlertGroup(ctx, chatId, image)
 			if err != nil {
 				return err
 			}
@@ -155,9 +155,9 @@ func (s chromeService) sendError(message string, chatId uint32, image []byte, in
 	}
 
 	if internalError {
-		s.alert.SendError(context.TODO(), errors.New(message))
+		s.alert.SendError(ctx, errors.New(message))
 	} else {
-		err := s.alert.SendAlert(context.TODO(), chatId, message)
+		err := s.alert.SendAlert(ctx, chatId, message)
 		if err != nil {
 			return err
 		}

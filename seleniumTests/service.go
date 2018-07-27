@@ -3,6 +3,7 @@ package seleniumTests
 import (
 	"errors"
 	"fmt"
+	"github.com/aws/aws-xray-sdk-go/xray"
 	"github.com/tebeka/selenium"
 	"github.com/weAutomateEverything/go2hal/alert"
 	"github.com/weAutomateEverything/go2hal/callout"
@@ -36,8 +37,10 @@ func NewChromeClient(seleniumEndpoint string) (selenium.WebDriver, error) {
 
 }
 
-func (s *service) testSelenium(item Selenium) error {
-	_, err := s.doSelenium(item)
+func (s *service) testSelenium(item Selenium) (err error) {
+	ctx, seg := xray.BeginSubsegment(context.Background(), "Selenium Test")
+	defer seg.Close(err)
+	_, err = s.doSelenium(ctx, item)
 	if err != nil {
 		return err
 	}
@@ -52,67 +55,74 @@ func (s *service) testSelenium(item Selenium) error {
 func (s *service) runTests() {
 	defer func() {
 		if err := recover(); err != nil {
+			ctx, seg := xray.BeginSegment(context.Background(), "Selenium")
 			fmt.Print(err)
-			s.alert.SendError(context.TODO(), errors.New(fmt.Sprint(err)))
-			s.alert.SendError(context.TODO(), errors.New(string(debug.Stack())))
+			s.alert.SendError(ctx, errors.New(fmt.Sprint(err)))
+			s.alert.SendError(ctx, errors.New(string(debug.Stack())))
+			seg.Close(fmt.Errorf("%v", err))
 		}
 	}()
 
 	for true {
+		ctx, seg := xray.BeginSegment(context.Background(), "Selenium")
 		tests, err := s.store.GetAllSeleniumTests()
 		if err != nil {
-			s.alert.SendError(context.TODO(), err)
+			s.alert.SendError(ctx, err)
 		} else {
 			for _, test := range tests {
-				image, err := s.doSelenium(test)
+				ctx, subseg := xray.BeginSubsegment(ctx, test.Name)
+				image, err := s.doSelenium(ctx, test)
 				if err != nil {
-					s.handleError(test, image, err)
+					s.handleError(ctx, test, image, err)
 				} else {
-					s.handleSuccess(test)
+					s.handleSuccess(ctx, test)
 				}
+				subseg.Close(err)
+
 			}
 		}
+		seg.Close(err)
 		time.Sleep(5 * time.Minute)
 	}
 }
 
-func (s service) handleError(test Selenium, image []byte, err error) {
+func (s service) handleError(ctx context.Context, test Selenium, image []byte, err error) {
 	if error := s.store.SetSeleniumFailing(&test, err); error != nil {
-		s.alert.SendError(context.TODO(), fmt.Errorf("error setting seleniumTests test to failed. %s", error.Error()))
+		s.alert.SendError(ctx, fmt.Errorf("error setting seleniumTests test to failed. %s", error.Error()))
 		return
 	}
 	if test.Threshold > 0 {
 		if test.Threshold == test.ErrorCount {
 			for _, chat := range test.Chats {
-				s.calloutService.InvokeCallout(context.TODO(), chat, fmt.Sprintf("halSelenium Error with  test %s", test.Name), err.Error())
+				s.calloutService.InvokeCallout(ctx, chat, fmt.Sprintf("halSelenium Error with  test %s", test.Name), err.Error())
 			}
 
 		}
 
 		if test.ErrorCount >= test.Threshold {
 			for _, chat := range test.Chats {
-				s.alert.SendAlert(context.TODO(), chat, emoji.Sprintf(":computer: :x: Error executing seleniumTests test for %s. error: %s", test.Name, err.Error()))
+				s.alert.SendAlert(ctx, chat, emoji.Sprintf(":computer: :x: Error executing seleniumTests test for %s. error: %s", test.Name, err.Error()))
 				if image != nil {
-					s.alert.SendImageToAlertGroup(context.TODO(), chat, image)
+					s.alert.SendImageToAlertGroup(ctx, chat, image)
 				}
 			}
 		}
 	}
 }
 
-func (s service) handleSuccess(test Selenium) {
+func (s service) handleSuccess(ctx context.Context, test Selenium) {
 	if err := s.store.SetSeleniumPassing(&test); err != nil {
-		s.alert.SendError(context.TODO(), fmt.Errorf("error setting seleniumTests test to passed. %s", err.Error()))
+		s.alert.SendError(ctx, fmt.Errorf("error setting seleniumTests test to passed. %s", err.Error()))
 		return
 	}
 	if !test.Passing && test.ErrorCount >= test.Threshold {
 		for _, chat := range test.Chats {
-			s.alert.SendAlert(context.TODO(), chat, emoji.Sprintf(":computer: :white_check_mark: halSelenium Test %s back to normal", test.Name))
+			s.alert.SendAlert(ctx, chat, emoji.Sprintf(":computer: :white_check_mark: halSelenium Test %s back to normal", test.Name))
 		}
 	}
 }
 
-func (s service) doSelenium(item Selenium) ([]byte, error) {
+func (s service) doSelenium(ctx context.Context, item Selenium) ([]byte, error) {
 	if item.SeleniumServer == "" {
 		return nil, errors.New("no halSelenium Server set")
 	}
@@ -140,7 +150,7 @@ func (s service) doSelenium(item Selenium) ([]byte, error) {
 
 	err = webDriver.Get(item.InitialURL)
 	if err != nil {
-		return s.handleSeleniumError(item.Name, "Initial Page", "Load Page", err, webDriver)
+		return s.handleSeleniumError(ctx, item.Name, "Initial Page", "Load Page", err, webDriver)
 	}
 
 	for _, page := range item.Pages {
@@ -153,7 +163,7 @@ func (s service) doSelenium(item Selenium) ([]byte, error) {
 			}
 			err = doCheck(page.PreCheck, webDriver)
 			if err != nil {
-				return s.handleSeleniumError(item.Name, page.Name, page.PreCheck.Name, err, webDriver)
+				return s.handleSeleniumError(ctx, item.Name, page.Name, page.PreCheck.Name, err, webDriver)
 			}
 		}
 		for _, action := range page.Actions {
@@ -162,7 +172,7 @@ func (s service) doSelenium(item Selenium) ([]byte, error) {
 			}
 			elems, err := findElement(action.SearchOption, webDriver)
 			if err != nil {
-				return s.handleSeleniumError(item.Name, page.Name, action.Name, err, webDriver)
+				return s.handleSeleniumError(ctx, item.Name, page.Name, action.Name, err, webDriver)
 			}
 			elem := elems[0]
 			executed := false
@@ -189,7 +199,7 @@ func (s service) doSelenium(item Selenium) ([]byte, error) {
 			}
 			err := doCheck(page.PostCheck, webDriver)
 			if err != nil {
-				return s.handleSeleniumError(item.Name, page.Name, page.PostCheck.Name, err, webDriver)
+				return s.handleSeleniumError(ctx, item.Name, page.Name, page.PostCheck.Name, err, webDriver)
 			}
 		}
 	}
@@ -226,10 +236,10 @@ func doCheck(check *Check, driver selenium.WebDriver) error {
 
 }
 
-func (s service) handleSeleniumError(name, page, action string, err error, driver selenium.WebDriver) ([]byte, error) {
+func (s service) handleSeleniumError(ctx context.Context, name, page, action string, err error, driver selenium.WebDriver) ([]byte, error) {
 	bytes, error := driver.Screenshot()
 	if error != nil {
-		s.alert.SendError(context.TODO(), error)
+		s.alert.SendError(ctx, error)
 		return nil, err
 	}
 	return bytes, fmt.Errorf("application: %s,page: %s, action %s, Error: %s", name, page, action, err.Error())

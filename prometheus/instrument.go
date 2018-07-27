@@ -2,6 +2,7 @@ package prometheus
 
 import (
 	"github.com/go-kit/kit/metrics"
+	"golang.org/x/net/context"
 	"time"
 )
 
@@ -21,7 +22,7 @@ func NewInstrumentService(counter metrics.Counter, errorCounter metrics.Counter,
 	}
 }
 
-func (s *instrumentingService) sendPrometheusAlert(chat uint32, body string) (err error) {
+func (s *instrumentingService) sendPrometheusAlert(ctx context.Context, chat uint32, body string) (err error) {
 	defer func(begin time.Time) {
 		s.requestCount.With("method", "sendPrometheusAlert").Add(1)
 		if err != nil {
@@ -29,5 +30,5 @@ func (s *instrumentingService) sendPrometheusAlert(chat uint32, body string) (er
 		}
 		s.requestLatency.With("method", "sendPrometheusAlert").Observe(time.Since(begin).Seconds())
 	}(time.Now())
-	return s.Service.sendPrometheusAlert(chat, body)
+	return s.Service.sendPrometheusAlert(ctx, chat, body)
 }

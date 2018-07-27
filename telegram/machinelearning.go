@@ -46,8 +46,8 @@ func (s *ml) RegisterCommandLet(commandlet Commandlet) {
 	s.s.RegisterCommandLet(commandlet)
 }
 
-func (s *ml) requestAuthorisation(chat uint32, name string) (string, error) {
-	return s.s.requestAuthorisation(chat, name)
+func (s *ml) requestAuthorisation(ctx context.Context, chat uint32, name string) (string, error) {
+	return s.s.requestAuthorisation(ctx, chat, name)
 }
 
 func (s *ml) pollAuthorisation(token string) (uint32, error) {

@@ -58,8 +58,8 @@ func (s sXray) RegisterCommandLet(commandlet Commandlet) {
 	s.Service.RegisterCommandLet(commandlet)
 }
 
-func (s sXray) requestAuthorisation(chat uint32, name string) (string, error) {
-	return s.Service.requestAuthorisation(chat, name)
+func (s sXray) requestAuthorisation(ctx context.Context, chat uint32, name string) (string, error) {
+	return s.Service.requestAuthorisation(ctx, chat, name)
 }
 func (s sXray) pollAuthorisation(token string) (uint32, error) {
 	return s.Service.pollAuthorisation(token)

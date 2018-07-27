@@ -6,8 +6,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/aws/aws-xray-sdk-go/xray"
 	"github.com/weAutomateEverything/go2hal/alert"
 	"github.com/weAutomateEverything/go2hal/ssh"
+	"golang.org/x/net/context/ctxhttp"
 	"gopkg.in/kyokomi/emoji.v1"
 	"io/ioutil"
 	"log"
@@ -19,7 +21,7 @@ import (
 type Service interface {
 	sendAppdynamicsAlert(ctx context.Context, chatId uint32, message string)
 	addAppdynamicsEndpoint(chat uint32, endpoint string) error
-	addAppDynamicsQueue(chatId uint32, name, application, metricPath string) error
+	addAppDynamicsQueue(ctx context.Context, chatId uint32, name, application, metricPath string) error
 	executeCommandFromAppd(ctx context.Context, chatId uint32, commandName, applicationID, nodeID string) error
 }
 
@@ -90,9 +92,9 @@ func (s *service) addAppdynamicsEndpoint(chat uint32, endpoint string) error {
 	return s.store.addAppDynamicsEndpoint(chat, endpoint)
 }
 
-func (s *service) addAppDynamicsQueue(chatId uint32, name, application, metricPath string) error {
+func (s *service) addAppDynamicsQueue(ctx context.Context, chatId uint32, name, application, metricPath string) error {
 	endpointObject := MqEndpoint{MetricPath: metricPath, Application: application, Name: name}
-	err := checkQueues(endpointObject, s.alert, s.store, chatId)
+	err := checkQueues(ctx, endpointObject, s.alert, s.store, chatId)
 	if err != nil {
 		return err
 	}
@@ -101,7 +103,7 @@ func (s *service) addAppDynamicsQueue(chatId uint32, name, application, metricPa
 }
 
 func (s *service) executeCommandFromAppd(ctx context.Context, chatId uint32, commandName, applicationID, nodeID string) error {
-	ipaddress, err := s.getIPAddressForNode(applicationID, nodeID, chatId)
+	ipaddress, err := s.getIPAddressForNode(ctx, applicationID, nodeID, chatId)
 	if err != nil {
 		s.alert.SendError(ctx, err)
 		return err
@@ -117,7 +119,9 @@ func monitorAppdynamicsQueue(s Store, a alert.Service) {
 		} else {
 			for _, endpoint := range endpoints {
 				for _, queue := range endpoint.MqEndpoints {
-					checkQueues(queue, a, s, endpoint.ChatId)
+					ctx, seg := xray.BeginSegment(context.Background(), "MQ Endpoint "+queue.Name)
+					checkQueues(ctx, queue, a, s, endpoint.ChatId)
+					seg.Close(nil)
 				}
 			}
 		}
@@ -125,48 +129,45 @@ func monitorAppdynamicsQueue(s Store, a alert.Service) {
 	}
 }
 
-func checkQueues(endpoint MqEndpoint, a alert.Service, s Store, chat uint32) error {
+func checkQueues(ctx context.Context, endpoint MqEndpoint, a alert.Service, s Store, chat uint32) error {
 
-	response, err := doGet(buildQueryString(endpoint), s, a, chat)
+	response, err := doGet(ctx, buildQueryString(endpoint), s, a, chat)
 	if err != nil {
 		log.Printf("Unable to query appdynamics: %s", err.Error())
-		a.SendError(context.TODO(), fmt.Errorf("we are unable to query app dynamics"))
-		a.SendError(context.TODO(), fmt.Errorf(" Queue depths Error: %s", err.Error()))
-		return err
-	}
-
-	if err != nil {
-		a.SendError(context.TODO(), fmt.Errorf("queue - error parsing body %s", err))
+		xray.AddError(ctx, err)
+		a.SendError(ctx, fmt.Errorf("we are unable to query app dynamics"))
+		a.SendError(ctx, fmt.Errorf(" Queue depths Error: %s", err.Error()))
 		return err
 	}
 
 	var dat []interface{}
 	if err := json.Unmarshal([]byte(response), &dat); err != nil {
-		a.SendError(context.TODO(), fmt.Errorf("error unmarshalling: %s", err))
+		a.SendError(ctx, fmt.Errorf("error unmarshalling: %s", err))
+		xray.AddError(ctx, err)
 		return err
 	}
 
 	success := false
 	for _, queue := range dat {
 		queue2 := queue.(map[string]interface{})
-		err = checkQueue(endpoint, queue2["name"].(string), a, s, chat)
+		err = checkQueue(ctx, endpoint, queue2["name"].(string), a, s, chat)
 		if err == nil {
 			success = true
 		}
 
 	}
 	if !success {
-		a.SendError(context.TODO(), errors.New("no queues had any data. please check the machine agents are sending the data"))
+		a.SendError(ctx, errors.New("no queues had any data. please check the machine agents are sending the data"))
 	}
 	return nil
 }
-func checkQueue(endpoint MqEndpoint, name string, a alert.Service, s Store, chat uint32) error {
-	currDepth, err := getCurrentQueueDepthValue(buildQueryStringQueueDepth(endpoint, name), s, a, chat)
+func checkQueue(ctx context.Context, endpoint MqEndpoint, name string, a alert.Service, s Store, chat uint32) error {
+	currDepth, err := getCurrentQueueDepthValue(ctx, buildQueryStringQueueDepth(endpoint, name), s, a, chat)
 	if err != nil {
 		return err
 	}
 
-	maxDepth, err := getCurrentQueueDepthValue(buildQueryStringMaxQueueDepth(endpoint, name), s, a, chat)
+	maxDepth, err := getCurrentQueueDepthValue(ctx, buildQueryStringMaxQueueDepth(endpoint, name), s, a, chat)
 	if err != nil {
 		return err
 	}
@@ -177,7 +178,7 @@ func checkQueue(endpoint MqEndpoint, name string, a alert.Service, s Store, chat
 	full := currDepth / maxDepth * 100
 	if full > 90 {
 		for _, chat := range endpoint.Chat {
-			a.SendAlert(context.TODO(), chat, emoji.Sprintf(":baggage_claim: :interrobang: %s - Queue %s, is more than 90 percent full. "+
+			a.SendAlert(ctx, chat, emoji.Sprintf(":baggage_claim: :interrobang: %s - Queue %s, is more than 90 percent full. "+
 				"Current Depth %.0f, Max Depth %.0f", endpoint.Name, name, currDepth, maxDepth))
 		}
 
@@ -186,7 +187,7 @@ func checkQueue(endpoint MqEndpoint, name string, a alert.Service, s Store, chat
 
 	if full > 75 {
 		for _, chat := range endpoint.Chat {
-			a.SendAlert(context.TODO(), chat, emoji.Sprintf(":baggage_claim: :warning: %s - Queue %s, is more than 75 percent full. Current "+
+			a.SendAlert(ctx, chat, emoji.Sprintf(":baggage_claim: :warning: %s - Queue %s, is more than 75 percent full. Current "+
 				"Depth %.0f, Max Depth %.0f", endpoint.Name, name, currDepth, maxDepth))
 		}
 		return nil
@@ -194,8 +195,8 @@ func checkQueue(endpoint MqEndpoint, name string, a alert.Service, s Store, chat
 	return nil
 }
 
-func getCurrentQueueDepthValue(path string, s Store, a alert.Service, chat uint32) (float64, error) {
-	response, err := doGet(path, s, a, chat)
+func getCurrentQueueDepthValue(ctx context.Context, path string, s Store, a alert.Service, chat uint32) (float64, error) {
+	response, err := doGet(ctx, path, s, a, chat)
 	if err != nil {
 		log.Printf("Error retreiving queue %s", err)
 		return 0, err
@@ -238,11 +239,11 @@ func buildQueryStringMaxQueueDepth(endpoint MqEndpoint, queue string) string {
 
 }
 
-func doGet(uri string, s Store, a alert.Service, chat uint32) (string, error) {
+func doGet(ctx context.Context, uri string, s Store, a alert.Service, chat uint32) (string, error) {
 
 	appd, err := s.GetAppDynamics(chat)
 	if err != nil {
-		a.SendError(context.TODO(), err)
+		a.SendError(ctx, err)
 		return "", err
 	}
 
@@ -250,39 +251,39 @@ func doGet(uri string, s Store, a alert.Service, chat uint32) (string, error) {
 	url := appd.Endpoint + uri
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		a.SendError(context.TODO(), err)
+		a.SendError(ctx, err)
 		return "", err
 	}
 
-	resp, err := client.Do(req)
+	resp, err := ctxhttp.Do(ctx, client, req)
 	if err != nil {
-		a.SendError(context.TODO(), err)
+		a.SendError(ctx, err)
 		return "", err
 	}
 	defer resp.Body.Close()
 	bodyText, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Println(err.Error())
-		a.SendError(context.TODO(), err)
+		a.SendError(ctx, err)
 		return "", err
 	}
 	res := string(bodyText)
 	return res, nil
 }
 
-func (s *service) getIPAddressForNode(application, node string, chat uint32) (string, error) {
+func (s *service) getIPAddressForNode(ctx context.Context, application, node string, chat uint32) (string, error) {
 	uri := fmt.Sprintf("/controller/rest/applications/%s/nodes/%s?output=json", application, node)
-	response, err := doGet(uri, s.store, s.alert, chat)
+	response, err := doGet(ctx, uri, s.store, s.alert, chat)
 	log.Println(response)
 	if err != nil {
-		s.alert.SendError(context.TODO(), err)
+		s.alert.SendError(ctx, err)
 		return "", err
 	}
 
 	var dat []interface{}
 	err = json.Unmarshal([]byte(response), &dat)
 	if err != nil {
-		s.alert.SendError(context.TODO(), err)
+		s.alert.SendError(ctx, err)
 		return "", err
 	}
 	v := dat[0].(map[string]interface{})

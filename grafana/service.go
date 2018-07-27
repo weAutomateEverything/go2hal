@@ -8,7 +8,7 @@ import (
 )
 
 type Service interface {
-	sendGrafanaAlert(chat uint32, body string) error
+	sendGrafanaAlert(ctx context.Context, chat uint32, body string) error
 }
 
 func NewService(alertService alert.Service) Service {
@@ -21,7 +21,7 @@ type service struct {
 	alertService alert.Service
 }
 
-func (s *service) sendGrafanaAlert(chat uint32, body string) (err error) {
+func (s *service) sendGrafanaAlert(ctx context.Context, chat uint32, body string) (err error) {
 	var r map[string]interface{}
 	err = json.Unmarshal([]byte(body), &r)
 	if err != nil {
@@ -33,6 +33,6 @@ func (s *service) sendGrafanaAlert(chat uint32, body string) (err error) {
 	msg = strings.Replace(msg, "]", "*", -1)
 	msg = msg + "\n" + r["message"].(string)
 
-	return s.alertService.SendAlert(context.TODO(), chat, msg)
+	return s.alertService.SendAlert(ctx, chat, msg)
 
 }

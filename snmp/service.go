@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"github.com/aws/aws-xray-sdk-go/xray"
 	g "github.com/soniah/gosnmp"
 	"github.com/weAutomateEverything/go2hal/alert"
 	"github.com/weAutomateEverything/go2hal/machineLearning"
@@ -49,6 +50,8 @@ func (s *service) startSnmpServer() {
 }
 
 func (s service) handleTrap(packet *g.SnmpPacket, addr *net.UDPAddr) {
+	ctx, seg := xray.BeginSegment(context.Background(), "SNMP Trap")
+	defer seg.Close(nil)
 	var b bytes.Buffer
 	b.WriteString(fmt.Sprintf("got trapdata from %s\n", addr.IP))
 	b.WriteString("\n")
@@ -64,7 +67,7 @@ func (s service) handleTrap(packet *g.SnmpPacket, addr *net.UDPAddr) {
 
 		}
 	}
-	s.alert.SendError(context.TODO(), errors.New(b.String()))
+	s.alert.SendError(ctx, errors.New(b.String()))
 }
 
 func (s *service) SendSNMPMessage(ctx context.Context, chat uint32) {

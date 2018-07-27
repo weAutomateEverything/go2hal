@@ -9,7 +9,7 @@ import (
 )
 
 type Service interface {
-	sendPrometheusAlert(chat uint32, message string) error
+	sendPrometheusAlert(ctx context.Context, chat uint32, message string) error
 }
 
 func NewService(alertService alert.Service) Service {
@@ -22,7 +22,7 @@ type service struct {
 	alertService alert.Service
 }
 
-func (s *service) sendPrometheusAlert(chat uint32, message string) (err error) {
+func (s *service) sendPrometheusAlert(ctx context.Context, chat uint32, message string) (err error) {
 	var r map[string]interface{}
 
 	err = json.Unmarshal([]byte(message), &r)
@@ -49,7 +49,7 @@ func (s *service) sendPrometheusAlert(chat uint32, message string) (err error) {
 		for key, value := range annotation {
 			msg = msg + fmt.Sprintf("*%v*: %v\n", key, value)
 		}
-		s.alertService.SendAlert(context.TODO(), chat, msg)
+		s.alertService.SendAlert(ctx, chat, msg)
 	}
 
 	return nil

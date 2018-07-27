@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/connect"
+	"github.com/aws/aws-xray-sdk-go/xray"
 	"github.com/kyokomi/emoji"
 	"github.com/weAutomateEverything/go2hal/alert"
 	"golang.org/x/net/context"
@@ -32,7 +33,7 @@ func NewService(alert alert.Service) Service {
 }
 
 func (s *service) SendAlert(ctx context.Context, chatId uint32, destination string, name string, variables map[string]string) error {
-	if !s.checkCallout(chatId) {
+	if !s.checkCallout(ctx, chatId) {
 		return nil
 	}
 
@@ -46,6 +47,7 @@ func (s *service) SendAlert(ctx context.Context, chatId uint32, destination stri
 	sess, _ := session.NewSession(&config)
 
 	outbound := connect.New(sess, &config)
+	xray.AWS(outbound.Client)
 
 	v := map[string]*string{}
 	if variables != nil {
@@ -73,11 +75,11 @@ func (s *service) SendAlert(ctx context.Context, chatId uint32, destination stri
 
 }
 
-func (s service) checkCallout(chatid uint32) bool {
+func (s service) checkCallout(ctx context.Context, chatid uint32) bool {
 	t, ok := s.lastcall[chatid]
 	if ok {
 		if time.Since(t) < time.Duration(30*time.Minute) {
-			s.alert.SendAlert(context.TODO(), chatid, emoji.Sprintf(":phone: :negative_squared_cross_mark: Not invoking callout since its been less than 30 minutes since the last phone call"))
+			s.alert.SendAlert(ctx, chatid, emoji.Sprintf(":phone: :negative_squared_cross_mark: Not invoking callout since its been less than 30 minutes since the last phone call"))
 			return false
 		}
 	}

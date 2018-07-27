@@ -2,6 +2,7 @@ package prometheus
 
 import (
 	"github.com/go-kit/kit/log"
+	"golang.org/x/net/context"
 	"time"
 )
 
@@ -14,7 +15,7 @@ type loggingService struct {
 	Service
 }
 
-func (s *loggingService) sendPrometheusAlert(chat uint32, body string) (err error) {
+func (s *loggingService) sendPrometheusAlert(ctx context.Context, chat uint32, body string) (err error) {
 	defer func(begin time.Time) {
 		s.logger.Log(
 			"method", "sendPrometheusAlert",
@@ -24,6 +25,6 @@ func (s *loggingService) sendPrometheusAlert(chat uint32, body string) (err erro
 			"took", time.Since(begin),
 		)
 	}(time.Now())
-	return s.Service.sendPrometheusAlert(chat, body)
+	return s.Service.sendPrometheusAlert(ctx, chat, body)
 
 }

@@ -25,7 +25,7 @@ type Service interface {
 	addRecipeToGroup(ctx context.Context, group uint32, recipeName, friendlyName string) error
 
 	getEnvironmentForGroup(group uint32) ([]ChefEnvironment, error)
-	addEnvironmentToGroup(group uint32, name string, friendlyname string) error
+	addEnvironmentToGroup(ctx context.Context, group uint32, name string, friendlyname string) error
 }
 
 func NewService(alert alert.Service, chefStore Store) Service {
@@ -53,12 +53,12 @@ func (s *service) getEnvironmentForGroup(group uint32) ([]ChefEnvironment, error
 	return env, err
 }
 
-func (s *service) addEnvironmentToGroup(group uint32, name string, friendlyname string) error {
+func (s *service) addEnvironmentToGroup(ctx context.Context, group uint32, name string, friendlyname string) error {
 	err := s.chefStore.AddChefEnvironment(name, friendlyname, group)
 	if err != nil {
 		return err
 	}
-	s.alert.SendAlert(context.TODO(), group, emoji.Sprintf(":new: Chef Environment %v has been added to the group for monitoring. The friendly name for the recipe is %v", name, friendlyname))
+	s.alert.SendAlert(ctx, group, emoji.Sprintf(":new: Chef Environment %v has been added to the group for monitoring. The friendly name for the recipe is %v", name, friendlyname))
 	return nil
 }
 

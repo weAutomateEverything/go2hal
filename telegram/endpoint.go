@@ -25,7 +25,7 @@ type authResponse struct {
 func makeTelegramAuthRequestEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(authRequestObject)
-		token, err := s.requestAuthorisation(req.RoomId, req.Name)
+		token, err := s.requestAuthorisation(ctx, req.RoomId, req.Name)
 		if err != nil {
 			return
 		}

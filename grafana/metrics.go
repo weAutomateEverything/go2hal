@@ -2,6 +2,7 @@ package grafana
 
 import (
 	"github.com/go-kit/kit/metrics"
+	"golang.org/x/net/context"
 	"time"
 )
 
@@ -21,7 +22,7 @@ func NewInstrumentService(counter metrics.Counter, errorCounter metrics.Counter,
 	}
 }
 
-func (s *instrumentingService) sendGrafanaAlert(chat uint32, body string) (err error) {
+func (s *instrumentingService) sendGrafanaAlert(ctx context.Context, chat uint32, body string) (err error) {
 	defer func(begin time.Time) {
 		s.requestCount.With("method", "sendGrafanaAlert").Add(1)
 		if err != nil {
@@ -29,5 +30,5 @@ func (s *instrumentingService) sendGrafanaAlert(chat uint32, body string) (err e
 		}
 		s.requestLatency.With("method", "sendGrafanaAlert").Observe(time.Since(begin).Seconds())
 	}(time.Now())
-	return s.Service.sendGrafanaAlert(chat, body)
+	return s.Service.sendGrafanaAlert(ctx, chat, body)
 }

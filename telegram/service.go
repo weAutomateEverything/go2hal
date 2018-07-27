@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/aws/aws-xray-sdk-go/xray"
 	"github.com/weAutomateEverything/go2hal/auth"
 	"gopkg.in/telegram-bot-api.v4"
 	"io/ioutil"
@@ -25,7 +26,7 @@ type Service interface {
 	RegisterCommand(command Command)
 	RegisterCommandLet(commandlet Commandlet)
 
-	requestAuthorisation(chat uint32, name string) (string, error)
+	requestAuthorisation(ctx context.Context, chat uint32, name string) (string, error)
 	pollAuthorisation(token string) (uint32, error)
 }
 
@@ -33,12 +34,12 @@ type Command interface {
 	CommandIdentifier() string
 	CommandDescription() string
 	RestrictToAuthorised() bool
-	Execute(update tgbotapi.Update)
+	Execute(ctx context.Context, update tgbotapi.Update)
 }
 
 type Commandlet interface {
 	CanExecute(update tgbotapi.Update, state State) bool
-	Execute(update tgbotapi.Update, state State)
+	Execute(ctx context.Context, update tgbotapi.Update, state State)
 	NextState(update tgbotapi.Update, state State) string
 	Fields(update tgbotapi.Update, state State) []string
 }
@@ -168,12 +169,12 @@ func (s *service) SendKeyboard(ctx context.Context, buttons []string, text strin
 	return m.MessageID, nil
 }
 
-func (s service) requestAuthorisation(chat uint32, name string) (authtoken string, err error) {
+func (s service) requestAuthorisation(ctx context.Context, chat uint32, name string) (authtoken string, err error) {
 	room, err := s.store.GetRoomKey(chat)
 	if err != nil {
 		return
 	}
-	id, err := s.SendKeyboard(context.TODO(), []string{"Approve access", "Decline access"}, fmt.Sprintf("A user %v has requested access to edit the configuration for the room.", name), room)
+	id, err := s.SendKeyboard(ctx, []string{"Approve access", "Decline access"}, fmt.Sprintf("A user %v has requested access to edit the configuration for the room.", name), room)
 	if err != nil {
 		return "", err
 	}
@@ -282,16 +283,22 @@ func sendMessage(chatID int64, message string, messageID int, markup bool) (msgi
 }
 
 func (s service) executeCommand(update tgbotapi.Update) bool {
+	ctx, seg := xray.BeginSegment(context.Background(), "Telegram Command")
+	defer seg.Close(nil)
 	group, _ := s.store.GetUUID(update.Message.Chat.ID, update.Message.Chat.Title)
 	command := findCommand(update.Message.Command(), group)
 	if command != nil {
 		if command.RestrictToAuthorised() {
 			if !(s.authService.Authorize(strconv.Itoa(update.Message.From.ID))) {
-				s.SendMessage(context.TODO(), update.Message.Chat.ID, "You are not authorized to use this transaction.", update.Message.MessageID)
+				s.SendMessage(ctx, update.Message.Chat.ID, "You are not authorized to use this transaction.", update.Message.MessageID)
 				return false
 			}
 		}
-		go func() { command.Execute(update) }()
+		go func() {
+			ctx, subseg := xray.BeginSubsegment(ctx, command.CommandIdentifier())
+			command.Execute(ctx, update)
+			subseg.Close(nil)
+		}()
 		return true
 	}
 	return false
@@ -302,7 +309,9 @@ func (s service) executeCommandLet(update tgbotapi.Update) bool {
 	for _, c := range commandletList {
 		a := c()
 		if a.CanExecute(update, state) {
-			a.Execute(update, state)
+			ctx, seg := xray.BeginSegment(context.Background(), "commandlet")
+			defer seg.Close(nil)
+			a.Execute(ctx, update, state)
 			s.store.SetState(update.Message.From.ID, update.Message.Chat.ID, a.NextState(update, state), a.Fields(update, state))
 			return true
 		}
@@ -361,7 +370,7 @@ func (s *help) CommandDescription() string {
 	return "Gets list of commands"
 }
 
-func (s *help) Execute(update tgbotapi.Update) {
+func (s *help) Execute(ctx context.Context, update tgbotapi.Update) {
 	var buffer bytes.Buffer
 	for _, x := range getCommands() {
 		if x.Group != 0 {
@@ -379,7 +388,7 @@ func (s *help) Execute(update tgbotapi.Update) {
 		buffer.WriteString(x.Description)
 		buffer.WriteString("\n")
 	}
-	s.telegram.SendMessage(context.TODO(), update.Message.Chat.ID, buffer.String(), update.Message.MessageID)
+	s.telegram.SendMessage(ctx, update.Message.Chat.ID, buffer.String(), update.Message.MessageID)
 }
 
 func getCommands() []commandDescription {

@@ -9,6 +9,6 @@ import (
 func makeGrafanaAlertEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(string)
-		return nil, s.sendGrafanaAlert(gokit.GetChatId(ctx), req)
+		return nil, s.sendGrafanaAlert(ctx, gokit.GetChatId(ctx), req)
 	}
 }

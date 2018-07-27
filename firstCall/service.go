@@ -50,12 +50,12 @@ type defaultFirstCallService struct {
 	alert alert.Service
 }
 
-func (s *defaultFirstCallService) setDefaultCallout(chat uint32, number string) (err error) {
+func (s *defaultFirstCallService) setDefaultCallout(ctx context.Context, chat uint32, number string) (err error) {
 	err = s.store.setDefaultNumber(chat, number)
 	if err != nil {
 		return
 	}
-	s.alert.SendAlert(context.TODO(), chat, fmt.Sprintf("Default Callout for your group has been set to %v", number))
+	s.alert.SendAlert(ctx, chat, fmt.Sprintf("Default Callout for your group has been set to %v", number))
 	return
 }
 

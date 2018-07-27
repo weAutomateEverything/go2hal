@@ -501,10 +501,11 @@ func (h panicHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		err := recover()
 		if err != nil {
-
+			ctx, seg := xray.BeginSegment(context.Background(), "HAL Panic")
+			defer seg.Close(fmt.Errorf("%v", err))
 			err, ok := err.(error)
 			if ok {
-				h.alert.SendError(context.TODO(), fmt.Errorf("panic detected: %v \n %v", err.Error(), string(debug.Stack())))
+				h.alert.SendError(ctx, fmt.Errorf("panic detected: %v \n %v", err.Error(), string(debug.Stack())))
 			}
 		}
 	}()

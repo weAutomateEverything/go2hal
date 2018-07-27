@@ -2,6 +2,7 @@ package remoteTelegramCommands
 
 import (
 	"github.com/weAutomateEverything/go2hal/telegram"
+	"golang.org/x/net/context"
 	"gopkg.in/telegram-bot-api.v4"
 	"strconv"
 	"time"
@@ -49,7 +50,7 @@ func (s remoteCommand) GetCommandGroup() uint32 {
 	return s.grounp
 }
 
-func (s remoteCommand) Execute(update tgbotapi.Update) {
+func (s remoteCommand) Execute(ctx context.Context, update tgbotapi.Update) {
 	request := RemoteRequest{Message: update.Message.CommandArguments(), From: strconv.FormatInt(int64(update.Message.From.ID), 10)}
 	s.remote.Send(&request)
 }
