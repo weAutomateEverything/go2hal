@@ -42,7 +42,7 @@ func (s *calloutService) AddCalloutFunc(function CalloutFunction) {
 
 //-----
 type DefaultCalloutService interface {
-	setDefaultCallout(chat uint32, number string) error
+	setDefaultCallout(ctx context.Context, chat uint32, number string) error
 }
 
 type defaultFirstCallService struct {
