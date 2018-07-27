@@ -68,7 +68,7 @@ func makeAddAppdynamicsEndpoint(s Service) endpoint.Endpoint {
 func makeAddAppdynamicsQueueEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(AddAppdynamicsQueueEndpointRequest)
-		return nil, s.addAppDynamicsQueue(gokit.GetChatId(ctx), req.Name, req.Application, req.Metricpath)
+		return nil, s.addAppDynamicsQueue(ctx, gokit.GetChatId(ctx), req.Name, req.Application, req.Metricpath)
 	}
 }
 func makExecuteCommandFromAppdynamics(s Service) endpoint.Endpoint {

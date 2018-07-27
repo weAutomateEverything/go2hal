@@ -9,6 +9,6 @@ import (
 func makePrometheusAlertEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		msg := request.(string)
-		return nil, s.sendPrometheusAlert(gokit.GetChatId(ctx), msg)
+		return nil, s.sendPrometheusAlert(ctx, gokit.GetChatId(ctx), msg)
 	}
 }

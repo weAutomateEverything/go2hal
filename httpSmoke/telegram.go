@@ -31,7 +31,7 @@ func (quietHttpAlertsCommand) CommandDescription() string {
 	return "Disables smoke alerts. The http checks will still run, and in the event it succeeds an alert will still be sent. Add an integer value to set the amount of time the alert will be quiet for"
 }
 
-func (s *quietHttpAlertsCommand) Execute(update tgbotapi.Update) {
+func (s *quietHttpAlertsCommand) Execute(ctx context.Context, update tgbotapi.Update) {
 	arg := update.Message.CommandArguments()
 	if arg == "" {
 		arg = "30"
@@ -39,9 +39,9 @@ func (s *quietHttpAlertsCommand) Execute(update tgbotapi.Update) {
 
 	interval, err := strconv.ParseInt(arg, 10, 16)
 	if err != nil {
-		s.telegramService.SendMessage(context.TODO(), update.Message.Chat.ID, fmt.Sprintf("unable to use %v as an integer value", arg), update.Message.MessageID)
+		s.telegramService.SendMessage(ctx, update.Message.Chat.ID, fmt.Sprintf("unable to use %v as an integer value", arg), update.Message.MessageID)
 		return
 	}
 	s.service.setTimeOut(interval)
-	s.telegramService.SendMessage(context.TODO(), update.Message.Chat.ID, emoji.Sprintf(":zzz: smoke tests will now sleep for %v minutes", arg), update.Message.MessageID)
+	s.telegramService.SendMessage(ctx, update.Message.Chat.ID, emoji.Sprintf(":zzz: smoke tests will now sleep for %v minutes", arg), update.Message.MessageID)
 }

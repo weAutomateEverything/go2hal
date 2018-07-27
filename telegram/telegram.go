@@ -22,14 +22,14 @@ func (s approveAuth) CanExecute(update tgbotapi.Update, state State) bool {
 	return update.Message.Text == "Approve access" && update.Message.ReplyToMessage != nil
 }
 
-func (s approveAuth) Execute(update tgbotapi.Update, state State) {
+func (s approveAuth) Execute(ctx context.Context, update tgbotapi.Update, state State) {
 	err := s.approveAuthRequest(update.Message.ReplyToMessage.MessageID, update.Message.Chat.ID, update.Message.From.UserName, update.Message.From.ID)
 	if err != nil {
-		s.SendMessagePlainText(context.TODO(), update.Message.Chat.ID,
+		s.SendMessagePlainText(ctx, update.Message.Chat.ID,
 			fmt.Sprintf("There was an error approving your request. %v", err.Error()), update.Message.MessageID)
 
 	} else {
-		s.SendMessagePlainText(context.TODO(), update.Message.Chat.ID,
+		s.SendMessagePlainText(ctx, update.Message.Chat.ID,
 			"The access request was successfully approved", update.Message.MessageID)
 	}
 }
@@ -68,11 +68,11 @@ func (id) RestrictToAuthorised() bool {
 	return false
 }
 
-func (s id) Execute(update tgbotapi.Update) {
+func (s id) Execute(ctx context.Context, update tgbotapi.Update) {
 	id, err := s.store.GetUUID(update.Message.Chat.ID, update.Message.Chat.Title)
 	if err != nil {
-		s.telegram.SendMessage(context.TODO(), update.Message.Chat.ID, fmt.Sprintf("There was an error fetching your group %v", err.Error()), update.Message.MessageID)
+		s.telegram.SendMessage(ctx, update.Message.Chat.ID, fmt.Sprintf("There was an error fetching your group %v", err.Error()), update.Message.MessageID)
 	} else {
-		s.telegram.SendMessage(context.TODO(), update.Message.Chat.ID, fmt.Sprintf("The group ID is %v", id), update.Message.MessageID)
+		s.telegram.SendMessage(ctx, update.Message.Chat.ID, fmt.Sprintf("The group ID is %v", id), update.Message.MessageID)
 	}
 }

@@ -2,6 +2,7 @@ package grafana
 
 import (
 	"github.com/go-kit/kit/log"
+	"golang.org/x/net/context"
 	"time"
 )
 
@@ -14,7 +15,7 @@ type loggingService struct {
 	Service
 }
 
-func (s *loggingService) sendGrafanaAlert(chat uint32, body string) (err error) {
+func (s *loggingService) sendGrafanaAlert(ctx context.Context, chat uint32, body string) (err error) {
 	defer func(begin time.Time) {
 		s.logger.Log(
 			"method", "sendGrafanaAlert",
@@ -24,6 +25,6 @@ func (s *loggingService) sendGrafanaAlert(chat uint32, body string) (err error) 
 			"took", time.Since(begin),
 		)
 	}(time.Now())
-	return s.Service.sendGrafanaAlert(chat, body)
+	return s.Service.sendGrafanaAlert(ctx, chat, body)
 
 }

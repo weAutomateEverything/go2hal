@@ -37,19 +37,19 @@ func (s *whosOnFirstCall) CommandDescription() string {
 	return "Who is on first call?"
 }
 
-func (s *whosOnFirstCall) Execute(update tgbotapi.Update) {
+func (s *whosOnFirstCall) Execute(ctx context.Context, update tgbotapi.Update) {
 	uuid, err := s.telegramStore.GetUUID(update.Message.Chat.ID, update.Message.Chat.Title)
 	if err != nil {
-		s.alert.SendError(context.TODO(), err)
+		s.alert.SendError(ctx, err)
 		return
 	}
-	name, phone, err := s.service.GetFirstCall(context.TODO(), uuid)
+	name, phone, err := s.service.GetFirstCall(ctx, uuid)
 	if err != nil {
-		s.alert.SendError(context.TODO(), err)
-		s.telegram.SendMessagePlainText(context.TODO(), update.Message.Chat.ID,
+		s.alert.SendError(ctx, err)
+		s.telegram.SendMessagePlainText(ctx, update.Message.Chat.ID,
 			fmt.Sprintf("There was an error fetching your firstcall details. %v", err.Error()),
 			update.Message.MessageID)
 		return
 	}
-	s.telegram.SendMessage(context.TODO(), update.Message.Chat.ID, fmt.Sprintf("%s is on first call. Number %v", name, phone), update.Message.MessageID)
+	s.telegram.SendMessage(ctx, update.Message.Chat.ID, fmt.Sprintf("%s is on first call. Number %v", name, phone), update.Message.MessageID)
 }

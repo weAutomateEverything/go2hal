@@ -37,7 +37,7 @@ func (s *loggingService) addAppdynamicsEndpoint(chat uint32, endpoint string) (e
 	}(time.Now())
 	return s.Service.addAppdynamicsEndpoint(chat, endpoint)
 }
-func (s *loggingService) addAppDynamicsQueue(chatId uint32, name, application, metricPath string) (err error) {
+func (s *loggingService) addAppDynamicsQueue(ctx context.Context, chatId uint32, name, application, metricPath string) (err error) {
 	defer func(begin time.Time) {
 		s.logger.Log(
 			"method", "add appdynamics queue",
@@ -49,7 +49,7 @@ func (s *loggingService) addAppDynamicsQueue(chatId uint32, name, application, m
 			"took", time.Since(begin),
 		)
 	}(time.Now())
-	return s.Service.addAppDynamicsQueue(chatId, name, application, metricPath)
+	return s.Service.addAppDynamicsQueue(ctx, chatId, name, application, metricPath)
 }
 func (s *loggingService) executeCommandFromAppd(ctx context.Context, chatId uint32, commandName, applicationID, nodeID string) (err error) {
 	defer func(begin time.Time) {
