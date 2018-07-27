@@ -32,7 +32,7 @@ func makeSetDefaultCalloutEndpoint(s DefaultCalloutService) endpoint.Endpoint {
 			return
 
 		}
-		err = s.setDefaultCallout(claim.RoomToken, req.PhoneNumber)
+		err = s.setDefaultCallout(ctx, claim.RoomToken, req.PhoneNumber)
 		return
 	}
 }
