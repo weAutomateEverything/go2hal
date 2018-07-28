@@ -42,7 +42,7 @@ func (s *service) sendAppdynamicsAlert(ctx context.Context, chatId uint32, messa
 
 	var m appdynamicsMessage
 
-	err := json.Unmarshal([]byte(message), m)
+	err := json.Unmarshal([]byte(message), &m)
 
 	if err != nil {
 		xray.AddError(ctx, err)
