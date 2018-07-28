@@ -63,7 +63,7 @@ func (s *service) SendAlert(ctx context.Context, chatId uint32, destination stri
 		SourcePhoneNumber:      aws.String(getSourcePhoneNumber()),
 		Attributes:             v,
 	}
-	output, err := outbound.StartOutboundVoiceContact(&req)
+	output, err := outbound.StartOutboundVoiceContactWithContext(ctx, &req)
 	if err != nil {
 		s.alert.SendError(ctx, fmt.Errorf("error invoking alexa to call %v on %v. Error: %v", name, destination, err.Error()))
 		return err

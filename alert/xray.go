@@ -6,51 +6,49 @@ import (
 )
 
 func NewXray(s Service) Service {
-	return &s_xray{
+	return &sXray{
 		s,
 	}
 }
 
-type s_xray struct {
+type sXray struct {
 	Service
 }
 
-func (s s_xray) SendAlert(ctx context.Context, chatId uint32, message string) (err error) {
-	ctx, seg := xray.BeginSubsegment(ctx, "SendAlert")
-	defer func() {
-		seg.Close(err)
-	}()
-	return s.Service.SendAlert(ctx, chatId, message)
+func (s sXray) SendAlert(ctx context.Context, chatId uint32, message string) (err error) {
+	return xray.Capture(ctx, "alert.SendAlert", func(ctx context.Context) error {
+		xray.AddMetadata(ctx, "chat", chatId)
+		xray.AddMetadata(ctx, "message", message)
+		return s.Service.SendAlert(ctx, chatId, message)
+	})
+
 }
 
-func (s s_xray) SendImageToAlertGroup(ctx context.Context, chatid uint32, image []byte) (err error) {
-	ctx, seg := xray.BeginSubsegment(ctx, "SendImageToAlertGroup")
-	defer func() {
-		seg.Close(err)
-	}()
-	return s.Service.SendImageToAlertGroup(ctx, chatid, image)
+func (s sXray) SendImageToAlertGroup(ctx context.Context, chatid uint32, image []byte) (err error) {
+	return xray.Capture(ctx, "alert.SendImageToAlertGroup", func(ctx context.Context) error {
+		xray.AddMetadata(ctx, "chatid", chatid)
+		return s.Service.SendImageToAlertGroup(ctx, chatid, image)
+	})
 }
 
-func (s s_xray) SendDocumentToAlertGroup(ctx context.Context, chatid uint32, document []byte, extension string) (err error) {
-	ctx, seg := xray.BeginSubsegment(ctx, "SendDocumentToAlertGroup")
-	defer func() {
-		seg.Close(err)
-	}()
-	return s.Service.SendDocumentToAlertGroup(ctx, chatid, document, extension)
+func (s sXray) SendDocumentToAlertGroup(ctx context.Context, chatid uint32, document []byte, extension string) (err error) {
+	return xray.Capture(ctx, "alert.SendDocumentToAlertGroup", func(ctx context.Context) error {
+		xray.AddMetadata(ctx, "chat", chatid)
+		xray.AddMetadata(ctx, "extension", extension)
+		return s.Service.SendDocumentToAlertGroup(ctx, chatid, document, extension)
+	})
 }
 
-func (s s_xray) SendError(ctx context.Context, err error) (errout error) {
-	ctx, seg := xray.BeginSubsegment(ctx, "SendError")
-	defer func() {
-		seg.Close(errout)
-	}()
-	return s.Service.SendError(ctx, err)
+func (s sXray) SendError(ctx context.Context, err error) (errout error) {
+	return xray.Capture(ctx, "alert.SendError", func(ctx context.Context) error {
+		xray.AddMetadata(ctx, "err", err)
+		return s.Service.SendError(ctx, err)
+
+	})
 }
 
-func (s s_xray) SendErrorImage(ctx context.Context, image []byte) (err error) {
-	ctx, seg := xray.BeginSubsegment(ctx, "SendErrorImage")
-	defer func() {
-		seg.Close(err)
-	}()
-	return s.Service.SendErrorImage(ctx, image)
+func (s sXray) SendErrorImage(ctx context.Context, image []byte) (err error) {
+	return xray.Capture(ctx, "alert.SendErrorImage", func(ctx context.Context) error {
+		return s.Service.SendErrorImage(ctx, image)
+	})
 }
