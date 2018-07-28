@@ -53,8 +53,7 @@ type BusinessAlertRequest struct {
 func makeAppDynamicsAlertEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(string)
-		s.sendAppdynamicsAlert(ctx, gokit.GetChatId(ctx), req)
-		return nil, nil
+		return nil, s.sendAppdynamicsAlert(ctx, gokit.GetChatId(ctx), req)
 	}
 }
 

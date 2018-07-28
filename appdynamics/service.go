@@ -19,7 +19,7 @@ import (
 )
 
 type Service interface {
-	sendAppdynamicsAlert(ctx context.Context, chatId uint32, message string)
+	sendAppdynamicsAlert(ctx context.Context, chatId uint32, message string) error
 	addAppdynamicsEndpoint(chat uint32, endpoint string) error
 	addAppDynamicsQueue(ctx context.Context, chatId uint32, name, application, metricPath string) error
 	executeCommandFromAppd(ctx context.Context, chatId uint32, commandName, applicationID, nodeID string) error
@@ -38,15 +38,16 @@ func NewService(alertService alert.Service, sshservice ssh.Service, store Store)
 	return &service{alert: alertService, ssh: sshservice, store: store}
 }
 
-func (s *service) sendAppdynamicsAlert(ctx context.Context, chatId uint32, message string) {
+func (s *service) sendAppdynamicsAlert(ctx context.Context, chatId uint32, message string) error {
 
 	var m appdynamicsMessage
 
 	err := json.Unmarshal([]byte(message), m)
 
 	if err != nil {
-		s.alert.SendError(ctx, fmt.Errorf("error unmarshalling App Dynamics Message: %s", message))
-		return
+		xray.AddError(ctx, err)
+		s.alert.SendError(ctx, fmt.Errorf("error unmarshalling App Dynamics Message: %s. error: %v", message, err))
+		return err
 	}
 
 	for _, event := range m.Events {
@@ -84,8 +85,12 @@ func (s *service) sendAppdynamicsAlert(ctx context.Context, chatId uint32, messa
 		}
 
 		log.Printf("Sending Alert %s", buffer.String())
-		s.alert.SendAlert(ctx, chatId, buffer.String())
+		tmperr := s.alert.SendAlert(ctx, chatId, buffer.String())
+		if tmperr != nil {
+			err = tmperr
+		}
 	}
+	return err
 }
 
 func (s *service) addAppdynamicsEndpoint(chat uint32, endpoint string) error {
