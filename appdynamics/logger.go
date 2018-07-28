@@ -15,16 +15,17 @@ func NewLoggingService(logger log.Logger, s Service) Service {
 	return &loggingService{logger, s}
 }
 
-func (s *loggingService) sendAppdynamicsAlert(ctx context.Context, chatId uint32, message string) {
+func (s *loggingService) sendAppdynamicsAlert(ctx context.Context, chatId uint32, message string) (err error) {
 	defer func(begin time.Time) {
 		s.logger.Log(
 			"method", "send appdynamics alert",
 			"message", message,
 			"chat", chatId,
+			"error", err,
 			"took", time.Since(begin),
 		)
 	}(time.Now())
-	s.Service.sendAppdynamicsAlert(ctx, chatId, message)
+	return s.Service.sendAppdynamicsAlert(ctx, chatId, message)
 }
 func (s *loggingService) addAppdynamicsEndpoint(chat uint32, endpoint string) (err error) {
 	defer func(begin time.Time) {
