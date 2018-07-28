@@ -16,40 +16,52 @@ type sXray struct {
 }
 
 func (s sXray) SendMessage(ctx context.Context, chatID int64, message string, messageID int) (msgid int, err error) {
-	ctx, seg := xray.BeginSubsegment(ctx, "SendMessage")
-	defer func() {
-		seg.Close(err)
-	}()
-	return s.Service.SendMessage(ctx, chatID, message, messageID)
+	xray.Capture(ctx, "telegram.SendMessage", func(ctx context.Context) error {
+		xray.AddMetadata(ctx, "chat", chatID)
+		xray.AddMetadata(ctx, "message", message)
+		xray.AddMetadata(ctx, "messageid", messageID)
+		msgid, err = s.Service.SendMessage(ctx, chatID, message, messageID)
+		return err
+	})
+	return
 }
 func (s sXray) SendMessagePlainText(ctx context.Context, chatID int64, message string, messageID int) (msgid int, err error) {
-	ctx, seg := xray.BeginSubsegment(ctx, "SendMessagePlainText")
-	defer func() {
-		seg.Close(err)
-	}()
-	return s.Service.SendMessagePlainText(ctx, chatID, message, messageID)
+	xray.Capture(ctx, "telegram.SendMessagePlainText", func(ctx context.Context) error {
+		xray.AddMetadata(ctx, "chatid", chatID)
+		xray.AddMetadata(ctx, "message", message)
+		xray.AddMetadata(ctx, "messageid", messageID)
+		msgid, err = s.Service.SendMessagePlainText(ctx, chatID, message, messageID)
+		return err
+	})
+	return
 }
 func (s sXray) SendImageToGroup(ctx context.Context, image []byte, group int64) (err error) {
-	ctx, seg := xray.BeginSubsegment(ctx, "SendImageToGroup")
-	defer func() {
-		seg.Close(err)
-	}()
-	return s.Service.SendImageToGroup(ctx, image, group)
+	return xray.Capture(ctx, "telegram.SendImageToGroup", func(ctx context.Context) error {
+		xray.AddMetadata(ctx, "group", group)
+		return s.Service.SendImageToGroup(ctx, image, group)
+
+	})
+
 }
 func (s sXray) SendDocumentToGroup(ctx context.Context, document []byte, extension string, group int64) (err error) {
-	ctx, seg := xray.BeginSubsegment(ctx, "SendDocumentToGroup")
-	defer func() {
-		seg.Close(err)
-	}()
-	return s.Service.SendDocumentToGroup(ctx, document, extension, group)
+	return xray.Capture(ctx, "telegram.SendDocumentToGroup", func(ctx context.Context) error {
+		xray.AddMetadata(ctx, "extension", extension)
+		xray.AddMetadata(ctx, "group", group)
+		return s.Service.SendDocumentToGroup(ctx, document, extension, group)
+	})
+
 }
 
 func (s sXray) SendKeyboard(ctx context.Context, buttons []string, text string, chat int64) (message int, err error) {
-	ctx, seg := xray.BeginSubsegment(ctx, "SendKeyboard")
-	defer func() {
-		seg.Close(err)
-	}()
-	return s.Service.SendKeyboard(ctx, buttons, text, chat)
+	xray.Capture(ctx, "telegram.SendKeyboard", func(ctx context.Context) error {
+		xray.AddMetadata(ctx, "buttons", buttons)
+		xray.AddMetadata(ctx, "text", text)
+		xray.AddMetadata(ctx, "chat", chat)
+		message, err = s.Service.SendKeyboard(ctx, buttons, text, chat)
+		return err
+	})
+	return
+
 }
 func (s sXray) RegisterCommand(command Command) {
 	s.Service.RegisterCommand(command)

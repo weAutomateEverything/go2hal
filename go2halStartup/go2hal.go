@@ -37,6 +37,7 @@ import (
 	"runtime/debug"
 	"syscall"
 
+	"github.com/aws/aws-xray-sdk-go/strategy/sampling"
 	"github.com/aws/aws-xray-sdk-go/xray"
 	kitprometheus "github.com/go-kit/kit/metrics/prometheus"
 	stdprometheus "github.com/prometheus/client_golang/prometheus"
@@ -122,12 +123,21 @@ func (go2hal *Go2Hal) Start() {
 
 func NewGo2Hal() Go2Hal {
 	if os.Getenv("XRAY_URL") != "" {
+
+		ss, err := sampling.NewLocalizedStrategyFromFilePath("/sampling-rules.json")
+
+		if err != nil {
+			panic(err)
+		}
+
 		//XRAY
 		xray.Configure(xray.Config{
-			DaemonAddr:     os.Getenv("XRAY_URL"), // default
-			LogLevel:       "info",                // default
-			ServiceVersion: "1.2.3",
+			DaemonAddr:       os.Getenv("XRAY_URL"), // default
+			LogLevel:         "info",                // default
+			ServiceVersion:   "1.2.3",
+			SamplingStrategy: ss,
 		})
+
 	}
 
 	go2hal := Go2Hal{}
@@ -279,6 +289,7 @@ func NewGo2Hal() Go2Hal {
 		}, fieldKeys), go2hal.SNMPService)
 
 	go2hal.AWSService = halaws.NewService(go2hal.AlertService)
+	go2hal.AWSService = halaws.NewXray(go2hal.AWSService)
 	go2hal.AWSService = halaws.NewLoggingService(log.With(go2hal.Logger, "component", "halaws"), go2hal.AWSService)
 	go2hal.AWSService = halaws.NewInstrumentService(kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
 		Namespace: "api",
