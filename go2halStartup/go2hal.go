@@ -123,11 +123,11 @@ func (go2hal *Go2Hal) Start() {
 
 func NewGo2Hal() Go2Hal {
 	if os.Getenv("XRAY_URL") != "" {
-
-		ss, err := sampling.NewLocalizedStrategyFromFilePath("/sampling-rules.json")
-
-		if err != nil {
-			panic(err)
+		var ss *sampling.LocalizedStrategy
+		if os.Getenv("XRAY_SAMPLING_RULES") != "" {
+			ss = getSampleStratergyFromFile()
+		} else {
+			ss = getDefaultSampleStratergy()
 		}
 
 		//XRAY
@@ -500,6 +500,22 @@ func accessControl(h http.Handler) http.Handler {
 
 		h.ServeHTTP(w, r)
 	})
+}
+
+func getSampleStratergyFromFile() *sampling.LocalizedStrategy {
+	ss, err := sampling.NewLocalizedStrategyFromFilePath(os.Getenv("XRAY_SAMPLING_RULES"))
+	if err != nil {
+		panic(err)
+	}
+	return ss
+}
+
+func getDefaultSampleStratergy() *sampling.LocalizedStrategy {
+	ss, err := sampling.NewLocalizedStrategy()
+	if err != nil {
+		panic(err)
+	}
+	return ss
 }
 
 type panicHandler struct {
