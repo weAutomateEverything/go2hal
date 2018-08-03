@@ -110,9 +110,7 @@ func (s *service) monitorEndpoints() {
 
 func (s *service) checkHTTP(endpoint httpEndpoint) {
 	ctx, seg := xray.BeginSegment(context.Background(), "httpSmoke")
-	ctx, subSeg := xray.BeginSubsegment(ctx, endpoint.Name)
 	var err error
-	defer subSeg.Close(err)
 	defer seg.Close(err)
 
 	response, err := s.doHTTPEndpoint(ctx, endpoint)
@@ -183,7 +181,9 @@ func (s *service) checkTimeout(ctx context.Context, chat uint32, msg string) {
 	}
 }
 
-func (s service) doHTTPEndpoint(ctx context.Context, endpoint httpEndpoint) (*http.Response, error) {
+func (s service) doHTTPEndpoint(ctx context.Context, endpoint httpEndpoint) (resp *http.Response, err error) {
+	ctx, subseg := xray.BeginSubsegment(ctx, endpoint.Name)
+	defer subseg.Close(err)
 	switch method := strings.ToUpper(endpoint.Method); method {
 	case "POST":
 		if len(endpoint.Parameters) > 1 {
