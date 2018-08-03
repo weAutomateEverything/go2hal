@@ -112,8 +112,8 @@ func (s *service) checkHTTP(endpoint httpEndpoint) {
 	ctx, seg := xray.BeginSegment(context.Background(), "httpSmoke")
 	ctx, subSeg := xray.BeginSubsegment(ctx, endpoint.Name)
 	var err error
-	defer seg.Close(err)
 	defer subSeg.Close(err)
+	defer seg.Close(err)
 
 	response, err := s.doHTTPEndpoint(ctx, endpoint)
 	s.checkCount.With("endpoint", endpoint.Name).Add(1)
