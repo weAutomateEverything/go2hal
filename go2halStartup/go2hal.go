@@ -120,6 +120,7 @@ func (go2hal *Go2Hal) Start() {
 		signal.Notify(c, syscall.SIGINT)
 		errs <- fmt.Errorf("%s", <-c)
 	}()
+	go2hal.Logger.Log(http.ListenAndServe("localhost:6060", nil))
 	go2hal.Logger.Log("terminated", <-go2hal.Err)
 }
 
