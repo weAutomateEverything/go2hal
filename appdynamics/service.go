@@ -99,7 +99,7 @@ func (s *service) addAppdynamicsEndpoint(chat uint32, endpoint string) error {
 
 func (s *service) addAppDynamicsQueue(ctx context.Context, chatId uint32, name, application, metricPath string) error {
 	endpointObject := MqEndpoint{MetricPath: metricPath, Application: application, Name: name}
-	err := checkQueues(ctx, endpointObject, s.alert, s.store, chatId)
+	err := checkQueues(endpointObject, s.alert, s.store, chatId)
 	if err != nil {
 		return err
 	}
@@ -124,9 +124,7 @@ func monitorAppdynamicsQueue(s Store, a alert.Service) {
 		} else {
 			for _, endpoint := range endpoints {
 				for _, queue := range endpoint.MqEndpoints {
-					ctx, seg := xray.BeginSegment(context.Background(), "MQ Endpoint "+queue.Name)
-					checkQueues(ctx, queue, a, s, endpoint.ChatId)
-					seg.Close(nil)
+					checkQueues(queue, a, s, endpoint.ChatId)
 				}
 			}
 		}
@@ -134,7 +132,9 @@ func monitorAppdynamicsQueue(s Store, a alert.Service) {
 	}
 }
 
-func checkQueues(ctx context.Context, endpoint MqEndpoint, a alert.Service, s Store, chat uint32) error {
+func checkQueues(endpoint MqEndpoint, a alert.Service, s Store, chat uint32) (err error) {
+	ctx, seg := xray.BeginSegment(context.Background(), "MQ Endpoint "+endpoint.Name)
+	defer seg.Close(err)
 
 	response, err := doGet(ctx, buildQueryString(endpoint), s, a, chat)
 	if err != nil {
