@@ -47,8 +47,8 @@ func (s *instrumentingService) SendImageToAlertGroup(ctx context.Context, chatId
 
 func (s *instrumentingService) SendError(ctx context.Context, err error) error {
 	defer func(begin time.Time) {
-		s.requestCount.With("method", "send_error").Add(1)
-		s.requestLatency.With("method", "send_error").Observe(time.Since(begin).Seconds())
+		s.requestCount.With("method", "send_error", "chat", "").Add(1)
+		s.requestLatency.With("method", "send_error", "chat", "").Observe(time.Since(begin).Seconds())
 	}(time.Now())
 	return s.Service.SendError(ctx, err)
 }
