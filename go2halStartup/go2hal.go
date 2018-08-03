@@ -43,6 +43,7 @@ import (
 	stdprometheus "github.com/prometheus/client_golang/prometheus"
 	"github.com/weAutomateEverything/go2hal/grafana"
 	"github.com/weAutomateEverything/go2hal/prometheus"
+	"github.com/weAutomateEverything/mockXray"
 )
 
 type Go2Hal struct {
@@ -138,6 +139,8 @@ func NewGo2Hal() Go2Hal {
 			SamplingStrategy: ss,
 		})
 
+	} else {
+		mockXray.StartMockXrayServer()
 	}
 
 	go2hal := Go2Hal{}
@@ -199,19 +202,19 @@ func NewGo2Hal() Go2Hal {
 		Subsystem: "alert_service",
 		Name:      "request_count",
 		Help:      "Number of requests received.",
-	}, fieldKeys),
+	}, []string{"method", "chat"}),
 		kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
 			Namespace: "api",
 			Subsystem: "alert_service",
 			Name:      "error_count",
 			Help:      "Number of errors encountered.",
-		}, fieldKeys),
+		}, []string{"method", "chat"}),
 		kitprometheus.NewSummaryFrom(stdprometheus.SummaryOpts{
 			Namespace: "api",
 			Subsystem: "alert_service",
 			Name:      "request_latency_microseconds",
 			Help:      "Total duration of requests in microseconds.",
-		}, fieldKeys), go2hal.AlertService)
+		}, []string{"method", "chat"}), go2hal.AlertService)
 
 	go2hal.JiraService = jira.NewService(go2hal.AlertService, go2hal.UserStore)
 	go2hal.JiraService = jira.NewLoggingService(log.With(go2hal.Logger, "component", "jira"), go2hal.JiraService)

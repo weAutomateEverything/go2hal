@@ -11,18 +11,34 @@ the main.go provided here uses all the modules, wrapped in gokit proetheus instr
 Refer to the readme.md for each Module
 
 ## Getting Started
-Install a mongo DB locally. By Default, HAL will look for a mongo database on localhost.
+Simply Configure the environment variables and execute main.go
 
-Once up and running, you can add the bot to any group. Once its added to a group a ID will be provided with you
-can use within the restful services provied
+At present, HAL uses Mongo has its datastore.
 
-Run the HAL executable
+### Important Environment Variables
 
-Below is an example of the Environment variables I have setup on GoLand. The only one thats really important is the BOT_KEY, the rest are used within the submodules of HAL. Reffer to each sub modules README.md for more details.
-![golang env](docs/golang-env.png "Golang Environment Variables")
+#### Telegram
+
+BOT_KEY - The key from botfather. Required.
+
+#### Mongo
+If Mongo is running on localhost via the standard port and no authentiation,
+then the mongo environment variables has be left blank
+
+#### XRay
+If you want to instrument your application with Amazon AWS Xray
+
+* XRAY_URL  - XRAL Daemon URL. Optional
+* XRAY_SAMPLING_RULES - Location of a XRay Sampling JSON File. Optional
+
+
+
+
 
 
 ## Modules
+
+Reffer to the README.md within each of the subdirectories for more details on the module
 
 ### Telegram Service
 
