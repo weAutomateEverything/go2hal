@@ -11,7 +11,8 @@ env:
 phases:
   install:
     commands:
-    - go get github.com/weautomateeverything/gohal
+    - printenv
+    - go get github.com/weautomateeverything/go2hal
   pre_build:
     commands:
 
