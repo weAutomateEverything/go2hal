@@ -1,19 +1,10 @@
 version: 0.2
 
-env:
-  variables:
-    DOCKER_USERNAME: weautomateeverything
-    IMAGE_NAME: weautomateeverything/go2hal
-
-  parameter-store:
-    DOCKER_PASSWORD: docker_password
-
 phases:
   install:
     commands:
-    - printenv
-    - ls -al
-    - go get github.com/weautomateeverything/go2hal
+    - mkdir -p $GOPATH/src/github.com/weautomateeverything/go2hal
+    - cp -R * $GOPATH/src/github.com/weautomateeverything/go2hal
   pre_build:
     commands:
 
@@ -21,6 +12,7 @@ phases:
 
   build:
     commands:
+    - cd $GOPATH/src/github.com/weautomateeverything/go2hal
     - CGO_ENABLED=1 GOOS=linux go build -o ./go2hal .
     - swagger generate spec -m -o ./swagger.json
   post_build:
@@ -30,8 +22,8 @@ phases:
 
 artifacts:
   files:
-  - go2hal
-  - swagger.json
+  - $GOPATH/src/github.com/weautomateeverything/go2hal/go2hal
+  - $GOPATH/src/github.com/weautomateeverything/go2hal/swagger.json
   - Dockerfile
 cache:
   paths:
