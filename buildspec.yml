@@ -1,0 +1,38 @@
+version: 0.2
+
+env:
+  variables:
+    DOCKER_USERNAME: weautomateeverything
+    IMAGE_NAME: weautomateeverything/go2hal
+
+  parameter-store:
+    DOCKER_PASSWORD: docker_password
+
+phases:
+  install:
+    commands:
+    - go get
+    - wget https://s3-eu-west-1.amazonaws.com/hal-artifacts/docker_push.sh
+    - chmod +x docker_push.sh
+  pre_build:
+    commands:
+
+    finally:
+
+  build:
+    commands:
+    - CGO_ENABLED=1 GOOS=linux go build -o go2hal .
+    - swagger generate spec -m -o ./swagger.json
+    - ./docker_push.sh
+  post_build:
+    commands:
+
+    finally:
+
+artifacts:
+  files:
+  - go2hal
+  discard-paths: yes
+  base-directory: location
+cache:
+  paths:

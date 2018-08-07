@@ -1,15 +1,15 @@
 package httpSmoke
 
 import (
+	appd "appdynamics"
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/aws/aws-xray-sdk-go/xray"
 	"github.com/go-kit/kit/metrics"
 	"github.com/weAutomateEverything/go2hal/alert"
+	"github.com/weAutomateEverything/go2hal/appdynamics/util"
 	"github.com/weAutomateEverything/go2hal/callout"
 	"golang.org/x/net/context"
-	"golang.org/x/net/context/ctxhttp"
 	"gopkg.in/kyokomi/emoji.v1"
 	"io/ioutil"
 	"log"
@@ -109,11 +109,8 @@ func (s *service) monitorEndpoints() {
 }
 
 func (s *service) checkHTTP(endpoint httpEndpoint) {
-	ctx, seg := xray.BeginSegment(context.Background(), "httpSmoke")
-	ctx, subSeg := xray.BeginSubsegment(ctx, endpoint.Name)
-	var err error
-	defer subSeg.Close(err)
-	defer seg.Close(err)
+	seg, ctx := util.Start("HTTP Smoke", "")
+	defer appd.EndBT(seg)
 
 	response, err := s.doHTTPEndpoint(ctx, endpoint)
 	s.checkCount.With("endpoint", endpoint.Name).Add(1)
@@ -183,7 +180,11 @@ func (s *service) checkTimeout(ctx context.Context, chat uint32, msg string) {
 	}
 }
 
-func (s service) doHTTPEndpoint(ctx context.Context, endpoint httpEndpoint) (*http.Response, error) {
+func (s service) doHTTPEndpoint(ctx context.Context, endpoint httpEndpoint) (resp *http.Response, err error) {
+	appd.AddBackend(endpoint.Name, appd.APPD_BACKEND_HTTP, map[string]string{"URL": endpoint.Endpoint}, false)
+	handle := appd.GetBT(util.GetAppdUUID(ctx))
+
+	var request *http.Request
 	switch method := strings.ToUpper(endpoint.Method); method {
 	case "POST":
 		if len(endpoint.Parameters) > 1 {
@@ -194,17 +195,32 @@ func (s service) doHTTPEndpoint(ctx context.Context, endpoint httpEndpoint) (*ht
 			body = endpoint.Parameters[0].Value
 		}
 
-		return ctxhttp.Post(ctx, xray.Client(nil), endpoint.Endpoint, "application/json", bytes.NewBufferString(body))
+		request, err = http.NewRequest("POST", endpoint.Endpoint, bytes.NewBufferString(body))
+		request.Header.Add("Content-Type", "application/json")
 	case "POST_FORM":
 		values := url.Values{}
 		for _, value := range endpoint.Parameters {
 			values.Add(value.Name, value.Value)
 		}
+		request, err = http.NewRequest("POST", endpoint.Endpoint, nil)
+		request.Form = values
 
-		return ctxhttp.PostForm(ctx, xray.Client(nil), endpoint.Endpoint, values)
 	default:
-		return ctxhttp.Get(ctx, xray.Client(nil), endpoint.Endpoint)
+		request, err = http.NewRequest("GET", endpoint.Endpoint, nil)
 	}
+	if err != nil {
+		util.AddErrorToAppDynamics(ctx, err)
+		return
+	}
+	exit := appd.StartExitcall(handle, endpoint.Name)
+	resp, err = http.DefaultClient.Do(request)
+	if err != nil {
+		appd.AddExitcallError(exit, appd.APPD_LEVEL_ERROR, err.Error(), true)
+		return
+	}
+	appd.EndExitcall(exit)
+
+	return
 
 }
 

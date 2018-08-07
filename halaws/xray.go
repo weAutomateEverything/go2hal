@@ -1,7 +1,8 @@
 package halaws
 
 import (
-	"github.com/aws/aws-xray-sdk-go/xray"
+	appd "appdynamics"
+	"github.com/weAutomateEverything/go2hal/appdynamics/util"
 	"golang.org/x/net/context"
 )
 
@@ -16,11 +17,14 @@ type x struct {
 }
 
 func (s *x) SendAlert(ctx context.Context, chatId uint32, destination string, name string, variables map[string]string) (err error) {
-	return xray.Capture(ctx, "halaws.SendAlert", func(ctx context.Context) error {
-		xray.AddMetadata(ctx, "chatid", chatId)
-		xray.AddMetadata(ctx, "destination", destination)
-		xray.AddMetadata(ctx, "name", name)
-		xray.AddMetadata(ctx, "variables", variables)
-		return s.service.SendAlert(ctx, chatId, destination, name, variables)
-	})
+	handler, ctx := util.Start("halaws.SendAlert", "")
+	defer appd.EndBT(handler)
+	appd.AddUserDataToBT(handler, "chatid", string(chatId))
+	appd.AddUserDataToBT(handler, "destination", destination)
+	appd.AddUserDataToBT(handler, "name", name)
+	err = s.service.SendAlert(ctx, chatId, destination, name, variables)
+	if err != nil {
+		util.AddErrorToAppDynamics(ctx, err)
+	}
+	return
 }

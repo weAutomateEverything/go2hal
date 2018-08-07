@@ -1,15 +1,16 @@
 package chef
 
 import (
+	appd "appdynamics"
 	"bytes"
 	"context"
 	"encoding/base64"
 	json2 "encoding/json"
 	"fmt"
-	"github.com/aws/aws-xray-sdk-go/xray"
 	"github.com/go-chef/chef"
 	"github.com/weAutomateEverything/go2hal/alert"
-	"github.com/weAutomateEverything/go2hal/util"
+	"github.com/weAutomateEverything/go2hal/appdynamics/util"
+	util2 "github.com/weAutomateEverything/go2hal/util"
 	"gopkg.in/kyokomi/emoji.v1"
 	"os"
 	"strings"
@@ -24,7 +25,7 @@ type Service interface {
 	getRecipesForGroup(group uint32) ([]Recipe, error)
 	addRecipeToGroup(ctx context.Context, group uint32, recipeName, friendlyName string) error
 
-	getEnvironmentForGroup(group uint32) ([]ChefEnvironment, error)
+	getEnvironmentForGroup(ctx context.Context, group uint32) ([]ChefEnvironment, error)
 	addEnvironmentToGroup(ctx context.Context, group uint32, name string, friendlyname string) error
 }
 
@@ -42,7 +43,7 @@ type service struct {
 	chefStore Store
 }
 
-func (s *service) getEnvironmentForGroup(group uint32) ([]ChefEnvironment, error) {
+func (s *service) getEnvironmentForGroup(ctx context.Context, group uint32) ([]ChefEnvironment, error) {
 	env, err := s.chefStore.GetEnvironmentForGroup(group)
 	if err != nil {
 		return nil, err
@@ -143,7 +144,7 @@ func (s *service) sendDeliveryAlert(ctx context.Context, chatId uint32, message 
 		buffer.WriteString(emoji.Sprintf(":rage1: New Code Review \n"))
 	}
 
-	util.Getfield(attachments, &buffer)
+	util2.Getfield(attachments, &buffer)
 
 	buffer.WriteString("[")
 	buffer.WriteString(parts[1])
@@ -191,11 +192,12 @@ func (s *service) monitorQuarentined() {
 	}
 }
 func (s *service) checkQuarentined() {
-	ctx, seg := xray.BeginSegment(context.Background(), "Chef Quarantine Check")
+	handler, ctx := util.Start("Chef Quarentine Chef", "")
+	defer appd.EndBT(handler)
 	var err error
-	defer seg.Close(err)
 	recipes, err := s.chefStore.GetRecipes()
 	if err != nil {
+		appd.AddBTError(handler, appd.APPD_LEVEL_ERROR, err.Error(), true)
 		s.alert.SendError(ctx, err)
 		return
 	}
@@ -203,6 +205,7 @@ func (s *service) checkQuarentined() {
 	for _, r := range recipes {
 		env, err := s.chefStore.GetEnvironmentForGroup(r.ChatID)
 		if err != nil {
+			appd.AddBTError(handler, appd.APPD_LEVEL_ERROR, err.Error(), true)
 			s.alert.SendError(ctx, err)
 			continue
 		}
@@ -220,26 +223,32 @@ func (s *service) checkQuarentined() {
 }
 
 func (s *service) FindNodesFromFriendlyNames(ctx context.Context, recipe, environment string, chat uint32) []Node {
+	handler := appd.StartBT("chef.FindNodesFromFriendlyNames", util.GetAppdUUID(ctx))
+	defer appd.EndBT(handler)
 	chefRecipe, err := s.chefStore.GetRecipeFromFriendlyName(recipe, chat)
 	if err != nil {
+		appd.AddBTError(handler, appd.APPD_LEVEL_ERROR, err.Error(), true)
 		s.alert.SendError(ctx, err)
 		return nil
 	}
 
 	chefEnv, err := s.chefStore.GetEnvironmentFromFriendlyName(environment, chat)
 	if err != nil {
+		appd.AddBTError(handler, appd.APPD_LEVEL_ERROR, err.Error(), true)
 		s.alert.SendError(ctx, err)
 		return nil
 	}
 
 	client, err := s.getChefClient()
 	if err != nil {
+		appd.AddBTError(handler, appd.APPD_LEVEL_ERROR, err.Error(), true)
 		s.alert.SendError(ctx, err)
 		return nil
 	}
 
 	query, err := client.Search.NewQuery("node", fmt.Sprintf("recipe:%s AND chef_environment:%s", chefRecipe, chefEnv))
 	if err != nil {
+		appd.AddBTError(handler, appd.APPD_LEVEL_ERROR, err.Error(), true)
 		s.alert.SendError(ctx, err)
 		return nil
 	}

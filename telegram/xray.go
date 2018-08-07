@@ -1,8 +1,9 @@
 package telegram
 
 import (
+	appd "appdynamics"
 	"context"
-	"github.com/aws/aws-xray-sdk-go/xray"
+	"github.com/weAutomateEverything/go2hal/appdynamics/util"
 )
 
 func NewXray(s Service) Service {
@@ -16,50 +17,64 @@ type sXray struct {
 }
 
 func (s sXray) SendMessage(ctx context.Context, chatID int64, message string, messageID int) (msgid int, err error) {
-	xray.Capture(ctx, "telegram.SendMessage", func(ctx context.Context) error {
-		xray.AddMetadata(ctx, "chat", chatID)
-		xray.AddMetadata(ctx, "message", message)
-		xray.AddMetadata(ctx, "messageid", messageID)
-		msgid, err = s.Service.SendMessage(ctx, chatID, message, messageID)
-		return err
-	})
+	seg, ctx := util.Start("telegram.SendMessage", util.GetAppdUUID(ctx))
+	defer appd.EndBT(seg)
+	appd.AddUserDataToBT(seg, "chat", string(chatID))
+	appd.AddUserDataToBT(seg, "message", message)
+	appd.AddUserDataToBT(seg, "messageid", string(messageID))
+	msgid, err = s.Service.SendMessage(ctx, chatID, message, messageID)
+	if err != nil {
+		util.AddErrorToAppDynamics(ctx, err)
+	}
 	return
+
 }
 func (s sXray) SendMessagePlainText(ctx context.Context, chatID int64, message string, messageID int) (msgid int, err error) {
-	xray.Capture(ctx, "telegram.SendMessagePlainText", func(ctx context.Context) error {
-		xray.AddMetadata(ctx, "chatid", chatID)
-		xray.AddMetadata(ctx, "message", message)
-		xray.AddMetadata(ctx, "messageid", messageID)
-		msgid, err = s.Service.SendMessagePlainText(ctx, chatID, message, messageID)
-		return err
-	})
+	seg, ctx := util.Start("telegram.SendMessagePlainText", util.GetAppdUUID(ctx))
+	defer appd.EndBT(seg)
+	appd.AddUserDataToBT(seg, "chatid", string(chatID))
+	appd.AddUserDataToBT(seg, "message", string(message))
+	appd.AddUserDataToBT(seg, "messageid", string(messageID))
+	msgid, err = s.Service.SendMessagePlainText(ctx, chatID, message, messageID)
+	if err != nil {
+		util.AddErrorToAppDynamics(ctx, err)
+	}
 	return
 }
 func (s sXray) SendImageToGroup(ctx context.Context, image []byte, group int64) (err error) {
-	return xray.Capture(ctx, "telegram.SendImageToGroup", func(ctx context.Context) error {
-		xray.AddMetadata(ctx, "group", group)
-		return s.Service.SendImageToGroup(ctx, image, group)
-
-	})
+	seg, ctx := util.Start("telegram.SendMessagePlainText", util.GetAppdUUID(ctx))
+	defer appd.EndBT(seg)
+	appd.AddUserDataToBT(seg, "group", string(group))
+	err = s.Service.SendImageToGroup(ctx, image, group)
+	if err != nil {
+		util.AddErrorToAppDynamics(ctx, err)
+	}
+	return
 
 }
 func (s sXray) SendDocumentToGroup(ctx context.Context, document []byte, extension string, group int64) (err error) {
-	return xray.Capture(ctx, "telegram.SendDocumentToGroup", func(ctx context.Context) error {
-		xray.AddMetadata(ctx, "extension", extension)
-		xray.AddMetadata(ctx, "group", group)
-		return s.Service.SendDocumentToGroup(ctx, document, extension, group)
-	})
+	seg, ctx := util.Start("telegram.SendMessagePlainText", util.GetAppdUUID(ctx))
+	defer appd.EndBT(seg)
+	appd.AddUserDataToBT(seg, "extension", extension)
+	appd.AddUserDataToBT(seg, "group", string(group))
+	err = s.Service.SendDocumentToGroup(ctx, document, extension, group)
+	if err != nil {
+		util.AddErrorToAppDynamics(ctx, err)
+	}
+	return
 
 }
 
 func (s sXray) SendKeyboard(ctx context.Context, buttons []string, text string, chat int64) (message int, err error) {
-	xray.Capture(ctx, "telegram.SendKeyboard", func(ctx context.Context) error {
-		xray.AddMetadata(ctx, "buttons", buttons)
-		xray.AddMetadata(ctx, "text", text)
-		xray.AddMetadata(ctx, "chat", chat)
-		message, err = s.Service.SendKeyboard(ctx, buttons, text, chat)
-		return err
-	})
+	seg, ctx := util.Start("telegram.SendMessagePlainText", util.GetAppdUUID(ctx))
+	defer appd.EndBT(seg)
+	appd.AddUserDataToBT(seg, "text", string(text))
+	appd.AddUserDataToBT(seg, "chat", string(chat))
+	message, err = s.Service.SendKeyboard(ctx, buttons, text, chat)
+	if err != nil {
+		util.AddErrorToAppDynamics(ctx, err)
+	}
+
 	return
 
 }
