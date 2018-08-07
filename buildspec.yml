@@ -12,6 +12,7 @@ phases:
   install:
     commands:
     - printenv
+    - ls -al
     - go get github.com/weautomateeverything/go2hal
   pre_build:
     commands:
@@ -31,5 +32,6 @@ artifacts:
   files:
   - go2hal
   - swagger.json
+  - Dockerfile
 cache:
   paths:
