@@ -11,11 +11,7 @@ env:
 phases:
   install:
     commands:
-    - echo $CODEBUILD_RESOLVED_SOURCE_VERSION
-    - echo $CODEBUILD_SOURCE_VERSION
     - go get
-    - wget https://s3-eu-west-1.amazonaws.com/hal-artifacts/docker_push.sh
-    - chmod +x docker_push.sh
   pre_build:
     commands:
 
@@ -23,9 +19,8 @@ phases:
 
   build:
     commands:
-    - CGO_ENABLED=1 GOOS=linux go build -o go2hal .
+    - CGO_ENABLED=1 GOOS=linux go build -o ./go2hal .
     - swagger generate spec -m -o ./swagger.json
-    - ./docker_push.sh
   post_build:
     commands:
 
@@ -34,7 +29,6 @@ phases:
 artifacts:
   files:
   - go2hal
-  discard-paths: yes
-  base-directory: location
+  - swagger.json
 cache:
   paths:
