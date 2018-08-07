@@ -1,12 +1,13 @@
 package snmp
 
 import (
+	appd "appdynamics"
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/aws/aws-xray-sdk-go/xray"
 	g "github.com/soniah/gosnmp"
 	"github.com/weAutomateEverything/go2hal/alert"
+	"github.com/weAutomateEverything/go2hal/appdynamics/util"
 	"github.com/weAutomateEverything/go2hal/machineLearning"
 	"golang.org/x/net/context"
 	"gopkg.in/kyokomi/emoji.v1"
@@ -50,8 +51,8 @@ func (s *service) startSnmpServer() {
 }
 
 func (s service) handleTrap(packet *g.SnmpPacket, addr *net.UDPAddr) {
-	ctx, seg := xray.BeginSegment(context.Background(), "SNMP Trap")
-	defer seg.Close(nil)
+	handler, ctx := util.Start("snmp.handleTrap", "")
+	defer appd.EndBT(handler)
 	var b bytes.Buffer
 	b.WriteString(fmt.Sprintf("got trapdata from %s\n", addr.IP))
 	b.WriteString("\n")

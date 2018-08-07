@@ -1,7 +1,8 @@
 package alert
 
 import (
-	"github.com/aws/aws-xray-sdk-go/xray"
+	appd "appdynamics"
+	"github.com/weAutomateEverything/go2hal/appdynamics/util"
 	"golang.org/x/net/context"
 )
 
@@ -16,39 +17,60 @@ type sXray struct {
 }
 
 func (s sXray) SendAlert(ctx context.Context, chatId uint32, message string) (err error) {
-	return xray.Capture(ctx, "alert.SendAlert", func(ctx context.Context) error {
-		xray.AddMetadata(ctx, "chat", chatId)
-		xray.AddMetadata(ctx, "message", message)
-		return s.Service.SendAlert(ctx, chatId, message)
-	})
+	seg, ctx := util.Start("alert.SendAlert", util.GetAppdUUID(ctx))
+	defer appd.EndBT(seg)
+	appd.AddUserDataToBT(seg, "chat", string(chatId))
+	appd.AddUserDataToBT(seg, "message", message)
+	err = s.Service.SendAlert(ctx, chatId, message)
+	if err != nil {
+		util.AddErrorToAppDynamics(ctx, err)
+	}
+	return
 
 }
 
 func (s sXray) SendImageToAlertGroup(ctx context.Context, chatid uint32, image []byte) (err error) {
-	return xray.Capture(ctx, "alert.SendImageToAlertGroup", func(ctx context.Context) error {
-		xray.AddMetadata(ctx, "chatid", chatid)
-		return s.Service.SendImageToAlertGroup(ctx, chatid, image)
-	})
+	seg, ctx := util.Start("alert.SendAlert", util.GetAppdUUID(ctx))
+	defer appd.EndBT(seg)
+	appd.AddUserDataToBT(seg, "chatid", string(chatid))
+	err = s.Service.SendImageToAlertGroup(ctx, chatid, image)
+	if err != nil {
+		util.AddErrorToAppDynamics(ctx, err)
+	}
+
+	return
 }
 
 func (s sXray) SendDocumentToAlertGroup(ctx context.Context, chatid uint32, document []byte, extension string) (err error) {
-	return xray.Capture(ctx, "alert.SendDocumentToAlertGroup", func(ctx context.Context) error {
-		xray.AddMetadata(ctx, "chat", chatid)
-		xray.AddMetadata(ctx, "extension", extension)
-		return s.Service.SendDocumentToAlertGroup(ctx, chatid, document, extension)
-	})
+	seg, ctx := util.Start("alert.SendAlert", util.GetAppdUUID(ctx))
+	defer appd.EndBT(seg)
+	appd.AddUserDataToBT(seg, "chat", string(chatid))
+	appd.AddUserDataToBT(seg, "extension", extension)
+	err = s.Service.SendDocumentToAlertGroup(ctx, chatid, document, extension)
+	if err != nil {
+		util.AddErrorToAppDynamics(ctx, err)
+	}
+	return
 }
 
 func (s sXray) SendError(ctx context.Context, err error) (errout error) {
-	return xray.Capture(ctx, "alert.SendError", func(ctx context.Context) error {
-		xray.AddMetadata(ctx, "err", err)
-		return s.Service.SendError(ctx, err)
+	seg, ctx := util.Start("alert.SendAlert", util.GetAppdUUID(ctx))
+	defer appd.EndBT(seg)
+	appd.AddUserDataToBT(seg, "err", err.Error())
+	err = s.Service.SendError(ctx, err)
 
-	})
+	if err != nil {
+		util.AddErrorToAppDynamics(ctx, err)
+	}
+	return
 }
 
 func (s sXray) SendErrorImage(ctx context.Context, image []byte) (err error) {
-	return xray.Capture(ctx, "alert.SendErrorImage", func(ctx context.Context) error {
-		return s.Service.SendErrorImage(ctx, image)
-	})
+	seg, ctx := util.Start("alert.SendAlert", util.GetAppdUUID(ctx))
+	defer appd.EndBT(seg)
+	err = s.Service.SendErrorImage(ctx, image)
+	if err != nil {
+		util.AddErrorToAppDynamics(ctx, err)
+	}
+	return
 }

@@ -46,7 +46,7 @@ func makeAddEnvironmentToGroupEndpoint(s Service) endpoint.Endpoint {
 func makeGetEnvironmentForGroupEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		claim := ctx.Value(jwt.JWTClaimsContextKey).(*telegram.CustomClaims)
-		return s.getEnvironmentForGroup(claim.RoomToken)
+		return s.getEnvironmentForGroup(ctx, claim.RoomToken)
 	}
 }
 

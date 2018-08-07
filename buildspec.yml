@@ -1,0 +1,29 @@
+version: 0.2
+
+
+phases:
+  install:
+    commands:
+    - go get -u
+  pre_build:
+    commands:
+
+    finally:
+
+  build:
+    commands:
+    - CGO_ENABLED=1 GOOS=linux go build -o go2hal .
+    - swagger generate spec -m -o ./swagger.json
+  post_build:
+    commands:
+
+    finally:
+
+artifacts:
+  files:
+  - go2hal
+  discard-paths: yes
+  base-directory: location
+cache:
+  paths:
+  - $GOPATH/src

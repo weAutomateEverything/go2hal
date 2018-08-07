@@ -25,7 +25,6 @@ import (
 	"github.com/weAutomateEverything/go2hal/ssh"
 	"github.com/weAutomateEverything/go2hal/telegram"
 	"github.com/weAutomateEverything/go2hal/user"
-	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"gopkg.in/mgo.v2"
@@ -38,13 +37,12 @@ import (
 	"runtime/debug"
 	"syscall"
 
-	"github.com/aws/aws-xray-sdk-go/strategy/sampling"
-	"github.com/aws/aws-xray-sdk-go/xray"
+	appd "appdynamics"
 	kitprometheus "github.com/go-kit/kit/metrics/prometheus"
 	stdprometheus "github.com/prometheus/client_golang/prometheus"
+	"github.com/weAutomateEverything/go2hal/appdynamics/util"
 	"github.com/weAutomateEverything/go2hal/grafana"
 	"github.com/weAutomateEverything/go2hal/prometheus"
-	"github.com/weAutomateEverything/mockXray"
 )
 
 type Go2Hal struct {
@@ -109,7 +107,7 @@ func (go2hal *Go2Hal) Start() {
 	}
 	go func() {
 		go2hal.Logger.Log("transport", "http", "address", ":8000", "msg", "listening")
-		errs <- http.ListenAndServe(":8000", xray.Handler(xray.NewFixedSegmentNamer("go2hal"), panicHandler{accessControl(go2hal.Mux), go2hal.JiraService, go2hal.AlertService}))
+		errs <- http.ListenAndServe(":8000", panicHandler{accessControl(go2hal.Mux), go2hal.JiraService, go2hal.AlertService})
 	}()
 	go func() {
 		go2hal.Logger.Log("transport", "http", "address", ":8080", "msg", "listening")
@@ -125,24 +123,23 @@ func (go2hal *Go2Hal) Start() {
 }
 
 func NewGo2Hal() Go2Hal {
-	if os.Getenv("XRAY_URL") != "" {
-		var ss *sampling.LocalizedStrategy
-		if os.Getenv("XRAY_SAMPLING_RULES") != "" {
-			ss = getSampleStratergyFromFile()
-		} else {
-			ss = getDefaultSampleStratergy()
-		}
 
-		//XRAY
-		xray.Configure(xray.Config{
-			DaemonAddr:       os.Getenv("XRAY_URL"), // default
-			LogLevel:         "info",                // default
-			ServiceVersion:   "1.2.3",
-			SamplingStrategy: ss,
-		})
+	cfg := appd.Config{}
 
+	cfg.AppName = "HAL"
+	cfg.TierName = "Web"
+	cfg.NodeName = "Telegram"
+	cfg.Controller.Host = "my-appd-controller.example.org"
+	cfg.Controller.Port = 8080
+	cfg.Controller.UseSSL = true
+	cfg.Controller.Account = "customer1"
+	cfg.Controller.AccessKey = "secret"
+	cfg.InitTimeoutMs = 1000 // Wait up to 1s for initialization to finish
+
+	if err := appd.InitSDK(&cfg); err != nil {
+		fmt.Printf("Error initializing the AppDynamics SDK\n")
 	} else {
-		mockXray.StartMockXrayServer()
+		fmt.Printf("Initialized AppDynamics SDK successfully\n")
 	}
 
 	go2hal := Go2Hal{}
@@ -502,25 +499,11 @@ func accessControl(h http.Handler) http.Handler {
 		if r.Method == "OPTIONS" {
 			return
 		}
-
+		seg, ctx := util.Start(r.RequestURI, "")
+		r.WithContext(ctx)
+		defer appd.EndBT(seg)
 		h.ServeHTTP(w, r)
 	})
-}
-
-func getSampleStratergyFromFile() *sampling.LocalizedStrategy {
-	ss, err := sampling.NewLocalizedStrategyFromFilePath(os.Getenv("XRAY_SAMPLING_RULES"))
-	if err != nil {
-		panic(err)
-	}
-	return ss
-}
-
-func getDefaultSampleStratergy() *sampling.LocalizedStrategy {
-	ss, err := sampling.NewLocalizedStrategy()
-	if err != nil {
-		panic(err)
-	}
-	return ss
 }
 
 type panicHandler struct {
@@ -533,11 +516,9 @@ func (h panicHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		err := recover()
 		if err != nil {
-			ctx, seg := xray.BeginSegment(context.Background(), "HAL Panic")
-			defer seg.Close(fmt.Errorf("%v", err))
 			err, ok := err.(error)
 			if ok {
-				h.alert.SendError(ctx, fmt.Errorf("panic detected: %v \n %v", err.Error(), string(debug.Stack())))
+				h.alert.SendError(r.Context(), fmt.Errorf("panic detected: %v \n %v", err.Error(), string(debug.Stack())))
 			}
 		}
 	}()

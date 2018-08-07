@@ -1,13 +1,14 @@
 package appdynamics
 
 import (
+	appd "appdynamics"
 	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/aws/aws-xray-sdk-go/xray"
 	"github.com/weAutomateEverything/go2hal/alert"
+	"github.com/weAutomateEverything/go2hal/appdynamics/util"
 	"github.com/weAutomateEverything/go2hal/ssh"
 	"golang.org/x/net/context/ctxhttp"
 	"gopkg.in/kyokomi/emoji.v1"
@@ -39,13 +40,12 @@ func NewService(alertService alert.Service, sshservice ssh.Service, store Store)
 }
 
 func (s *service) sendAppdynamicsAlert(ctx context.Context, chatId uint32, message string) error {
-
 	var m appdynamicsMessage
 
 	err := json.Unmarshal([]byte(message), &m)
 
 	if err != nil {
-		xray.AddError(ctx, err)
+		util.AddErrorToAppDynamics(ctx, err)
 		s.alert.SendError(ctx, fmt.Errorf("error unmarshalling App Dynamics Message: %s. error: %v", message, err))
 		return err
 	}
@@ -133,13 +133,13 @@ func monitorAppdynamicsQueue(s Store, a alert.Service) {
 }
 
 func checkQueues(endpoint MqEndpoint, a alert.Service, s Store, chat uint32) (err error) {
-	ctx, seg := xray.BeginSegment(context.Background(), "MQ Endpoint "+endpoint.Name)
-	defer seg.Close(err)
+	handle, ctx := util.Start("appdynamics.checkQueues", "")
+	defer appd.EndBT(handle)
 
 	response, err := doGet(ctx, buildQueryString(endpoint), s, a, chat)
 	if err != nil {
 		log.Printf("Unable to query appdynamics: %s", err.Error())
-		xray.AddError(ctx, err)
+		util.AddErrorToAppDynamics(ctx, err)
 		a.SendError(ctx, fmt.Errorf("we are unable to query app dynamics"))
 		a.SendError(ctx, fmt.Errorf(" Queue depths Error: %s", err.Error()))
 		return err
@@ -148,7 +148,7 @@ func checkQueues(endpoint MqEndpoint, a alert.Service, s Store, chat uint32) (er
 	var dat []interface{}
 	if err := json.Unmarshal([]byte(response), &dat); err != nil {
 		a.SendError(ctx, fmt.Errorf("error unmarshalling: %s", err))
-		xray.AddError(ctx, err)
+		util.AddErrorToAppDynamics(ctx, err)
 		return err
 	}
 

@@ -1,10 +1,11 @@
 package telegram
 
 import (
+	appd "appdynamics"
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/aws/aws-xray-sdk-go/xray"
+	"github.com/weAutomateEverything/go2hal/appdynamics/util"
 	"github.com/weAutomateEverything/go2hal/auth"
 	"gopkg.in/telegram-bot-api.v4"
 	"io/ioutil"
@@ -283,8 +284,8 @@ func sendMessage(chatID int64, message string, messageID int, markup bool) (msgi
 }
 
 func (s service) executeCommand(update tgbotapi.Update) bool {
-	ctx, seg := xray.BeginSegment(context.Background(), "Telegram Command")
-	defer seg.Close(nil)
+	handle, ctx := util.Start("telegram.executeCommand", "")
+	defer appd.EndBT(handle)
 	group, _ := s.store.GetUUID(update.Message.Chat.ID, update.Message.Chat.Title)
 	command := findCommand(update.Message.Command(), group)
 	if command != nil {
@@ -295,9 +296,9 @@ func (s service) executeCommand(update tgbotapi.Update) bool {
 			}
 		}
 		go func() {
-			ctx, subseg := xray.BeginSubsegment(ctx, command.CommandIdentifier())
+			sub, ctx := util.Start(command.CommandIdentifier(), util.GetAppdUUID(ctx))
 			command.Execute(ctx, update)
-			subseg.Close(nil)
+			appd.EndBT(sub)
 		}()
 		return true
 	}
@@ -309,10 +310,10 @@ func (s service) executeCommandLet(update tgbotapi.Update) bool {
 	for _, c := range commandletList {
 		a := c()
 		if a.CanExecute(update, state) {
-			ctx, seg := xray.BeginSegment(context.Background(), "commandlet")
-			defer seg.Close(nil)
+			seg, ctx := util.Start("commandlet", "")
 			a.Execute(ctx, update, state)
 			s.store.SetState(update.Message.From.ID, update.Message.Chat.ID, a.NextState(update, state), a.Fields(update, state))
+			appd.EndBT(seg)
 			return true
 		}
 	}
