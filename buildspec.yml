@@ -3,6 +3,8 @@ version: 0.2
 phases:
   install:
     commands:
+    - printenv
+    - pwd
     - mkdir -p $GOPATH/src/github.com/weAutomateEverything/go2hal
     - cp -R * $GOPATH/src/github.com/weAutomateEverything/go2hal
   pre_build:
