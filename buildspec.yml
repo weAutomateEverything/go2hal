@@ -11,6 +11,8 @@ env:
 phases:
   install:
     commands:
+    - echo $CODEBUILD_RESOLVED_SOURCE_VERSION
+    - echo $CODEBUILD_SOURCE_VERSION
     - go get
     - wget https://s3-eu-west-1.amazonaws.com/hal-artifacts/docker_push.sh
     - chmod +x docker_push.sh
