@@ -11,7 +11,7 @@ env:
 phases:
   install:
     commands:
-    - go get
+    - go get github.com/weautomateeverything/gohal
   pre_build:
     commands:
 
