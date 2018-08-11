@@ -14,7 +14,6 @@ phases:
 
   build:
     commands:
-    - /go/src/github.com/weAutomateEverything/go2hal
     - CGO_ENABLED=1 GOOS=linux go build -o ./go2hal  /go/src/github.com/weAutomateEverything/go2hal
     - swagger generate spec -m -o ./swagger.json
   post_build:
