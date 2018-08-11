@@ -27,6 +27,7 @@ artifacts:
   files:
   - go2hal
   - swagger.json
+  - Dockerfile
 cache:
   paths:
     - /go/src
