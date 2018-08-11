@@ -3,10 +3,10 @@ version: 0.2
 phases:
   install:
     commands:
-    - printenv
-    - pwd
-    - mkdir -p $GOPATH/src/github.com/weAutomateEverything/go2hal
-    - cp -R * $GOPATH/src/github.com/weAutomateEverything/go2hal/
+    # printenv
+    # pwd
+    # mkdir -p /go/src/github.com/weAutomateEverything/go2hal
+    # cp -R * /go/src/github.com/weAutomateEverything/go2hal/
   pre_build:
     commands:
 
@@ -14,9 +14,9 @@ phases:
 
   build:
     commands:
-    - cd $GOPATH/src/github.com/weAutomateEverything/go2hal
-    - pwd
-    - ls -al
+    # cd /go/src/github.com/weAutomateEverything/go2hal
+    # pwd
+    # ls -al
     - CGO_ENABLED=1 GOOS=linux go build -o ./go2hal .
     - swagger generate spec -m -o ./swagger.json
   post_build:
@@ -26,8 +26,8 @@ phases:
 
 artifacts:
   files:
-  - $GOPATH/src/github.com/weAutomateEverything/go2hal/go2hal
-  - $GOPATH/src/github.com/weAutomateEverything/go2hal/swagger.json
+  - go2hal
+  - swagger.json
   - Dockerfile
 cache:
   paths:
