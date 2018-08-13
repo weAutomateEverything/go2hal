@@ -43,6 +43,7 @@ import (
 	"github.com/weAutomateEverything/go2hal/appdynamics/util"
 	"github.com/weAutomateEverything/go2hal/grafana"
 	"github.com/weAutomateEverything/go2hal/prometheus"
+	"strconv"
 )
 
 type Go2Hal struct {
@@ -88,6 +89,7 @@ type Go2Hal struct {
 	prometheusService       prometheus.Service
 
 	RemoteTelegramCommandService remoteTelegramCommands.RemoteCommandServer
+	AppDynamics                  bool
 }
 type GO2HAL interface {
 	Start()
@@ -124,25 +126,35 @@ func (go2hal *Go2Hal) Start() {
 
 func NewGo2Hal() Go2Hal {
 
+	go2hal := Go2Hal{}
+
 	cfg := appd.Config{}
 
-	cfg.AppName = "HAL"
-	cfg.TierName = "Web"
-	cfg.NodeName = "Telegram"
-	cfg.Controller.Host = "my-appd-controller.example.org"
-	cfg.Controller.Port = 8080
-	cfg.Controller.UseSSL = true
-	cfg.Controller.Account = "customer1"
-	cfg.Controller.AccessKey = "secret"
-	cfg.InitTimeoutMs = 1000 // Wait up to 1s for initialization to finish
+	if os.Getenv("APPD_PORT") != "" {
+		go2hal.AppDynamics = true
 
-	if err := appd.InitSDK(&cfg); err != nil {
-		fmt.Printf("Error initializing the AppDynamics SDK\n")
-	} else {
-		fmt.Printf("Initialized AppDynamics SDK successfully\n")
+		port, err := strconv.ParseUint(os.Getenv("APPD_PORT"), 10, 64)
+		if err != nil {
+			panic(fmt.Errorf("environment variable APPD_PORT is not a valid int value. %v", err))
+		}
+
+		cfg.AppName = "HAL"
+		cfg.TierName = "Web"
+		cfg.NodeName = "Telegram"
+		cfg.Controller.Host = os.Getenv("APPD_HOST")
+		cfg.Controller.Port = uint16(port)
+		cfg.Controller.UseSSL = false
+		cfg.Controller.Account = os.Getenv("APPD_ACCOUNT")
+		cfg.Controller.AccessKey = os.Getenv("APPD_KEY")
+		cfg.InitTimeoutMs = 1000 // Wait up to 1s for initialization to finish
+
+		if err := appd.InitSDK(&cfg); err != nil {
+			fmt.Printf("Error initializing the AppDynamics SDK\n")
+		} else {
+			fmt.Printf("Initialized AppDynamics SDK successfully\n")
+		}
 	}
 
-	go2hal := Go2Hal{}
 	go2hal.Logger = log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
 	go2hal.Logger = level.NewFilter(go2hal.Logger, level.AllowAll())
 	go2hal.Logger = log.With(go2hal.Logger, "ts", log.DefaultTimestamp)
