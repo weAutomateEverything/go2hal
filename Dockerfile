@@ -1,4 +1,5 @@
 FROM frolvlad/alpine-glibc:latest
+WORKDIR /app
 # Now just add the binary
 COPY go2hal /app/
 COPY swagger.json /app/
