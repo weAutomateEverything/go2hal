@@ -28,6 +28,7 @@ artifacts:
   - go2hal
   - swagger.json
   - Dockerfile
+  - $GOPATH/src/appdynamics/lib/libappdynamics.so
 cache:
   paths:
     - /go/src
