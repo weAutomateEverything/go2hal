@@ -1,11 +1,9 @@
 package telegram
 
 import (
-	appd "appdynamics"
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/weAutomateEverything/go2hal/appdynamics/util"
 	"github.com/weAutomateEverything/go2hal/auth"
 	"gopkg.in/telegram-bot-api.v4"
 	"io/ioutil"
@@ -284,21 +282,17 @@ func sendMessage(chatID int64, message string, messageID int, markup bool) (msgi
 }
 
 func (s service) executeCommand(update tgbotapi.Update) bool {
-	handle, ctx := util.Start("telegram.executeCommand", "")
-	defer appd.EndBT(handle)
 	group, _ := s.store.GetUUID(update.Message.Chat.ID, update.Message.Chat.Title)
 	command := findCommand(update.Message.Command(), group)
 	if command != nil {
 		if command.RestrictToAuthorised() {
 			if !(s.authService.Authorize(strconv.Itoa(update.Message.From.ID))) {
-				s.SendMessage(ctx, update.Message.Chat.ID, "You are not authorized to use this transaction.", update.Message.MessageID)
+				s.SendMessage(context.Background(), update.Message.Chat.ID, "You are not authorized to use this transaction.", update.Message.MessageID)
 				return false
 			}
 		}
 		go func() {
-			sub, ctx := util.Start(command.CommandIdentifier(), util.GetAppdUUID(ctx))
-			command.Execute(ctx, update)
-			appd.EndBT(sub)
+			command.Execute(context.Background(), update)
 		}()
 		return true
 	}
@@ -310,10 +304,8 @@ func (s service) executeCommandLet(update tgbotapi.Update) bool {
 	for _, c := range commandletList {
 		a := c()
 		if a.CanExecute(update, state) {
-			seg, ctx := util.Start("commandlet", "")
-			a.Execute(ctx, update, state)
+			a.Execute(context.Background(), update, state)
 			s.store.SetState(update.Message.From.ID, update.Message.Chat.ID, a.NextState(update, state), a.Fields(update, state))
-			appd.EndBT(seg)
 			return true
 		}
 	}

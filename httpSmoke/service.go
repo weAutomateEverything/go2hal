@@ -1,13 +1,11 @@
 package httpSmoke
 
 import (
-	appd "appdynamics"
 	"bytes"
 	"errors"
 	"fmt"
 	"github.com/go-kit/kit/metrics"
 	"github.com/weAutomateEverything/go2hal/alert"
-	"github.com/weAutomateEverything/go2hal/appdynamics/util"
 	"github.com/weAutomateEverything/go2hal/callout"
 	"golang.org/x/net/context"
 	"gopkg.in/kyokomi/emoji.v1"
@@ -109,8 +107,8 @@ func (s *service) monitorEndpoints() {
 }
 
 func (s *service) checkHTTP(endpoint httpEndpoint) {
-	seg, ctx := util.Start("HTTP Smoke", "")
-	defer appd.EndBT(seg)
+
+	ctx := context.Background()
 
 	response, err := s.doHTTPEndpoint(ctx, endpoint)
 	s.checkCount.With("endpoint", endpoint.Name).Add(1)
@@ -181,8 +179,6 @@ func (s *service) checkTimeout(ctx context.Context, chat uint32, msg string) {
 }
 
 func (s service) doHTTPEndpoint(ctx context.Context, endpoint httpEndpoint) (resp *http.Response, err error) {
-	appd.AddBackend(endpoint.Name, appd.APPD_BACKEND_HTTP, map[string]string{"URL": endpoint.Endpoint}, false)
-	handle := appd.GetBT(util.GetAppdUUID(ctx))
 
 	var request *http.Request
 	switch method := strings.ToUpper(endpoint.Method); method {
@@ -209,16 +205,12 @@ func (s service) doHTTPEndpoint(ctx context.Context, endpoint httpEndpoint) (res
 		request, err = http.NewRequest("GET", endpoint.Endpoint, nil)
 	}
 	if err != nil {
-		util.AddErrorToAppDynamics(ctx, err)
 		return
 	}
-	exit := appd.StartExitcall(handle, endpoint.Name)
 	resp, err = http.DefaultClient.Do(request)
 	if err != nil {
-		appd.AddExitcallError(exit, appd.APPD_LEVEL_ERROR, err.Error(), true)
 		return
 	}
-	appd.EndExitcall(exit)
 
 	return
 

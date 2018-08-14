@@ -37,13 +37,10 @@ import (
 	"runtime/debug"
 	"syscall"
 
-	appd "appdynamics"
 	kitprometheus "github.com/go-kit/kit/metrics/prometheus"
 	stdprometheus "github.com/prometheus/client_golang/prometheus"
-	"github.com/weAutomateEverything/go2hal/appdynamics/util"
 	"github.com/weAutomateEverything/go2hal/grafana"
 	"github.com/weAutomateEverything/go2hal/prometheus"
-	"strconv"
 )
 
 type Go2Hal struct {
@@ -128,33 +125,6 @@ func NewGo2Hal() Go2Hal {
 
 	go2hal := Go2Hal{}
 
-	cfg := appd.Config{}
-
-	if os.Getenv("APPD_PORT") != "" {
-		go2hal.AppDynamics = true
-
-		port, err := strconv.ParseUint(os.Getenv("APPD_PORT"), 10, 64)
-		if err != nil {
-			panic(fmt.Errorf("environment variable APPD_PORT is not a valid int value. %v", err))
-		}
-
-		cfg.AppName = "HAL"
-		cfg.TierName = "Web"
-		cfg.NodeName = "Telegram"
-		cfg.Controller.Host = os.Getenv("APPD_HOST")
-		cfg.Controller.Port = uint16(port)
-		cfg.Controller.UseSSL = false
-		cfg.Controller.Account = os.Getenv("APPD_ACCOUNT")
-		cfg.Controller.AccessKey = os.Getenv("APPD_KEY")
-		cfg.InitTimeoutMs = 1000 // Wait up to 1s for initialization to finish
-
-		if err := appd.InitSDK(&cfg); err != nil {
-			fmt.Printf("Error initializing the AppDynamics SDK\n")
-		} else {
-			fmt.Printf("Initialized AppDynamics SDK successfully\n")
-		}
-	}
-
 	go2hal.Logger = log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
 	go2hal.Logger = level.NewFilter(go2hal.Logger, level.AllowAll())
 	go2hal.Logger = log.With(go2hal.Logger, "ts", log.DefaultTimestamp)
@@ -183,7 +153,6 @@ func NewGo2Hal() Go2Hal {
 	go2hal.AuthService = auth.NewAlwaysTrustEveryoneAuthService()
 
 	go2hal.TelegramService = telegram.NewService(go2hal.TelegramStore, go2hal.AuthService)
-	go2hal.TelegramService = telegram.NewXray(go2hal.TelegramService)
 	go2hal.TelegramService = telegram.NewLoggingService(log.With(go2hal.Logger, "component", "telegram"), go2hal.TelegramService)
 	go2hal.TelegramService = telegram.NewMachineLearning(go2hal.MachineLearningService, go2hal.TelegramService)
 	go2hal.TelegramService = telegram.NewInstrumentService(kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
@@ -206,7 +175,6 @@ func NewGo2Hal() Go2Hal {
 		}, []string{"method", "chat"}), go2hal.TelegramService)
 
 	go2hal.AlertService = alert.NewService(go2hal.TelegramService, go2hal.TelegramStore)
-	go2hal.AlertService = alert.NewXray(go2hal.AlertService)
 	go2hal.AlertService = alert.NewLoggingService(log.With(go2hal.Logger, "component", "alert"), go2hal.AlertService)
 	go2hal.AlertService = alert.NewInstrumentService(kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
 		Namespace: "api",
@@ -303,7 +271,6 @@ func NewGo2Hal() Go2Hal {
 		}, fieldKeys), go2hal.SNMPService)
 
 	go2hal.AWSService = halaws.NewService(go2hal.AlertService)
-	go2hal.AWSService = halaws.NewXray(go2hal.AWSService)
 	go2hal.AWSService = halaws.NewLoggingService(log.With(go2hal.Logger, "component", "halaws"), go2hal.AWSService)
 	go2hal.AWSService = halaws.NewInstrumentService(kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
 		Namespace: "api",
@@ -511,9 +478,6 @@ func accessControl(h http.Handler) http.Handler {
 		if r.Method == "OPTIONS" {
 			return
 		}
-		seg, ctx := util.Start(r.RequestURI, "")
-		r.WithContext(ctx)
-		defer appd.EndBT(seg)
 		h.ServeHTTP(w, r)
 	})
 }

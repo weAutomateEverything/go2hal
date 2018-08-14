@@ -1,7 +1,6 @@
 package chef
 
 import (
-	appd "appdynamics"
 	"bytes"
 	"context"
 	"encoding/base64"
@@ -9,7 +8,6 @@ import (
 	"fmt"
 	"github.com/go-chef/chef"
 	"github.com/weAutomateEverything/go2hal/alert"
-	"github.com/weAutomateEverything/go2hal/appdynamics/util"
 	util2 "github.com/weAutomateEverything/go2hal/util"
 	"gopkg.in/kyokomi/emoji.v1"
 	"os"
@@ -192,12 +190,10 @@ func (s *service) monitorQuarentined() {
 	}
 }
 func (s *service) checkQuarentined() {
-	handler, ctx := util.Start("Chef Quarentine Chef", "")
-	defer appd.EndBT(handler)
+	ctx := context.Background()
 	var err error
 	recipes, err := s.chefStore.GetRecipes()
 	if err != nil {
-		appd.AddBTError(handler, appd.APPD_LEVEL_ERROR, err.Error(), true)
 		s.alert.SendError(ctx, err)
 		return
 	}
@@ -205,7 +201,6 @@ func (s *service) checkQuarentined() {
 	for _, r := range recipes {
 		env, err := s.chefStore.GetEnvironmentForGroup(r.ChatID)
 		if err != nil {
-			appd.AddBTError(handler, appd.APPD_LEVEL_ERROR, err.Error(), true)
 			s.alert.SendError(ctx, err)
 			continue
 		}
@@ -223,32 +218,26 @@ func (s *service) checkQuarentined() {
 }
 
 func (s *service) FindNodesFromFriendlyNames(ctx context.Context, recipe, environment string, chat uint32) []Node {
-	handler := appd.StartBT("chef.FindNodesFromFriendlyNames", util.GetAppdUUID(ctx))
-	defer appd.EndBT(handler)
 	chefRecipe, err := s.chefStore.GetRecipeFromFriendlyName(recipe, chat)
 	if err != nil {
-		appd.AddBTError(handler, appd.APPD_LEVEL_ERROR, err.Error(), true)
 		s.alert.SendError(ctx, err)
 		return nil
 	}
 
 	chefEnv, err := s.chefStore.GetEnvironmentFromFriendlyName(environment, chat)
 	if err != nil {
-		appd.AddBTError(handler, appd.APPD_LEVEL_ERROR, err.Error(), true)
 		s.alert.SendError(ctx, err)
 		return nil
 	}
 
 	client, err := s.getChefClient()
 	if err != nil {
-		appd.AddBTError(handler, appd.APPD_LEVEL_ERROR, err.Error(), true)
 		s.alert.SendError(ctx, err)
 		return nil
 	}
 
 	query, err := client.Search.NewQuery("node", fmt.Sprintf("recipe:%s AND chef_environment:%s", chefRecipe, chefEnv))
 	if err != nil {
-		appd.AddBTError(handler, appd.APPD_LEVEL_ERROR, err.Error(), true)
 		s.alert.SendError(ctx, err)
 		return nil
 	}
