@@ -1,7 +1,6 @@
 package halaws
 
 import (
-	appd "appdynamics"
 	"crypto/tls"
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
@@ -10,7 +9,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/connect"
 	"github.com/kyokomi/emoji"
 	"github.com/weAutomateEverything/go2hal/alert"
-	"github.com/weAutomateEverything/go2hal/appdynamics/util"
 	"golang.org/x/net/context"
 	"net/http"
 	"os"
@@ -56,9 +54,6 @@ func (s *service) SendAlert(ctx context.Context, chatId uint32, destination stri
 		}
 	}
 
-	appd.AddBackend("AWS Callout", appd.APPD_BACKEND_HTTP, map[string]string{"URL": *sess.Config.Endpoint}, false)
-	transaction := appd.GetBT(util.GetAppdUUID(ctx))
-	exit := appd.StartExitcall(transaction, "AWS Callout")
 	req := connect.StartOutboundVoiceContactInput{
 		InstanceId:             aws.String(getInstanceID()),
 		ContactFlowId:          aws.String(getContactFlowID()),
@@ -67,9 +62,7 @@ func (s *service) SendAlert(ctx context.Context, chatId uint32, destination stri
 		Attributes:             v,
 	}
 	output, err := outbound.StartOutboundVoiceContactWithContext(ctx, &req)
-	appd.EndExitcall(exit)
 	if err != nil {
-		appd.AddExitcallError(exit, appd.APPD_LEVEL_ERROR, err.Error(), true)
 		s.alert.SendError(ctx, fmt.Errorf("error invoking alexa to call %v on %v. Error: %v", name, destination, err.Error()))
 		return err
 	}

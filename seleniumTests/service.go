@@ -1,12 +1,10 @@
 package seleniumTests
 
 import (
-	appd "appdynamics"
 	"errors"
 	"fmt"
 	"github.com/tebeka/selenium"
 	"github.com/weAutomateEverything/go2hal/alert"
-	"github.com/weAutomateEverything/go2hal/appdynamics/util"
 	"github.com/weAutomateEverything/go2hal/callout"
 	"golang.org/x/net/context"
 	"gopkg.in/kyokomi/emoji.v1"
@@ -39,8 +37,7 @@ func NewChromeClient(seleniumEndpoint string) (selenium.WebDriver, error) {
 }
 
 func (s *service) testSelenium(item Selenium) (err error) {
-	handler, ctx := util.Start("selenium.testSelenium", "")
-	defer appd.EndBT(handler)
+	ctx := context.Background()
 	_, err = s.doSelenium(ctx, item)
 	if err != nil {
 		return err
@@ -54,11 +51,9 @@ func (s *service) testSelenium(item Selenium) (err error) {
 }
 
 func (s *service) runTests() {
-	var handler appd.BtHandle
 	var ctx context.Context
 	defer func() {
 		if err := recover(); err != nil {
-			util.AddErrorToAppDynamics(ctx, fmt.Errorf("%v", err))
 			fmt.Print(err)
 			s.alert.SendError(ctx, errors.New(fmt.Sprint(err)))
 			s.alert.SendError(ctx, errors.New(string(debug.Stack())))
@@ -67,7 +62,6 @@ func (s *service) runTests() {
 	}()
 
 	for true {
-		handler, ctx = util.Start("Selenium", "")
 		tests, err := s.store.GetAllSeleniumTests()
 		if err != nil {
 			s.alert.SendError(ctx, err)
@@ -82,7 +76,6 @@ func (s *service) runTests() {
 
 			}
 		}
-		appd.EndBT(handler)
 		time.Sleep(5 * time.Minute)
 	}
 }
