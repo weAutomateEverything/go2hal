@@ -16,7 +16,8 @@ phases:
   build:
     commands:
     - go get github.com/weAutomateEverything/go2hal
-    - CGO_ENABLED=1 GOOS=linux go build -o ./go2hal github.com/weAutomateEverything/go2hal
+    - CGO_ENABLED=0 GOOS=linux go build -o ./go2hal github.com/weAutomateEverything/go2hal
+    - go get -u github.com/go-swagger/go-swagger/cmd/swagger
     - swagger generate spec -m -o ./swagger.json
   post_build:
     commands:
@@ -28,7 +29,5 @@ artifacts:
   - go2hal
   - swagger.json
   - Dockerfile
-  - /go/src/appdynamics/lib/libappdynamics.so
 cache:
   paths:
-    - /go/src
