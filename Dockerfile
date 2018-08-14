@@ -6,8 +6,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libc6-dev \
         make \
         pkg-config \
-        openssh-client \
-
+        openssh-client
 
 WORKDIR /app
 # Now just add the binary
