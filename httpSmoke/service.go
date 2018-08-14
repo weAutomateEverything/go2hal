@@ -207,7 +207,8 @@ func (s service) doHTTPEndpoint(ctx context.Context, endpoint httpEndpoint) (res
 	if err != nil {
 		return
 	}
-	resp, err = http.DefaultClient.Do(request)
+	c := &http.Client{Transport: defaultTransport}
+	resp, err = c.Do(request)
 	if err != nil {
 		return
 	}
