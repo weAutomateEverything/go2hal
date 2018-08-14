@@ -1,7 +1,7 @@
 FROM alpine:latest
 
 ARG DT_API_URL="https://vzb12882.live.dynatrace.com/api"
-ARG DT_API_TOKEN=5WUwr7a7TtOG4hSe_BC70"
+ARG DT_API_TOKEN="5WUwr7a7TtOG4hSe_BC70"
 ARG DT_ONEAGENT_OPTIONS="flavor=musl"
 ENV DT_HOME="/opt/dynatrace/oneagent"
 
