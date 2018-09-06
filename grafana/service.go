@@ -31,7 +31,9 @@ func (s *service) sendGrafanaAlert(ctx context.Context, chat uint32, body string
 	msg := r["title"].(string)
 	msg = strings.Replace(msg, "[", "*", -1)
 	msg = strings.Replace(msg, "]", "*", -1)
-	msg = msg + "\n" + r["message"].(string)
+	if r["message"] != nil {
+		msg = msg + "\n" + r["message"].(string)
+	}
 
 	return s.alertService.SendAlert(ctx, chat, msg)
 
