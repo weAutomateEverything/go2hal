@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	gokitjwt "github.com/go-kit/kit/auth/jwt"
 	kitlog "github.com/go-kit/kit/log"
 	kithttp "github.com/go-kit/kit/transport/http"
@@ -16,7 +15,6 @@ import (
 	"github.com/weAutomateEverything/go2hal/machineLearning"
 	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -149,16 +147,14 @@ type errorer interface {
 	error() error
 }
 
-func logRequest(s machineLearning.Service) kithttp.RequestFunc {
+func preProcess(s machineLearning.Service) kithttp.RequestFunc {
 	return func(i context.Context, request *http.Request) context.Context {
-		log.Print(formatRequest(request))
 		if s != nil {
 			i = s.StoreHTTPRequest(i, request)
 		}
 
 		vars := mux.Vars(request)
 		i = context.WithValue(i, "CHAT-ID", vars["chatid"])
-
 		return i
 	}
 }
@@ -169,65 +165,6 @@ func GetChatId(ctx context.Context) uint32 {
 	return uint32(i)
 }
 
-func logResponse() kithttp.ClientResponseFunc {
-	return func(i context.Context, response *http.Response) context.Context {
-		log.Println(formatResponse(response))
-		return i
-	}
-}
-
-// formatRequest generates ascii representation of a request
-func formatRequest(r *http.Request) string {
-	// Create return string
-	var request []string
-	// Add the request string
-	url := fmt.Sprintf("%v %v %v", r.Method, r.URL, r.Proto)
-	request = append(request, url)
-	// Add the host
-	request = append(request, fmt.Sprintf("Host: %v", r.Host))
-	// Loop through headers
-	for name, headers := range r.Header {
-		name = strings.ToLower(name)
-		for _, h := range headers {
-			request = append(request, fmt.Sprintf("%v: %v", name, h))
-		}
-	}
-
-	// If this is a POST, add post data
-	if r.Method == "POST" {
-		r.ParseForm()
-		request = append(request, "\n")
-		request = append(request, r.Form.Encode())
-	}
-
-	body, _ := ioutil.ReadAll(r.Body)
-	request = append(request, fmt.Sprintf("Body: %v", string(body)))
-
-	r.Body = ioutil.NopCloser(bytes.NewBuffer(body))
-
-	// Return the request as a string
-	return strings.Join(request, "\n")
-}
-
-func formatResponse(r *http.Response) string {
-	// Create return string
-	var request []string
-	// Loop through headers
-	for name, headers := range r.Header {
-		name = strings.ToLower(name)
-		for _, h := range headers {
-			request = append(request, fmt.Sprintf("%v: %v", name, h))
-		}
-	}
-	body, _ := ioutil.ReadAll(r.Body)
-	request = append(request, fmt.Sprintf("Body: %v", string(body)))
-
-	r.Body = ioutil.NopCloser(bytes.NewBuffer(body))
-
-	// Return the request as a string
-	return strings.Join(request, "\n")
-}
-
 /*
 GetServerOpts creates a default server option with an error logger, error encoder and a http request logger.
 */
@@ -235,16 +172,7 @@ func GetServerOpts(logger kitlog.Logger, service machineLearning.Service) []kith
 	return []kithttp.ServerOption{
 		kithttp.ServerErrorLogger(logger),
 		kithttp.ServerErrorEncoder(EncodeError),
-		kithttp.ServerBefore(logRequest(service), gokitjwt.HTTPToContext()),
-	}
-}
-
-/*
-GetServerOpts creates a default server option with an error logger, error encoder and a http request logger.
-*/
-func GetClientOpts(logger kitlog.Logger) []kithttp.ClientOption {
-	return []kithttp.ClientOption{
-		kithttp.ClientAfter(logResponse()),
+		kithttp.ServerBefore(gokitjwt.HTTPToContext(), preProcess(service)),
 	}
 }
 
