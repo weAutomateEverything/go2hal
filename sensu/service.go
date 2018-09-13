@@ -32,6 +32,8 @@ func (s *service) handleSensu(ctx context.Context, chatId uint32, sensu SensuMes
 			e = ":white_check_mark:"
 		}
 		msg := fmt.Sprintf("%v *%v*\n %v", e, msg.Title, msg.Text)
+		msg = strings.Replace(msg, "*", "\\*", -1)
+		msg = strings.Replace(msg, "_", "\\_", -1)
 		s.alert.SendAlert(ctx, chatId, emoji.Sprint(msg))
 
 	}
