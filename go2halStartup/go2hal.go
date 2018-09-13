@@ -31,11 +31,12 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
-	"net/http/httputil"
 	"os"
 	"os/signal"
 	"runtime/debug"
 	"syscall"
+
+	"github.com/gorilla/handlers"
 
 	kitprometheus "github.com/go-kit/kit/metrics/prometheus"
 	stdprometheus "github.com/prometheus/client_golang/prometheus"
@@ -106,7 +107,7 @@ func (go2hal *Go2Hal) Start() {
 	}
 	go func() {
 		go2hal.Logger.Log("transport", "http", "address", ":8000", "msg", "listening")
-		errs <- http.ListenAndServe(":8000", panicHandler{accessControl(go2hal.Mux, go2hal.HTTPLogger), go2hal.JiraService, go2hal.AlertService})
+		errs <- http.ListenAndServe(":8000", handlers.LoggingHandler(os.Stdout, panicHandler{accessControl(go2hal.Mux, go2hal.Logger), go2hal.JiraService, go2hal.AlertService}))
 	}()
 	go func() {
 		go2hal.Logger.Log("transport", "http", "address", ":8080", "msg", "listening")
@@ -468,6 +469,7 @@ func NewGo2Hal() Go2Hal {
 }
 
 func accessControl(h http.Handler, httpLogger log.Logger) http.Handler {
+
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
@@ -478,12 +480,6 @@ func accessControl(h http.Handler, httpLogger log.Logger) http.Handler {
 			return
 		}
 
-		req, err := httputil.DumpRequest(r, true)
-		if err != nil {
-			httpLogger.Log("error reading http request", err.Error())
-		} else {
-			httpLogger.Log("Http Request", string(req))
-		}
 		h.ServeHTTP(w, r)
 	})
 }
