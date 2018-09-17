@@ -3,12 +3,16 @@ package telegram
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
+	"encoding/json"
 	"fmt"
 	"github.com/weAutomateEverything/go2hal/auth"
+	"github.com/weAutomateEverything/halMessageClassification/api"
 	"gopkg.in/telegram-bot-api.v4"
 	"io/ioutil"
 	"log"
 	"math/rand"
+	"net/http"
 	"os"
 	"runtime"
 	"strconv"
@@ -278,6 +282,11 @@ func sendMessage(chatID int64, message string, messageID int, markup bool) (msgi
 		log.Println(err)
 		return
 	}
+
+	err = auditMessage(message, chatID, strconv.FormatInt(int64(out.MessageID), 10))
+	if err != nil {
+		log.Printf("Error auditing message: %v", err)
+	}
 	return out.MessageID, nil
 }
 
@@ -397,6 +406,29 @@ func getCommands() []commandDescription {
 		count++
 	}
 	return result
+}
+
+func auditMessage(message string, chat int64, messageId string) error {
+	if os.Getenv("HAL_API_SERVICES") != "" {
+		req := api.TextEvent{
+			Message:   message,
+			MessageID: messageId,
+			Chat:      chat,
+		}
+
+		b, err := json.Marshal(req)
+		if err != nil {
+			return err
+		}
+		http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+		resp, err := http.Post(fmt.Sprintf("%v/halMessageClassification", os.Getenv("HAL_API_SERVICES")), "application/json", bytes.NewReader(b))
+		if err != nil {
+			return err
+		}
+
+		resp.Body.Close()
+	}
+	return nil
 }
 
 /**
