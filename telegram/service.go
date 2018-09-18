@@ -409,6 +409,7 @@ func getCommands() []commandDescription {
 }
 
 func auditMessage(message string, chat int64, messageId string) error {
+	log.Printf("Checking Audit endpoint: %v", os.Getenv("HAL_API_SERVICES"))
 	if os.Getenv("HAL_API_SERVICES") != "" {
 		req := api.TextEvent{
 			Message:   message,
