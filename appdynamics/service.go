@@ -40,6 +40,8 @@ func NewService(alertService alert.Service, sshservice ssh.Service, store Store)
 func (s *service) sendAppdynamicsAlert(ctx context.Context, chatId uint32, message string) error {
 	var m appdynamicsMessage
 
+	message = strings.Replace(message, "\"\"", "\\\"\\\"", -1)
+
 	err := json.Unmarshal([]byte(message), &m)
 
 	if err != nil {
