@@ -3,7 +3,6 @@ package appdynamics
 import (
 	"errors"
 	"gopkg.in/mgo.v2"
-	"gopkg.in/mgo.v2/bson"
 )
 
 type Store interface {
@@ -21,16 +20,15 @@ type Store interface {
 type AppDynamics struct {
 	ChatId      uint32 `json:"id" bson:"_id,omitempty"`
 	Endpoint    string
-	MqEndpoints []MqEndpoint
+	MqEndpoints []*MqEndpoint
 }
 
 // swagger:model
 type MqEndpoint struct {
-	ID          bson.ObjectId `bson:"_id,omitempty"`
 	Name        string
 	Application string
 	MetricPath  string
-	Chat        []uint32
+	Chat        uint32
 }
 
 func NewMongoStore(mongo *mgo.Database) Store {
@@ -84,19 +82,7 @@ func (s *mongoStore) addMqEndpoint(name, application string, metricPath string, 
 	}
 	c := s.mongo.C("appDynamics")
 
-	for _, mq := range appd.MqEndpoints {
-		if mq.Application == application && mq.MetricPath == metricPath {
-			for _, id := range mq.Chat {
-				if id == chat {
-					return nil
-				}
-			}
-			mq.Chat = append(mq.Chat, chat)
-			return c.UpdateId(appd.ChatId, appd)
-		}
-	}
-
-	appd.MqEndpoints = append(appd.MqEndpoints, mq)
+	appd.MqEndpoints = append(appd.MqEndpoints, &mq)
 	return c.UpdateId(appd.ChatId, appd)
 
 }
@@ -112,6 +98,6 @@ func (s *mongoStore) GetAppDynamics(chat uint32) (*AppDynamics, error) {
 		return nil, errors.New("no app dynamics config set")
 	}
 	a := AppDynamics{}
-	err = q.One(a)
+	err = q.One(&a)
 	return &a, err
 }

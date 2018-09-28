@@ -6,12 +6,15 @@ import (
 	"github.com/weAutomateEverything/go2hal/gokit"
 )
 
+// Request object to add a new IBM MQ Queue to be monitored from App Dynamics
+// swagger:model
 type AddAppdynamicsQueueEndpointRequest struct {
 	Name        string
 	Application string
 	Metricpath  string
 }
 
+//swagger:model
 type AddAppdynamicsEndpointRequest struct {
 	Endpoint string
 }
