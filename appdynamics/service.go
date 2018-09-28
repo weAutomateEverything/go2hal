@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"github.com/weAutomateEverything/go2hal/alert"
 	"github.com/weAutomateEverything/go2hal/ssh"
-	"golang.org/x/net/context/ctxhttp"
 	"gopkg.in/kyokomi/emoji.v1"
 	"io/ioutil"
 	"log"
@@ -123,7 +122,7 @@ func monitorAppdynamicsQueue(s Store, a alert.Service) {
 		} else {
 			for _, endpoint := range endpoints {
 				for _, queue := range endpoint.MqEndpoints {
-					checkQueues(queue, a, s, endpoint.ChatId)
+					checkQueues(*queue, a, s, endpoint.ChatId)
 				}
 			}
 		}
@@ -177,19 +176,17 @@ func checkQueue(ctx context.Context, endpoint MqEndpoint, name string, a alert.S
 	}
 	full := currDepth / maxDepth * 100
 	if full > 90 {
-		for _, chat := range endpoint.Chat {
-			a.SendAlert(ctx, chat, emoji.Sprintf(":baggage_claim: :interrobang: %s - Queue %s, is more than 90 percent full. "+
-				"Current Depth %.0f, Max Depth %.0f", endpoint.Name, name, currDepth, maxDepth))
-		}
+
+		a.SendAlert(ctx, chat, emoji.Sprintf(":baggage_claim: :interrobang: %s - Queue %s, is more than 90 percent full. "+
+			"Current Depth %.0f, Max Depth %.0f", endpoint.Name, name, currDepth, maxDepth))
 
 		return nil
 	}
 
 	if full > 75 {
-		for _, chat := range endpoint.Chat {
-			a.SendAlert(ctx, chat, emoji.Sprintf(":baggage_claim: :warning: %s - Queue %s, is more than 75 percent full. Current "+
-				"Depth %.0f, Max Depth %.0f", endpoint.Name, name, currDepth, maxDepth))
-		}
+		a.SendAlert(ctx, chat, emoji.Sprintf(":baggage_claim: :warning: %s - Queue %s, is more than 75 percent full. Current "+
+			"Depth %.0f, Max Depth %.0f", endpoint.Name, name, currDepth, maxDepth))
+
 		return nil
 	}
 	return nil
@@ -247,15 +244,9 @@ func doGet(ctx context.Context, uri string, s Store, a alert.Service, chat uint3
 		return "", err
 	}
 
-	client := &http.Client{}
 	url := appd.Endpoint + uri
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		a.SendError(ctx, err)
-		return "", err
-	}
 
-	resp, err := ctxhttp.Do(ctx, client, req)
+	resp, err := http.Get(url)
 	if err != nil {
 		a.SendError(ctx, err)
 		return "", err
