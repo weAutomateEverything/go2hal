@@ -83,6 +83,7 @@ type Go2Hal struct {
 	GithubService           github.Service
 	SeleniumService         seleniumTests.Service
 	HTTPService             httpSmoke.Service
+	MqService               appdynamics.MqService
 	grafanaService          grafana.Service
 	prometheusService       prometheus.Service
 
@@ -254,6 +255,21 @@ func NewGo2Hal() Go2Hal {
 			Name:      "request_latency_microseconds",
 			Help:      "Total duration of requests in microseconds.",
 		}, fieldKeys), go2hal.AppdynamicsService)
+
+	go2hal.MqService = appdynamics.NewMqSercvice(go2hal.AlertService, go2hal.AppdynamicsStore)
+	go2hal.MqService = appdynamics.NewMqLoggingService(log.With(go2hal.Logger, "component", "appdynamics_mq"), go2hal.MqService)
+	go2hal.MqService = appdynamics.NewMqInstrumentService(kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
+		Namespace: "api",
+		Subsystem: "appdynamics_mq",
+		Name:      "request_count",
+		Help:      "Number of requests received.",
+	}, fieldKeys),
+		kitprometheus.NewSummaryFrom(stdprometheus.SummaryOpts{
+			Namespace: "api",
+			Subsystem: "appdynamics_mq",
+			Name:      "request_latency_microseconds",
+			Help:      "Total duration of requests in microseconds.",
+		}, fieldKeys), go2hal.MqService)
 
 	go2hal.SNMPService = snmp.NewService(go2hal.AlertService, go2hal.MachineLearningService)
 	go2hal.SNMPService = snmp.NewLoggingService(log.With(go2hal.Logger, "component", "snmp"), go2hal.SNMPService)
@@ -450,6 +466,7 @@ func NewGo2Hal() Go2Hal {
 
 	go2hal.Mux.Handle("/api/alert/", alert.MakeHandler(go2hal.AlertService, go2hal.HTTPLogger, go2hal.MachineLearningService))
 	go2hal.Mux.Handle("/api/chefAudit", analytics.MakeHandler(go2hal.AnalticsServics, go2hal.HTTPLogger, go2hal.MachineLearningService))
+	go2hal.Mux.Handle("/api/appdynamics/{chatid:[0-9]+}/queue", appdynamics.MakeMqHandler(go2hal.MqService, go2hal.HTTPLogger, go2hal.MachineLearningService))
 	go2hal.Mux.Handle("/api/appdynamics/", appdynamics.MakeHandler(go2hal.AppdynamicsService, go2hal.HTTPLogger, go2hal.MachineLearningService))
 	go2hal.Mux.Handle("/api/chef/", chef.MakeHandler(go2hal.ChefService, go2hal.HTTPLogger, go2hal.MachineLearningService))
 	go2hal.Mux.Handle("/api/sensu/", sensu.MakeHandler(go2hal.SensuService, go2hal.HTTPLogger, go2hal.MachineLearningService))
