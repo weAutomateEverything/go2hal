@@ -18,7 +18,6 @@ func MakeHandler(service Service, logger kitlog.Logger, ml machineLearning.Servi
 
 	appDynamicsAlertEndoint := kithttp.NewServer(makeAppDynamicsAlertEndpoint(service), gokit.DecodeString, gokit.EncodeResponse, opts...)
 	addAppdynamicsEndpoint := kithttp.NewServer(makeAddAppdynamicsEndpoint(service), decodeAddEndpointRequest, gokit.EncodeResponse, opts...)
-	addAppdynamicsQueueEndpoint := kithttp.NewServer(makeAddAppdynamicsQueueEndpoint(service), decodeAddMqEndpointRequest, gokit.EncodeResponse, opts...)
 	executeCommandFromAppdynamics := kithttp.NewServer(makExecuteCommandFromAppdynamics(service), decodeExecuteRequest, gokit.EncodeResponse, opts...)
 
 	r := mux.NewRouter()
@@ -94,39 +93,6 @@ func MakeHandler(service Service, logger kitlog.Logger, ml machineLearning.Servi
 	//     schema:
 	//       "$ref": "#/definitions/errorResponse"
 	r.Handle("/api/appdynamics/{chatid:[0-9]+}", appDynamicsAlertEndoint).Methods("POST")
-
-	// swagger:operation POST /api/appdynamics/{chatid}/queue appdynamics addQueue
-	//
-	// Add a IBM MQ queue to monitor
-	//
-	// Add a ibm MQ queue thats been monitored by the App Dynamics MQ Extension (https://www.appdynamics.com/community/exchange/extension/websphere-mq-monitoring-extension/).
-	// Once the plugin has been configured, it should start sending MQ details.
-	//
-	// ---
-	// consumes:
-	// - application/json
-	// produces:
-	// - application/json
-	// parameters:
-	// - name: chatid
-	//   in: path
-	//   description: chat id
-	//   required: true
-	//   type: integer
-	// - name: body
-	//   description: queue details
-	//   required: true
-	//   in: body
-	//   schema:
-	//     "$ref": "#/definitions/AddAppdynamicsQueueEndpointRequest"
-	// responses:
-	//   '200':
-	//     description: Command has been executed successfully
-	//   default:
-	//     description: unexpected error
-	//     schema:
-	//       "$ref": "#/definitions/errorResponse"
-	r.Handle("/api/appdynamics/{chatid:[0-9]+}/queue", addAppdynamicsQueueEndpoint).Methods("POST")
 
 	// swagger:operation POST /api/appdynamics/{chatid}/endpoint appdynamics configureAppdynamics
 	//
@@ -206,12 +172,6 @@ func decodeExecuteRequest(_ context.Context, r *http.Request) (interface{}, erro
 
 func decodeAddEndpointRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	request := AddAppdynamicsEndpointRequest{}
-	err := json.NewDecoder(r.Body).Decode(&request)
-	return request, err
-}
-
-func decodeAddMqEndpointRequest(_ context.Context, r *http.Request) (interface{}, error) {
-	request := AddAppdynamicsQueueEndpointRequest{}
 	err := json.NewDecoder(r.Body).Decode(&request)
 	return request, err
 }
