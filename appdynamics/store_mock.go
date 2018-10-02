@@ -58,15 +58,15 @@ func (mr *MockStoreMockRecorder) addAppDynamicsEndpoint(chat, endpoint interface
 }
 
 // addMqEndpoint mocks base method
-func (m *MockStore) addMqEndpoint(name, application, metricPath string, chat uint32) error {
-	ret := m.ctrl.Call(m, "addMqEndpoint", name, application, metricPath, chat)
+func (m *MockStore) addMqEndpoint(name, application, metricPath string, chat uint32, ignorePrefix []string) error {
+	ret := m.ctrl.Call(m, "addMqEndpoint", name, application, metricPath, chat, ignorePrefix)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // addMqEndpoint indicates an expected call of addMqEndpoint
-func (mr *MockStoreMockRecorder) addMqEndpoint(name, application, metricPath, chat interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "addMqEndpoint", reflect.TypeOf((*MockStore)(nil).addMqEndpoint), name, application, metricPath, chat)
+func (mr *MockStoreMockRecorder) addMqEndpoint(name, application, metricPath, chat, ignorePrefix interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "addMqEndpoint", reflect.TypeOf((*MockStore)(nil).addMqEndpoint), name, application, metricPath, chat, ignorePrefix)
 }
 
 // getAllEndpoints mocks base method

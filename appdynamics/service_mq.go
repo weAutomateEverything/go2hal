@@ -14,7 +14,7 @@ import (
 )
 
 type MqService interface {
-	addAppDynamicsQueue(ctx context.Context, chatId uint32, name, application, metricPath string) error
+	addAppDynamicsQueue(ctx context.Context, chatId uint32, name, application, metricPath string, ignorePrefix []string) error
 }
 
 type mqService struct {
@@ -32,13 +32,13 @@ func NewMqSercvice(alertService alert.Service, store Store) MqService {
 	}
 }
 
-func (s *mqService) addAppDynamicsQueue(ctx context.Context, chatId uint32, name, application, metricPath string) error {
+func (s *mqService) addAppDynamicsQueue(ctx context.Context, chatId uint32, name, application, metricPath string, ignorePrefix []string) error {
 	endpointObject := MqEndpoint{MetricPath: metricPath, Application: application, Name: name}
 	err := checkQueues(endpointObject, s.alert, s.store, chatId)
 	if err != nil {
 		return err
 	}
-	s.store.addMqEndpoint(name, application, metricPath, chatId)
+	s.store.addMqEndpoint(name, application, metricPath, chatId, ignorePrefix)
 	return nil
 }
 
@@ -91,6 +91,11 @@ func checkQueues(endpoint MqEndpoint, a alert.Service, s Store, chat uint32) (er
 	return nil
 }
 func checkQueue(ctx context.Context, endpoint MqEndpoint, name string, a alert.Service, s Store, chat uint32) error {
+	for _, x := range endpoint.IgnorePrefix {
+		if strings.HasPrefix(name, x) {
+			return nil
+		}
+	}
 	currDepth, err := getCurrentQueueDepthValue(ctx, buildQueryStringQueueDepth(endpoint, name), s, a, chat)
 	if err != nil {
 		return err
