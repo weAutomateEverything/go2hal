@@ -79,6 +79,8 @@ func checkQueues(endpoint MqEndpoint, a alert.Service, s Store, chat uint32) (er
 		err = checkQueue(ctx, endpoint, queue2["name"].(string), a, s, chat)
 		if err == nil {
 			success = true
+		} else {
+			log.Printf("MQ Error: %v", err.Error())
 		}
 
 	}
