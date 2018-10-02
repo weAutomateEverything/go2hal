@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -53,7 +54,7 @@ func monitorAppdynamicsQueue(s Store, a alert.Service) {
 				}
 			}
 		}
-		time.Sleep(time.Minute * 10)
+		time.Sleep(time.Minute * 30)
 	}
 }
 
@@ -116,6 +117,12 @@ func checkQueue(ctx context.Context, endpoint MqEndpoint, name string, a alert.S
 		a.SendAlert(ctx, chat, emoji.Sprintf(":baggage_claim: :warning: %s - Queue %s, is more than 75 percent full. Current "+
 			"Depth %.0f, Max Depth %.0f", endpoint.Name, name, currDepth, maxDepth))
 
+		return nil
+	}
+
+	if strings.HasSuffix(strings.ToUpper(name), "BK") && currDepth > 0 {
+		a.SendAlert(ctx, chat, emoji.Sprintf(":baggage_claim: :warning: %s - Backout Queue %s contains data. The queue should be empty.\nPlease investigate why messages are being placed on this queue.\nCurrent "+
+			"Depth %.0f, Max Depth %.0f", endpoint.Name, name, currDepth, maxDepth))
 		return nil
 	}
 	return nil
