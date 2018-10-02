@@ -9,6 +9,6 @@ import (
 func makeAddAppdynamicsQueueEndpoint(s MqService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(AddAppdynamicsQueueEndpointRequest)
-		return nil, s.addAppDynamicsQueue(ctx, gokit.GetChatId(ctx), req.Name, req.Application, req.Metricpath)
+		return nil, s.addAppDynamicsQueue(ctx, gokit.GetChatId(ctx), req.Name, req.Application, req.Metricpath, req.IgnorePrefix)
 	}
 }

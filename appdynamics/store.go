@@ -11,7 +11,7 @@ type Store interface {
 	*/
 	GetAppDynamics(chat uint32) (*AppDynamics, error)
 	addAppDynamicsEndpoint(chat uint32, endpoint string) error
-	addMqEndpoint(name, application string, metricPath string, chat uint32) error
+	addMqEndpoint(name, application string, metricPath string, chat uint32, ignorePrefix []string) error
 
 	getAllEndpoints() ([]AppDynamics, error)
 }
@@ -25,10 +25,11 @@ type AppDynamics struct {
 
 // swagger:model
 type MqEndpoint struct {
-	Name        string
-	Application string
-	MetricPath  string
-	Chat        uint32
+	Name         string
+	Application  string
+	MetricPath   string
+	Chat         uint32
+	IgnorePrefix []string `json:"ignore_prefix"`
 }
 
 func NewMongoStore(mongo *mgo.Database) Store {
@@ -74,8 +75,8 @@ func (s *mongoStore) addAppDynamicsEndpoint(chat uint32, endpoint string) error 
 	}
 }
 
-func (s *mongoStore) addMqEndpoint(name, application string, metricPath string, chat uint32) error {
-	var mq = MqEndpoint{Application: application, MetricPath: metricPath, Name: name}
+func (s *mongoStore) addMqEndpoint(name, application string, metricPath string, chat uint32, ignorePrefix []string) error {
+	var mq = MqEndpoint{Application: application, MetricPath: metricPath, Name: name, IgnorePrefix: ignorePrefix}
 	appd, err := s.GetAppDynamics(chat)
 	if err != nil {
 		return err

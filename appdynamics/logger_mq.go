@@ -15,7 +15,7 @@ func NewMqLoggingService(logger log.Logger, s MqService) MqService {
 	return &mqLoggingService{logger, s}
 }
 
-func (s *mqLoggingService) addAppDynamicsQueue(ctx context.Context, chatId uint32, name, application, metricPath string) (err error) {
+func (s *mqLoggingService) addAppDynamicsQueue(ctx context.Context, chatId uint32, name, application, metricPath string, ignorePrefix []string) (err error) {
 	defer func(begin time.Time) {
 		s.logger.Log(
 			"method", "add appdynamics queue",
@@ -27,5 +27,5 @@ func (s *mqLoggingService) addAppDynamicsQueue(ctx context.Context, chatId uint3
 			"took", time.Since(begin),
 		)
 	}(time.Now())
-	return s.MqService.addAppDynamicsQueue(ctx, chatId, name, application, metricPath)
+	return s.MqService.addAppDynamicsQueue(ctx, chatId, name, application, metricPath, ignorePrefix)
 }
