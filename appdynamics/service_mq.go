@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/golang/protobuf/ptypes/duration"
 	"github.com/weAutomateEverything/go2hal/alert"
 	"gopkg.in/kyokomi/emoji.v1"
 	"io/ioutil"
@@ -96,12 +97,12 @@ func checkQueue(ctx context.Context, endpoint MqEndpoint, name string, a alert.S
 			return nil
 		}
 	}
-	currDepth, err := getCurrentQueueDepthValue(ctx, buildQueryStringQueueDepth(endpoint, name), s, a, chat)
+	currDepth, err := getAppdValue(ctx, buildQueryStringQueueDepth(endpoint, name), s, a, chat)
 	if err != nil {
 		return err
 	}
 
-	maxDepth, err := getCurrentQueueDepthValue(ctx, buildQueryStringMaxQueueDepth(endpoint, name), s, a, chat)
+	maxDepth, err := getAppdValue(ctx, buildQueryStringMaxQueueDepth(endpoint, name), s, a, chat)
 	if err != nil {
 		return err
 	}
@@ -130,10 +131,20 @@ func checkQueue(ctx context.Context, endpoint MqEndpoint, name string, a alert.S
 			"Depth %.0f, Max Depth %.0f", endpoint.Name, name, currDepth, maxDepth))
 		return nil
 	}
+
+	messageAge, err := getAppdValue(ctx, buildQueryStringOldestMessageAge(endpoint, name), s, a, chat)
+
+	if messageAge > endpoint.MaxMessageAge {
+		d := duration.Duration{Seconds: int64(messageAge)}
+		a.SendAlert(ctx, chat, emoji.Sprintf(":baggage_claim: :warning: %s - Queue %s contains messages that are %v old. Please investigate why messages are not being processed on the queue.\nCurrent "+
+			"Depth %.0f, Max Depth %.0f", endpoint.Name, name, d.String(), currDepth, maxDepth))
+		return nil
+
+	}
 	return nil
 }
 
-func getCurrentQueueDepthValue(ctx context.Context, path string, s Store, a alert.Service, chat uint32) (float64, error) {
+func getAppdValue(ctx context.Context, path string, s Store, a alert.Service, chat uint32) (float64, error) {
 	response, err := doGet(ctx, path, s, a, chat)
 	if err != nil {
 		log.Printf("Error retreiving queue %s", err)
@@ -151,6 +162,7 @@ func getCurrentQueueDepthValue(ctx context.Context, path string, s Store, a aler
 	}
 
 	if len(dat) == 0 {
+
 		return 0, fmt.Errorf("no data found for %s", path)
 	}
 
@@ -174,9 +186,12 @@ func buildQueryStringQueueDepth(endpoint MqEndpoint, queue string) string {
 
 func buildQueryStringMaxQueueDepth(endpoint MqEndpoint, queue string) string {
 	return fmt.Sprintf("/controller/rest/applications/%s/metric-data?metric-path=%s%%7C%s%%7CMax%%20Queue%%20Depth&time-range-type=BEFORE_NOW&duration-in-mins=15&output=JSON", endpoint.Application, endpoint.MetricPath, queue)
-
 }
 
+func buildQueryStringOldestMessageAge(endpoint MqEndpoint, queue string) string {
+	return fmt.Sprintf("/controller/rest/applications/%s/metric-data?metric-path=%s%%7C%s%%7COldestMsgAge&time-range-type=BEFORE_NOW&duration-in-mins=15&output=JSON", endpoint.Application, endpoint.MetricPath, queue)
+
+}
 func doGet(ctx context.Context, uri string, s Store, a alert.Service, chat uint32) (string, error) {
 
 	appd, err := s.GetAppDynamics(chat)
