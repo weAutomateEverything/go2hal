@@ -25,11 +25,12 @@ type AppDynamics struct {
 
 // swagger:model
 type MqEndpoint struct {
-	Name         string
-	Application  string
-	MetricPath   string
-	Chat         uint32
-	IgnorePrefix []string `json:"ignore_prefix"`
+	Name          string
+	Application   string
+	MetricPath    string
+	Chat          uint32
+	MaxMessageAge float64  `json:"max_message_age" bson:"max_message_age"`
+	IgnorePrefix  []string `json:"ignore_prefix"`
 }
 
 func NewMongoStore(mongo *mgo.Database) Store {
