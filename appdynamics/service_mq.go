@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/golang/protobuf/ptypes/duration"
 	"github.com/weAutomateEverything/go2hal/alert"
 	"gopkg.in/kyokomi/emoji.v1"
 	"io/ioutil"
@@ -135,7 +134,8 @@ func checkQueue(ctx context.Context, endpoint MqEndpoint, name string, a alert.S
 	messageAge, err := getAppdValue(ctx, buildQueryStringOldestMessageAge(endpoint, name), s, a, chat)
 
 	if messageAge > endpoint.MaxMessageAge {
-		d := duration.Duration{Seconds: int64(messageAge)}
+		t := time.Now().Add(time.Second * time.Duration(messageAge) * -1)
+		d := time.Since(t).Truncate(time.Second)
 		a.SendAlert(ctx, chat, emoji.Sprintf(":baggage_claim: :warning: %s - Queue %s contains messages that are %v old. Please investigate why messages are not being processed on the queue.\nCurrent "+
 			"Depth %.0f, Max Depth %.0f", endpoint.Name, name, d.String(), currDepth, maxDepth))
 		return nil
