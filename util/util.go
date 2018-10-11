@@ -1,6 +1,9 @@
 package util
 
-import "bytes"
+import (
+	"bytes"
+	"strings"
+)
 
 /*
 GetField will loop through a slack message json and return the fields
@@ -20,4 +23,11 @@ func Getfield(attachments []interface{}, buffer *bytes.Buffer) {
 			buffer.WriteString("\n")
 		}
 	}
+}
+
+func EscapeInput(input string) string {
+	result := strings.Replace(input, "\"\"", "\\\"\\\"", -1)
+	result = strings.Replace(result, "\n", "", -1)
+	return result
+
 }

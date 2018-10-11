@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/weAutomateEverything/go2hal/alert"
 	"github.com/weAutomateEverything/go2hal/ssh"
+	"github.com/weAutomateEverything/go2hal/util"
 	"gopkg.in/kyokomi/emoji.v1"
 	"log"
 	"strings"
@@ -32,8 +33,7 @@ func NewService(alertService alert.Service, sshservice ssh.Service, store Store)
 func (s *service) sendAppdynamicsAlert(ctx context.Context, chatId uint32, message string) error {
 	var m appdynamicsMessage
 
-	message = strings.Replace(message, "\"\"", "\\\"\\\"", -1)
-
+	message = util.EscapeInput(message)
 	err := json.Unmarshal([]byte(message), &m)
 
 	if err != nil {
