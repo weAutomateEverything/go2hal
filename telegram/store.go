@@ -51,10 +51,34 @@ type Store interface {
 	newAuthRequest(msgid int, chat int64, name string) (string, error)
 	approveAuthRequest(id int, chat int64, approvedByName string, approvedById int) error
 	useToken(id string) (chat int64, err error)
+
+	saveMessageCorrelation(chat int64, message int, correlationId string) error
+	getCorrelationId(chat int64, message int) (string, error)
+	SaveReply(chat int64, message string, correlationId string) error
+	GetReplies() ([]Replies, error)
+	AcknowledgeReply(id bson.ObjectId) error
 }
 
 type mongoStore struct {
 	mongo *mgo.Database
+}
+
+func (s mongoStore) SaveReply(chat int64, message string, correlationId string) error {
+	r := &Replies{
+		CorrelationId: correlationId,
+		ChatId:        chat,
+		Message:       message,
+	}
+	return s.mongo.C("replies").Insert(&r)
+}
+
+func (s mongoStore) GetReplies() (r []Replies, err error) {
+	err = s.mongo.C("replies").Find(nil).All(&r)
+	return
+}
+
+func (s mongoStore) AcknowledgeReply(id bson.ObjectId) error {
+	return s.mongo.C("replies").RemoveId(id)
 }
 
 func (s mongoStore) useToken(id string) (chat int64, err error) {
@@ -203,4 +227,44 @@ func (s mongoStore) GetUUID(chat int64, room string) (uuid uint32, err error) {
 
 	err = fmt.Errorf("no UUID could be found for chat group %v", chat)
 	return
+}
+
+func (s mongoStore) saveMessageCorrelation(chat int64, message int, correlationId string) error {
+	id := fmt.Sprintf("%v_%v", chat, message)
+	r := &record{
+		ID:            id,
+		CorrelationId: correlationId,
+	}
+	return s.mongo.C("reply_correlation").Insert(&r)
+}
+
+func (s mongoStore) getCorrelationId(chat int64, message int) (string, error) {
+	id := fmt.Sprintf("%v_%v", chat, message)
+	q := s.mongo.C("reply_correlation").FindId(id)
+	i, err := q.Count()
+	if err != nil {
+		return "", err
+	}
+	if i > 0 {
+		var r record
+		err = q.One(&r)
+		if err != nil {
+			return "", err
+		}
+		return r.CorrelationId, nil
+
+	}
+	return "", nil
+}
+
+type record struct {
+	ID            string `bson:"_id,omitempty"`
+	CorrelationId string
+}
+
+type Replies struct {
+	ID            bson.ObjectId `bson:"_id,omitempty"`
+	CorrelationId string
+	ChatId        int64
+	Message       string
 }

@@ -1,0 +1,17 @@
+syntax = "proto3";
+package alert;
+
+service Alert {
+    rpc RequestReply(stream AlertRequest) returns (stream AlertReply) {}
+}
+
+message AlertRequest {
+    int64 GroupID = 1;
+    string CorrelationId = 2;
+    string Message = 3;
+}
+
+message AlertReply {
+    string CorrelationId = 1;
+    string Message = 2;
+}
