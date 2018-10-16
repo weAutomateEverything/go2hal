@@ -7,8 +7,17 @@ import (
 	"time"
 )
 
-func NewGrpcService() AlertServer {
-	return &grpcService{}
+func NewGrpcService(service Service, store telegram.Store) AlertServer {
+	s := &grpcService{
+		service:  service,
+		store:    store,
+		requests: make(map[int64]Alert_RequestReplyServer),
+	}
+	go func() {
+		s.poll()
+
+	}()
+	return s
 }
 
 type grpcService struct {

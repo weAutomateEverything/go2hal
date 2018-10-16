@@ -198,6 +198,8 @@ func NewGo2Hal() Go2Hal {
 			Help:      "Total duration of requests in microseconds.",
 		}, []string{"method", "chat"}), go2hal.AlertService)
 
+	go2hal.AlertRequestReplyService = alert.NewGrpcService(go2hal.AlertService, go2hal.TelegramStore)
+
 	go2hal.JiraService = jira.NewService(go2hal.AlertService, go2hal.UserStore)
 	go2hal.JiraService = jira.NewLoggingService(log.With(go2hal.Logger, "component", "jira"), go2hal.JiraService)
 	go2hal.JiraService = jira.NewInstrumentService(kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
