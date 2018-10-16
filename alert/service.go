@@ -10,10 +10,22 @@ import (
 )
 
 /*
+NewService returns a new Alert Service
+*/
+func NewService(t telegram.Service, store telegram.Store) Service {
+
+	return &service{
+		store:    store,
+		telegram: t,
+	}
+}
+
+/*
 Service interface
 */
 type Service interface {
 	SendAlert(ctx context.Context, chatId uint32, message string) error
+	SendAlertWithReply(ctx context.Context, chatId uint32, message string, correlationId string) (int, error)
 	SendImageToAlertGroup(ctx context.Context, chatid uint32, image []byte) error
 	SendDocumentToAlertGroup(ctx context.Context, chatid uint32, document []byte, extension string) error
 
@@ -26,19 +38,16 @@ type service struct {
 	store    telegram.Store
 }
 
-/*
-NewService returns a new Alert Service
-*/
-func NewService(t telegram.Service, store telegram.Store) Service {
-
-	return &service{
-		telegram: t,
-		store:    store,
+func (s *service) SendAlertWithReply(ctx context.Context, chatId uint32, message string, correlationId string) (int, error) {
+	group, err := s.store.GetRoomKey(chatId)
+	if err != nil {
+		return 0, err
 	}
+	msgId, err := s.telegram.SendMessageWithCorrelation(ctx, group, message, 0, correlationId)
+	return msgId, err
 }
 
 //IMPL
-
 func (s *service) SendAlert(ctx context.Context, chatid uint32, message string) error {
 	group, err := s.store.GetRoomKey(chatid)
 	if err != nil {

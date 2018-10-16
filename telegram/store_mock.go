@@ -6,6 +6,7 @@ package telegram
 
 import (
 	gomock "github.com/golang/mock/gomock"
+	bson "gopkg.in/mgo.v2/bson"
 	reflect "reflect"
 )
 
@@ -131,4 +132,66 @@ func (m *MockStore) useToken(id string) (int64, error) {
 // useToken indicates an expected call of useToken
 func (mr *MockStoreMockRecorder) useToken(id interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "useToken", reflect.TypeOf((*MockStore)(nil).useToken), id)
+}
+
+// saveMessageCorrelation mocks base method
+func (m *MockStore) saveMessageCorrelation(chat int64, message int, correlationId string) error {
+	ret := m.ctrl.Call(m, "saveMessageCorrelation", chat, message, correlationId)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// saveMessageCorrelation indicates an expected call of saveMessageCorrelation
+func (mr *MockStoreMockRecorder) saveMessageCorrelation(chat, message, correlationId interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "saveMessageCorrelation", reflect.TypeOf((*MockStore)(nil).saveMessageCorrelation), chat, message, correlationId)
+}
+
+// getCorrelationId mocks base method
+func (m *MockStore) getCorrelationId(chat int64, message int) (string, error) {
+	ret := m.ctrl.Call(m, "getCorrelationId", chat, message)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// getCorrelationId indicates an expected call of getCorrelationId
+func (mr *MockStoreMockRecorder) getCorrelationId(chat, message interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "getCorrelationId", reflect.TypeOf((*MockStore)(nil).getCorrelationId), chat, message)
+}
+
+// SaveReply mocks base method
+func (m *MockStore) SaveReply(chat int64, message, correlationId string) error {
+	ret := m.ctrl.Call(m, "SaveReply", chat, message, correlationId)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SaveReply indicates an expected call of SaveReply
+func (mr *MockStoreMockRecorder) SaveReply(chat, message, correlationId interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveReply", reflect.TypeOf((*MockStore)(nil).SaveReply), chat, message, correlationId)
+}
+
+// GetReplies mocks base method
+func (m *MockStore) GetReplies() ([]Replies, error) {
+	ret := m.ctrl.Call(m, "GetReplies")
+	ret0, _ := ret[0].([]Replies)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetReplies indicates an expected call of GetReplies
+func (mr *MockStoreMockRecorder) GetReplies() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetReplies", reflect.TypeOf((*MockStore)(nil).GetReplies))
+}
+
+// AcknowledgeReply mocks base method
+func (m *MockStore) AcknowledgeReply(id bson.ObjectId) error {
+	ret := m.ctrl.Call(m, "AcknowledgeReply", id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// AcknowledgeReply indicates an expected call of AcknowledgeReply
+func (mr *MockStoreMockRecorder) AcknowledgeReply(id interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AcknowledgeReply", reflect.TypeOf((*MockStore)(nil).AcknowledgeReply), id)
 }

@@ -88,6 +88,7 @@ type Go2Hal struct {
 	prometheusService       prometheus.Service
 
 	RemoteTelegramCommandService remoteTelegramCommands.RemoteCommandServer
+	AlertRequestReplyService     alert.AlertServer
 	AppDynamics                  bool
 }
 type GO2HAL interface {
@@ -97,6 +98,7 @@ type GO2HAL interface {
 func (go2hal *Go2Hal) Start() {
 	grpc := grpc.NewServer()
 	remoteTelegramCommands.RegisterRemoteCommandServer(grpc, go2hal.RemoteTelegramCommandService)
+	alert.RegisterAlertServer(grpc, go2hal.AlertRequestReplyService)
 	reflection.Register(grpc)
 
 	errs := make(chan error, 2)
@@ -195,6 +197,8 @@ func NewGo2Hal() Go2Hal {
 			Name:      "request_latency_microseconds",
 			Help:      "Total duration of requests in microseconds.",
 		}, []string{"method", "chat"}), go2hal.AlertService)
+
+	go2hal.AlertRequestReplyService = alert.NewGrpcService(go2hal.AlertService, go2hal.TelegramStore)
 
 	go2hal.JiraService = jira.NewService(go2hal.AlertService, go2hal.UserStore)
 	go2hal.JiraService = jira.NewLoggingService(log.With(go2hal.Logger, "component", "jira"), go2hal.JiraService)

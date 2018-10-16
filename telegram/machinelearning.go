@@ -5,15 +5,19 @@ import (
 	"github.com/weAutomateEverything/go2hal/machineLearning"
 )
 
+//NewMachineLearning returns a decorated Service object that will log the telegram actions executed to the machine
+//learning database
+func NewMachineLearning(service machineLearning.Service, s Service) Service {
+	return &ml{service, s}
+}
+
 type ml struct {
 	ml machineLearning.Service
 	s  Service
 }
 
-//NewMachineLearning returns a decorated Service object that will log the telegram actions executed to the machine
-//learning database
-func NewMachineLearning(service machineLearning.Service, s Service) Service {
-	return &ml{service, s}
+func (s *ml) SendMessageWithCorrelation(ctx context.Context, chatID int64, message string, messageID int, correlationId string) (msgid int, err error) {
+	return s.s.SendMessageWithCorrelation(ctx, chatID, message, messageID, correlationId)
 }
 
 func (s *ml) SendMessage(ctx context.Context, chatID int64, message string, messageID int) (msgid int, err error) {

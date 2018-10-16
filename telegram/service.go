@@ -21,6 +21,7 @@ import (
 
 type Service interface {
 	SendMessage(ctx context.Context, chatID int64, message string, messageID int) (msgid int, err error)
+	SendMessageWithCorrelation(ctx context.Context, chatID int64, message string, messageID int, correlationId string) (msgid int, err error)
 	SendMessagePlainText(ctx context.Context, chatID int64, message string, messageID int) (msgid int, err error)
 	SendImageToGroup(ctx context.Context, image []byte, group int64) error
 	SendDocumentToGroup(ctx context.Context, document []byte, extension string, group int64) error
@@ -258,12 +259,34 @@ func (s service) pollMessage() {
 				if s.executeCommandLet(update) {
 					continue
 				}
+				if update.Message.ReplyToMessage != nil {
+					key, err := s.store.getCorrelationId(update.Message.Chat.ID, update.Message.ReplyToMessage.MessageID)
+					if err != nil {
+						log.Printf("Error getting correlation id %v", err)
+						continue
+					}
+					err = s.store.SaveReply(update.Message.Chat.ID, update.Message.Text, key)
+					if err != nil {
+						log.Printf("Error saving reply %v", err)
+						continue
+					}
+				}
 			}
 
 			log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
 			sendMessage(update.Message.Chat.ID, update.Message.Text, update.Message.MessageID, false)
 		}
 	}
+}
+
+func (s service) SendMessageWithCorrelation(ctx context.Context, chatID int64, message string, messageID int, correlationId string) (msgid int, err error) {
+	msgid, err = s.SendMessage(ctx, chatID, message, messageID)
+	if err != nil {
+		return
+	}
+
+	err = s.store.saveMessageCorrelation(chatID, msgid, correlationId)
+	return
 }
 
 func sendMessage(chatID int64, message string, messageID int, markup bool) (msgid int, err error) {
