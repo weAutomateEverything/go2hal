@@ -5,6 +5,7 @@ import (
 	"github.com/weAutomateEverything/go2hal/telegram"
 	"golang.org/x/net/context"
 	"gopkg.in/kyokomi/emoji.v1"
+	"gopkg.in/mgo.v2/bson"
 	"os"
 	"strconv"
 )
@@ -31,11 +32,27 @@ type Service interface {
 
 	SendError(ctx context.Context, err error) error
 	SendErrorImage(ctx context.Context, image []byte) error
+
+	GetReplies(ctx context.Context, chatId uint32) ([]telegram.Replies, error)
+	DeleteReply(ctx context.Context, chatId uint32, messageId string) error
 }
 
 type service struct {
 	telegram telegram.Service
 	store    telegram.Store
+}
+
+func (s *service) GetReplies(ctx context.Context, chatId uint32) ([]telegram.Replies, error) {
+	room, err := s.store.GetRoomKey(chatId)
+	if err != nil {
+		return nil, err
+	}
+	return s.store.GetReplies(room)
+
+}
+
+func (s *service) DeleteReply(ctx context.Context, chatId uint32, messageId string) error {
+	return s.store.AcknowledgeReply(bson.ObjectIdHex(messageId))
 }
 
 func (s *service) SendAlertWithReply(ctx context.Context, chatId uint32, message string, correlationId string) (int, error) {

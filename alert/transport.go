@@ -1,6 +1,7 @@
 package alert
 
 import (
+	"encoding/json"
 	kitlog "github.com/go-kit/kit/log"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"net/http"
@@ -26,6 +27,9 @@ func MakeHandler(service Service, logger kitlog.Logger, ml machineLearning.Servi
 	imageAlertHandler := kithttp.NewServer(makeImageAlertEndpoint(service), gokit.DecodeFromBase64, gokit.EncodeResponse, opts...)
 	documentAlertHandler := kithttp.NewServer(makeDocumentAlertEndpoint(service), decodeSendDocumentRequest, gokit.EncodeResponse, opts...)
 	alertErrorHandler := kithttp.NewServer(makeAlertErrorHandler(service), gokit.DecodeString, gokit.EncodeResponse, opts...)
+	alertWithReply := kithttp.NewServer(makeReplyAlertEndpoint(service), decodeSendAlertWithReplyRequest, gokit.EncodeResponse, opts...)
+	alertGetReply := kithttp.NewServer(makeGetRepliesEndpoint(service), gokit.DecodeString, gokit.EncodeResponse, opts...)
+	acknowledgeReply := kithttp.NewServer(makeAcknowledgeReplyEndpoint(service), decodeDeleteReplyRequest, gokit.EncodeResponse, opts...)
 
 	r := mux.NewRouter()
 
@@ -129,6 +133,92 @@ func MakeHandler(service Service, logger kitlog.Logger, ml machineLearning.Servi
 
 	r.Handle("/api/alert/error", alertErrorHandler).Methods("POST")
 
+	// swagger:operation POST /api/alert/{chatid}/withreply alert send alert with expectation of reply
+	//
+	// Send a text alert to a telegram group. Should anyone reply, the reply will be stored and can be retrieved.
+	//
+	//
+	// ---
+	// consumes:
+	// - text/jsom
+	// produces:
+	// - application/json
+	// parameters:
+	// - name: chatid
+	//   in: path
+	//   description: chat id
+	//   required: true
+	//   type: integer
+	// - name: message
+	//   in: body
+	//   description: request
+	//   required: true
+	//   schema:
+	//     "$ref": "#/definitions/sendReplyAlertMessageRequest"
+	// responses:
+	//   '200':
+	//     description: Message Sent successfully
+	//     schema:
+	//       "$ref": "#/definitions/SendReplyAlertMessageResponse"
+	//   default:
+	//     description: unexpected error
+	//     schema:
+	//       "$ref": "#/definitions/errorResponse"
+	r.Handle("/api/alert/{chatid:[0-9]+}/withreply", alertWithReply).Methods("POST")
+
+	// swagger:operation GET /api/alert/{chatid:[0-9]+}/replies alert gets replies to alerts
+	//
+	// Returns all the unacknowledged replies for a chat
+	//
+	// ---
+	// produces:
+	// - application/json
+	// parameters:
+	// - name: chatid
+	//   in: path
+	//   description: chat id
+	//   required: true
+	//   type: integer
+	// responses:
+	//   '200':
+	//     description: Message Sent successfully
+	//     schema:
+	//       type: array
+	//       items:
+	//         "$ref": "#/definitions/Replies"
+	//   default:
+	//     description: unexpected error
+	//     schema:
+	//       "$ref": "#/definitions/errorResponse"
+	r.Handle("/api/alert/{chatid:[0-9]+}/replies", alertGetReply).Methods("GET")
+
+	// swagger:operation GET /api/alert/{chatid:[0-9]+}/reply/{id} acknowledges a reply.
+	//
+	// Acknoeledges a reply. This reply will no longer be sent with the get replies operation
+	//
+	// ---
+	// produces:
+	// - application/json
+	// parameters:
+	// - name: chatid
+	//   in: path
+	//   description: chat id
+	//   required: true
+	//   type: integer
+	// - name: id
+	//   in: path
+	//   description: reply ID
+	//   required: true
+	//   type: string
+	// responses:
+	//   '200':
+	//     description: Message deleted successfully
+	//   default:
+	//     description: unexpected error
+	//     schema:
+	//       "$ref": "#/definitions/errorResponse"
+	r.Handle("/api/alert/{chatid:[0-9]+}/reply/{id}", acknowledgeReply).Methods("DELETE")
+
 	return r
 }
 
@@ -149,5 +239,18 @@ func decodeSendDocumentRequest(ctx context.Context, r *http.Request) (interface{
 		exension: vars["extension"],
 		document: base64msg,
 	}, nil
+
+}
+
+func decodeDeleteReplyRequest(ctx context.Context, r *http.Request) (interface{}, error) {
+	vars := mux.Vars(r)
+	request := acknowledgeReplyRequest{vars["id"]}
+	return request, nil
+}
+
+func decodeSendAlertWithReplyRequest(ctx context.Context, r *http.Request) (interface{}, error) {
+	var request SendReplyAlertMessageRequest
+	err := json.NewDecoder(r.Body).Decode(&request)
+	return request, err
 
 }
