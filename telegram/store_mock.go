@@ -172,16 +172,16 @@ func (mr *MockStoreMockRecorder) SaveReply(chat, message, correlationId interfac
 }
 
 // GetReplies mocks base method
-func (m *MockStore) GetReplies() ([]Replies, error) {
-	ret := m.ctrl.Call(m, "GetReplies")
+func (m *MockStore) GetReplies(chat int64) ([]Replies, error) {
+	ret := m.ctrl.Call(m, "GetReplies", chat)
 	ret0, _ := ret[0].([]Replies)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetReplies indicates an expected call of GetReplies
-func (mr *MockStoreMockRecorder) GetReplies() *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetReplies", reflect.TypeOf((*MockStore)(nil).GetReplies))
+func (mr *MockStoreMockRecorder) GetReplies(chat interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetReplies", reflect.TypeOf((*MockStore)(nil).GetReplies), chat)
 }
 
 // AcknowledgeReply mocks base method

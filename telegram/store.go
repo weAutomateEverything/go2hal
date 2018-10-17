@@ -55,7 +55,7 @@ type Store interface {
 	saveMessageCorrelation(chat int64, message int, correlationId string) error
 	getCorrelationId(chat int64, message int) (string, error)
 	SaveReply(chat int64, message string, correlationId string) error
-	GetReplies() ([]Replies, error)
+	GetReplies(chat int64) ([]Replies, error)
 	AcknowledgeReply(id bson.ObjectId) error
 }
 
@@ -72,8 +72,8 @@ func (s mongoStore) SaveReply(chat int64, message string, correlationId string) 
 	return s.mongo.C("replies").Insert(&r)
 }
 
-func (s mongoStore) GetReplies() (r []Replies, err error) {
-	err = s.mongo.C("replies").Find(nil).All(&r)
+func (s mongoStore) GetReplies(chat int64) (r []Replies, err error) {
+	err = s.mongo.C("replies").Find(bson.M{"chatId": chat}).All(&r)
 	return
 }
 
@@ -262,9 +262,10 @@ type record struct {
 	CorrelationId string
 }
 
+//swagger:model
 type Replies struct {
 	ID            bson.ObjectId `bson:"_id,omitempty"`
 	CorrelationId string
-	ChatId        int64
+	ChatId        int64 `bson:"chatId"`
 	Message       string
 }
