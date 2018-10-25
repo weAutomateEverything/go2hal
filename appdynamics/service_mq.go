@@ -109,6 +109,9 @@ func checkQueue(ctx context.Context, endpoint MqEndpoint, name string, a alert.S
 	if maxDepth == 0 {
 		return fmt.Errorf("%v, max depth for queue %s is 0", endpoint.Name, name)
 	}
+	if currDepth == 0 {
+		return nil
+	}
 	full := currDepth / maxDepth * 100
 	if full > 90 {
 
