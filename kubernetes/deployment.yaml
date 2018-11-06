@@ -13,17 +13,20 @@ spec:
     metadata:
       labels:
         app: hal
+      annotations:
+        prometheus.io/path: /api/metrics
+        prometheus.io/port: "8000"
+        prometheus.io/scheme: http
+        prometheus.io/scrape: "true"
     spec:
       containers:
-      - image: zamedic/go2hal:1.719.1
+      - image: weautomateeverything/go2hal:latest
         name: hal
         ports:
         - containerPort: 8000
           protocol: TCP
         - containerPort: 8080
           protocol: TCP
-        - containerPort: 9162
-          protocol: UDP
         envFrom:
         - configMapRef:
             name: hal

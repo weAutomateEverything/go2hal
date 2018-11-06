@@ -20,6 +20,8 @@ jobs:
       - go get github.com/axw/gocov/gocov
       - go get -u github.com/go-swagger/go-swagger/cmd/swagger
       - go test -coverprofile=c.out ./...
+      - curl -L https://s3-eu-west-1.amazonaws.com/hal-artifacts/golang-sdk-x64-linux-4.5.1.0.tar > ./golang-sdk-x64-linux-4.5.1.0.tar
+      - tar -xvf ./golang-sdk-x64-linux-4.5.1.0.tar
       - CGO_ENABLED=0 GOOS=linux go build -a -installsuffix nocgo -o go2hal .
       - swagger generate spec -m -o ./swagger.json
       - bin/docker_push.sh
