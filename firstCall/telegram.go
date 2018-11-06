@@ -37,6 +37,10 @@ func (s *whosOnFirstCall) CommandDescription() string {
 	return "Who is on first call?"
 }
 
+func (s *whosOnFirstCall) Show(chat uint32) bool {
+	return s.service.IsConfigured(chat)
+}
+
 func (s *whosOnFirstCall) Execute(ctx context.Context, update tgbotapi.Update) {
 	uuid, err := s.telegramStore.GetUUID(update.Message.Chat.ID, update.Message.Chat.Title)
 	if err != nil {

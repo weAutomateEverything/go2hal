@@ -38,6 +38,7 @@ type Command interface {
 	CommandIdentifier() string
 	CommandDescription() string
 	RestrictToAuthorised() bool
+	Show(chat uint32) bool
 	Execute(ctx context.Context, update tgbotapi.Update)
 }
 
@@ -395,15 +396,20 @@ func (s *help) CommandDescription() string {
 	return "Gets list of commands"
 }
 
+func (*help) Show(uint32) bool {
+	return true
+}
+
 func (s *help) Execute(ctx context.Context, update tgbotapi.Update) {
 	var buffer bytes.Buffer
-	for _, x := range getCommands() {
+	chat, err := s.store.GetUUID(update.Message.Chat.ID,update.Message.Chat.Title)
+	if err != nil {
+		s.telegram.SendMessage(ctx,update.Message.Chat.ID,fmt.Sprintf("There was an error trying to retrieve your commends. %v",err.Error()),update.Message.MessageID)
+		return
+	}
+	for _, x := range getCommands(chat) {
 		if x.Group != 0 {
-			g, err := s.store.GetRoomKey(x.Group)
-			if err != nil {
-				continue
-			}
-			if g != update.Message.Chat.ID {
+			if x.Group != chat {
 				continue
 			}
 		}
@@ -416,17 +422,17 @@ func (s *help) Execute(ctx context.Context, update tgbotapi.Update) {
 	s.telegram.SendMessage(ctx, update.Message.Chat.ID, buffer.String(), update.Message.MessageID)
 }
 
-func getCommands() []commandDescription {
-	result := make([]commandDescription, len(commandList))
-	count := 0
+func getCommands(chat uint32) []commandDescription {
+	result := make([]commandDescription, 0)
 	for _, x := range commandList {
 		r, ok := x().(RemoteCommand)
 		if ok {
-			result[count] = commandDescription{x().CommandIdentifier(), x().CommandDescription(), r.GetCommandGroup()}
+			result = append(result, commandDescription{x().CommandIdentifier(), x().CommandDescription(), r.GetCommandGroup()})
 		} else {
-			result[count] = commandDescription{x().CommandIdentifier(), x().CommandDescription(), 0}
+			if x().Show(chat) {
+				result = append(result, commandDescription{x().CommandIdentifier(), x().CommandDescription(), 0})
+			}
 		}
-		count++
 	}
 	return result
 }
