@@ -402,9 +402,9 @@ func (*help) Show(uint32) bool {
 
 func (s *help) Execute(ctx context.Context, update tgbotapi.Update) {
 	var buffer bytes.Buffer
-	chat, err := s.store.GetUUID(update.Message.Chat.ID,update.Message.Chat.Title)
+	chat, err := s.store.GetUUID(update.Message.Chat.ID, update.Message.Chat.Title)
 	if err != nil {
-		s.telegram.SendMessage(ctx,update.Message.Chat.ID,fmt.Sprintf("There was an error trying to retrieve your commends. %v",err.Error()),update.Message.MessageID)
+		s.telegram.SendMessage(ctx, update.Message.Chat.ID, fmt.Sprintf("There was an error trying to retrieve your commends. %v", err.Error()), update.Message.MessageID)
 		return
 	}
 	for _, x := range getCommands(chat) {

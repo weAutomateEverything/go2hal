@@ -31,7 +31,7 @@ func (quietHttpAlertsCommand) CommandDescription() string {
 	return "Disables smoke alerts. The http checks will still run, and in the event it succeeds an alert will still be sent. Add an integer value to set the amount of time the alert will be quiet for"
 }
 
-func (s *quietHttpAlertsCommand)Show(chat uint32) bool {
+func (s *quietHttpAlertsCommand) Show(chat uint32) bool {
 	endpoints, err := s.service.getEndpoints(chat)
 	if err != nil {
 		return false

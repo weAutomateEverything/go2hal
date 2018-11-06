@@ -50,7 +50,7 @@ func (s remoteCommand) GetCommandGroup() uint32 {
 	return s.grounp
 }
 
-func (remoteCommand)Show(uint32) bool{
+func (remoteCommand) Show(uint32) bool {
 	return true
 }
 
