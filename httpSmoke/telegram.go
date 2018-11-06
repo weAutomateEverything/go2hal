@@ -31,6 +31,17 @@ func (quietHttpAlertsCommand) CommandDescription() string {
 	return "Disables smoke alerts. The http checks will still run, and in the event it succeeds an alert will still be sent. Add an integer value to set the amount of time the alert will be quiet for"
 }
 
+func (s *quietHttpAlertsCommand) Show(chat uint32) bool {
+	endpoints, err := s.service.getEndpoints(chat)
+	if err != nil {
+		return false
+	}
+	if len(endpoints) == 0 {
+		return false
+	}
+	return true
+}
+
 func (s *quietHttpAlertsCommand) Execute(ctx context.Context, update tgbotapi.Update) {
 	arg := update.Message.CommandArguments()
 	if arg == "" {

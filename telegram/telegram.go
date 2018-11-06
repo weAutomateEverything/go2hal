@@ -68,6 +68,10 @@ func (id) RestrictToAuthorised() bool {
 	return false
 }
 
+func (id) Show(uint32) bool {
+	return true
+}
+
 func (s id) Execute(ctx context.Context, update tgbotapi.Update) {
 	id, err := s.store.GetUUID(update.Message.Chat.ID, update.Message.Chat.Title)
 	if err != nil {
