@@ -5,17 +5,14 @@
 # * 'ptr' and 'ptrp' create a POST request with a simple or parameter-like body;
 # * 'mptr' and 'fptr' create a POST request to submit a form with a text or file field (multipart/form-data);
 
-POST http://localhost:8000/api/telegram/auth
-Content-Type: application/json
+POST http://localhost:8000/api/alert/532350981
 
-{
-"name": "Marc Arndt",
-"RoomID": 532350981
-}
-
+HELLO-WORLD
 
 ###
-GET http://localhost:8000/api/telegram/auth/5b34d12af74943b69c618158
-Accept: application/json
+
+POST http://localhost:8080/api/alert/1083240170
+
+Testing the Stupid negative sentiment filter to see if this idiotic message gets flagged and reported on.
 
 ###

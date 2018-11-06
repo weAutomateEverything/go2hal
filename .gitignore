@@ -5,8 +5,7 @@ go2hal
 go2hal~
 .DS_Store
 
-*.http
-
-terraform/azure/terraform.tfstate
-terraform/azure/terraform.tfstate.backup
-terraform/azure/.terraform/
+**/*/terraform.tfstate
+**/*/terraform.tfstate.backup
+**/*/.terraform/
+**/*/secret.tf

@@ -1,0 +1,32 @@
+POST http://localhost:8000/api/appdynamics/12345
+
+ {
+ "environment": "Production",
+ "policy" : {
+  "digestDurationInMins": "1",
+  "name": "card"
+
+ },
+ "action": {
+  "triggerTime":  "Sat Jul 28 11:01:53 SAST 2018",
+  "name": "card"
+
+ },
+ "events": [
+    {
+   "severity": "ERROR",
+   "application": {
+     "name": "EASYTRACE"
+   },
+   "tier": {
+     "name": "HA-PROXY"
+   },
+   "node": {
+     "name": "pvceashap1v"
+   },
+
+   "displayName": "Ongoing Critical Health Rule Violation",
+   "eventMessage": "AppDynamics has detected a problem with Node <b>pvceashap1v</b>.<br><b>Memory utilization is too high</b> continues to violate with <b>critical</b>.<br>All of the following conditions were found to be violating<br>For Node <b>pvceashap1v</b>:<br>1) Hardware Resources|Memory|Used % Condition<br><b>Used %'s</b> value <b>96.00</b> was <b>greater than</b> the threshold <b>90.00</b> for the last <b>30</b> minutes<br>"
+  }
+     ]
+}

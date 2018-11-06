@@ -30,13 +30,13 @@ resource "azurerm_container_group" "aci-helloworld" {
 
   "container" {
     cpu = 1
-    image = "weautomateeverything/go2hal:1.809.1"
+    image = "weautomateeverything/go2hal:1.811.1"
     memory = 0.5
     name = "go2hal"
     port = "8000"
     environment_variables {
       MONGO = "${azurerm_cosmosdb_account.go2hal.connection_strings[0]}"
-      BOT_KEY = "411872276:AAHeaOcCauxP0p7vEoTnl1Jeafil9fulrz0"
+      BOT_KEY = "${var.bot_key}"
     }
   }
   location = "${azurerm_resource_group.go2hal.location}"

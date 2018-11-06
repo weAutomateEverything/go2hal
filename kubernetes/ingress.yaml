@@ -1,14 +1,14 @@
 kind: Ingress
 apiVersion: extensions/v1beta1
 metadata:
-  name: hal
+  name: go2hal
   annotations:
    kubernetes.io/ingress.class: istio
 spec:
    rules:
-     - host:
+     - host: go2hal.legion.sbsa.local
        http:
          paths:
            - backend:
-               serviceName: hal
+               serviceName: go2hal
                servicePort: http

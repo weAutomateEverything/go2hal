@@ -139,6 +139,10 @@ func checkQueue(ctx context.Context, endpoint MqEndpoint, name string, a alert.S
 	if messageAge > endpoint.MaxMessageAge {
 		t := time.Now().Add(time.Second * time.Duration(messageAge) * -1)
 		d := time.Since(t).Truncate(time.Second)
+		if currDepth == 0 {
+			a.SendAlert(ctx, chat, emoji.Sprintf(":baggage_claim: :warning: %s - Queue %s contains messages that are %v old. Queue depth is 0, so it looks like there are uncommitted messages stuck in the application. Please investigate why messages are not being processed on the queue.", endpoint.Name, name, d.String()))
+			return nil
+		}
 		a.SendAlert(ctx, chat, emoji.Sprintf(":baggage_claim: :warning: %s - Queue %s contains messages that are %v old. Please investigate why messages are not being processed on the queue.\nCurrent "+
 			"Depth %.0f, Max Depth %.0f", endpoint.Name, name, d.String(), currDepth, maxDepth))
 		return nil
@@ -151,10 +155,6 @@ func getAppdValue(ctx context.Context, path string, s Store, a alert.Service, ch
 	response, err := doGet(ctx, path, s, a, chat)
 	if err != nil {
 		log.Printf("Error retreiving queue %s", err)
-		return 0, err
-	}
-	if err != nil {
-		log.Printf("Error reading body %s", err)
 		return 0, err
 	}
 
