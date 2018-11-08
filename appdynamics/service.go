@@ -46,7 +46,7 @@ func (s *service) sendAppdynamicsAlert(ctx context.Context, chatId uint32, messa
 	for _, event := range m.Events {
 
 		if m.InvokeCallout {
-			if "CRITICAL" == strings.ToUpper(event.Severity) {
+			if "ERROR" == strings.ToUpper(event.Severity) {
 				s.calloutService.InvokeCallout(ctx, chatId, "Appdynamics Critical Issue", event.EventMessage)
 			}
 		}
@@ -57,7 +57,15 @@ func (s *service) sendAppdynamicsAlert(ctx context.Context, chatId uint32, messa
 		message = strings.Replace(message, "<br>", "\n", -1)
 
 		var buffer bytes.Buffer
-		buffer.WriteString(emoji.Sprintf(":red_circle:"))
+		switch strings.ToUpper(event.Severity) {
+		case "ERROR":
+			buffer.WriteString(emoji.Sprintf(":red_circle:"))
+		case "WARN":
+			buffer.WriteString(emoji.Sprintf(":warning:"))
+		default:
+			buffer.WriteString(emoji.Sprintf(":information_source:"))
+		}
+
 		buffer.WriteString(" ")
 		buffer.WriteString(message)
 		buffer.WriteString("\n")
