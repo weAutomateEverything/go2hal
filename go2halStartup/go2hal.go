@@ -241,21 +241,6 @@ func NewGo2Hal() Go2Hal {
 			Help:      "Total duration of requests in microseconds.",
 		}, fieldKeys), go2hal.SSHService)
 
-	go2hal.AppdynamicsService = appdynamics.NewService(go2hal.AlertService, go2hal.SSHService, go2hal.AppdynamicsStore)
-	go2hal.AppdynamicsService = appdynamics.NewLoggingService(log.With(go2hal.Logger, "component", "appdynamics"), go2hal.AppdynamicsService)
-	go2hal.AppdynamicsService = appdynamics.NewInstrumentService(kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
-		Namespace: "api",
-		Subsystem: "appdynamics",
-		Name:      "request_count",
-		Help:      "Number of requests received.",
-	}, fieldKeys),
-		kitprometheus.NewSummaryFrom(stdprometheus.SummaryOpts{
-			Namespace: "api",
-			Subsystem: "appdynamics",
-			Name:      "request_latency_microseconds",
-			Help:      "Total duration of requests in microseconds.",
-		}, fieldKeys), go2hal.AppdynamicsService)
-
 	go2hal.MqService = appdynamics.NewMqSercvice(go2hal.AlertService, go2hal.AppdynamicsStore)
 	go2hal.MqService = appdynamics.NewMqLoggingService(log.With(go2hal.Logger, "component", "appdynamics_mq"), go2hal.MqService)
 	go2hal.MqService = appdynamics.NewMqInstrumentService(kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
@@ -331,6 +316,21 @@ func NewGo2Hal() Go2Hal {
 			Name:      "request_latency_microseconds",
 			Help:      "Total duration of requests in microseconds.",
 		}, fieldKeys), go2hal.CalloutService)
+
+	go2hal.AppdynamicsService = appdynamics.NewService(go2hal.AlertService, go2hal.SSHService, go2hal.AppdynamicsStore, go2hal.CalloutService)
+	go2hal.AppdynamicsService = appdynamics.NewLoggingService(log.With(go2hal.Logger, "component", "appdynamics"), go2hal.AppdynamicsService)
+	go2hal.AppdynamicsService = appdynamics.NewInstrumentService(kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
+		Namespace: "api",
+		Subsystem: "appdynamics",
+		Name:      "request_count",
+		Help:      "Number of requests received.",
+	}, fieldKeys),
+		kitprometheus.NewSummaryFrom(stdprometheus.SummaryOpts{
+			Namespace: "api",
+			Subsystem: "appdynamics",
+			Name:      "request_latency_microseconds",
+			Help:      "Total duration of requests in microseconds.",
+		}, fieldKeys), go2hal.AppdynamicsService)
 
 	go2hal.ChefService = chef.NewService(go2hal.AlertService, go2hal.ChefStore)
 	go2hal.ChefService = chef.NewLoggingService(log.With(go2hal.Logger, "component", "chef"), go2hal.ChefService)
