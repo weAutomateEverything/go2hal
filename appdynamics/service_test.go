@@ -3,6 +3,7 @@ package appdynamics
 import (
 	"github.com/golang/mock/gomock"
 	"github.com/weAutomateEverything/go2hal/alert"
+	"github.com/weAutomateEverything/go2hal/callout"
 	"github.com/weAutomateEverything/go2hal/ssh"
 	"golang.org/x/net/context"
 	"testing"
@@ -15,8 +16,9 @@ func TestServiceWithQuotes(t *testing.T) {
 	alertService := alert.NewMockService(ctrl)
 	sshService := ssh.NewMockService(ctrl)
 	store := NewMockStore(ctrl)
+	calloutService := callout.NewMockService(ctrl)
 
-	service := NewService(alertService, sshService, store)
+	service := NewService(alertService, sshService, store, calloutService)
 
 	store.EXPECT().getAllEndpoints().AnyTimes().Return(nil, nil)
 	alertService.EXPECT().SendAlert(context.TODO(), uint32(12345), "🔴  [Error]  - ServletException: java.lang.NumberFormatException: For input string: \"\"\n*Application:* TESTAPP\n*Tier:* TESTTIER\n*Node:* test\n")

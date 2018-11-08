@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/weAutomateEverything/go2hal/alert"
+	"github.com/weAutomateEverything/go2hal/callout"
 	"github.com/weAutomateEverything/go2hal/ssh"
 	"github.com/weAutomateEverything/go2hal/util"
 	"gopkg.in/kyokomi/emoji.v1"
@@ -21,13 +22,14 @@ type Service interface {
 }
 
 type service struct {
-	alert alert.Service
-	store Store
-	ssh   ssh.Service
+	alert          alert.Service
+	store          Store
+	calloutService callout.Service
+	ssh            ssh.Service
 }
 
-func NewService(alertService alert.Service, sshservice ssh.Service, store Store) Service {
-	return &service{alert: alertService, ssh: sshservice, store: store}
+func NewService(alertService alert.Service, sshservice ssh.Service, store Store, callout callout.Service) Service {
+	return &service{alert: alertService, ssh: sshservice, store: store, calloutService: callout}
 }
 
 func (s *service) sendAppdynamicsAlert(ctx context.Context, chatId uint32, message string) error {
@@ -42,6 +44,12 @@ func (s *service) sendAppdynamicsAlert(ctx context.Context, chatId uint32, messa
 	}
 
 	for _, event := range m.Events {
+
+		if m.InvokeCallout {
+			if "CRITICAL" == strings.ToUpper(event.Severity) {
+				s.calloutService.InvokeCallout(ctx, chatId, "Appdynamics Critical Issue", event.EventMessage)
+			}
+		}
 
 		message := event.EventMessage
 		message = strings.Replace(message, "<b>", "*", -1)

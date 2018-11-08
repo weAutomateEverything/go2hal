@@ -48,6 +48,7 @@ type appdynamicsMessage struct {
 		DisplayName  string `json:"displayName"`
 		EventMessage string `json:"eventMessage"`
 	}
+	InvokeCallout bool `json:"invoke_callout"`
 }
 
 type BusinessAlertRequest struct {
