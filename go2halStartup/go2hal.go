@@ -457,6 +457,7 @@ func NewGo2Hal() Go2Hal {
 		go2hal.FirstCallService, go2hal.TelegramStore))
 	go2hal.TelegramService.RegisterCommand(httpSmoke.NewQuietHttpAlertCommand(go2hal.TelegramService, go2hal.HTTPService))
 	go2hal.TelegramService.RegisterCommand(telegram.NewIDCommand(go2hal.TelegramService, go2hal.TelegramStore))
+	go2hal.TelegramService.RegisterCommand(telegram.NewTokenCommand(go2hal.TelegramService, go2hal.TelegramStore))
 
 	go2hal.TelegramService.RegisterCommandLet(telegram.NewTelegramAuthApprovalCommand(go2hal.TelegramService, go2hal.TelegramStore))
 

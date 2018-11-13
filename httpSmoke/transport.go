@@ -31,7 +31,52 @@ func MakeHandler(service Service, logger kitlog.Logger, ml machineLearning.Servi
 
 	r := mux.NewRouter()
 
+	// swagger:operation POST /api/httpEndpoints http-checks AddEndpoint
+	//
+	// Adds a new HTTP Endpoint to monitor
+	//
+	// ---
+	// consumes:
+	// - application/json
+	// produces:
+	// - application/json
+	// security:
+	// - Bearer: []
+	// parameters:
+	// - name: message
+	//   in: body
+	//   description: HTTP Endpoint
+	//   required: true
+	//   schema:
+	//     "$ref": "#/definitions/AddHttpRequest"
+	// responses:
+	//   '200':
+	//     description: Message Sent successfully
+	//   default:
+	//     description: unexpected error
+	//     schema:
+	//       "$ref": "#/definitions/errorResponse"
 	r.Handle("/api/httpEndpoints", addEndpoint).Methods("POST")
+
+	// swagger:operation GET /api/httpEndpoints http-checks GetEndpoints
+	//
+	// get HTTP endpoints
+	//
+	// ---
+	// produces:
+	// - application/json
+	// security:
+	// - Bearer: []
+	// responses:
+	//   '200':
+	//     description: success
+	//     type: array
+	//     items:
+	//        "$ref": "#/definitions/AddHttpRequest"
+	//   default:
+	//     description: unexpected error
+	//     schema:
+	//       "$ref": "#/definitions/errorResponse"
 	r.Handle("/api/httpEndpoints", getEndpoints).Methods("GET")
 	//r.Handle("/httpendpoints/{id}", authpoll).Methods("DELETE")
 
@@ -40,7 +85,7 @@ func MakeHandler(service Service, logger kitlog.Logger, ml machineLearning.Servi
 }
 
 func decodeAddEndpointRequest(ctx context.Context, r *http.Request) (interface{}, error) {
-	v := addHttpRequest{}
+	v := AddHttpRequest{}
 	err := json.NewDecoder(r.Body).Decode(&v)
 	return v, err
 }

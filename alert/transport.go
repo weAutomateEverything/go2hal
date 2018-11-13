@@ -35,7 +35,7 @@ func MakeHandler(service Service, logger kitlog.Logger, ml machineLearning.Servi
 
 	// swagger:operation POST /api/alert/{chatid} alert sendTextAlert
 	//
-	// Send a text alert to a telegram group
+	// Send a text alert to a telegram group.
 	//
 	//
 	// ---
@@ -66,7 +66,7 @@ func MakeHandler(service Service, logger kitlog.Logger, ml machineLearning.Servi
 
 	// swagger:operation POST /api/alert/{chatid}/image alert sendImageAlert
 	//
-	// Send a image to a telegram group
+	// Send a image to a telegram group.
 	//
 	//
 	// ---
@@ -97,7 +97,7 @@ func MakeHandler(service Service, logger kitlog.Logger, ml machineLearning.Servi
 
 	// swagger:operation POST /api/alert/{chatid}/document/{extension} alert sendDocumentAlert
 	//
-	// Send a text alert to a telegram group
+	// Send a text alert to a telegram group.
 	//
 	//
 	// ---
@@ -131,9 +131,33 @@ func MakeHandler(service Service, logger kitlog.Logger, ml machineLearning.Servi
 	//       "$ref": "#/definitions/errorResponse"
 	r.Handle("/api/alert/{chatid:[0-9]+}/document/{extension}", documentAlertHandler).Methods("POST")
 
+	// swagger:operation POST /api/alert/error alert sendError
+	//
+	// Send an error to the error group.
+	//
+	//
+	// ---
+	// consumes:
+	// - text/plain
+	// produces:
+	// - application/json
+	// parameters:
+	// - name: message
+	//   in: body
+	//   description: error message
+	//   required: true
+	//   schema:
+	//     type: string
+	// responses:
+	//   '200':
+	//     description: Message Sent successfully
+	//   default:
+	//     description: unexpected error
+	//     schema:
+	//       "$ref": "#/definitions/errorResponse"
 	r.Handle("/api/alert/error", alertErrorHandler).Methods("POST")
 
-	// swagger:operation POST /api/alert/{chatid}/withreply alert send alert with expectation of reply
+	// swagger:operation POST /api/alert/{chatid}/withreply alert SendWithReply
 	//
 	// Send a text alert to a telegram group. Should anyone reply, the reply will be stored and can be retrieved.
 	//
@@ -166,9 +190,10 @@ func MakeHandler(service Service, logger kitlog.Logger, ml machineLearning.Servi
 	//       "$ref": "#/definitions/errorResponse"
 	r.Handle("/api/alert/{chatid:[0-9]+}/withreply", alertWithReply).Methods("POST")
 
-	// swagger:operation GET /api/alert/{chatid:[0-9]+}/replies alert gets replies to alerts
+	// swagger:operation GET /api/alert/{chatid}/replies alert GetReplies
 	//
-	// Returns all the unacknowledged replies for a chat
+	// Returns all the unacknowledged replies for a chat.
+	//
 	//
 	// ---
 	// produces:
@@ -192,9 +217,9 @@ func MakeHandler(service Service, logger kitlog.Logger, ml machineLearning.Servi
 	//       "$ref": "#/definitions/errorResponse"
 	r.Handle("/api/alert/{chatid:[0-9]+}/replies", alertGetReply).Methods("GET")
 
-	// swagger:operation GET /api/alert/{chatid:[0-9]+}/reply/{id} acknowledges a reply.
+	// swagger:operation GET /api/alert/{chatid}/reply/{id} alert acknowledgeReply
 	//
-	// Acknoeledges a reply. This reply will no longer be sent with the get replies operation
+	// Acknoeledges a reply. This reply will no longer be sent with the get replies operation.
 	//
 	// ---
 	// produces:

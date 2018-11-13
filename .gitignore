@@ -9,3 +9,4 @@ go2hal~
 **/*/terraform.tfstate.backup
 **/*/.terraform/
 **/*/secret.tf
+swagger.json

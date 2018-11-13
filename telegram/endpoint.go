@@ -4,8 +4,6 @@ import (
 	"context"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/go-kit/kit/endpoint"
-	"os"
-	"time"
 )
 
 type CustomClaims struct {
@@ -13,11 +11,13 @@ type CustomClaims struct {
 	jwt.StandardClaims
 }
 
+//swagger:model
 type authRequestObject struct {
 	RoomId uint32
 	Name   string
 }
 
+//swagger:model
 type authResponse struct {
 	Key string
 }
@@ -46,15 +46,7 @@ func makeTelegramAuthPollEndpoint(s Service) endpoint.Endpoint {
 		if err != nil {
 			return
 		}
-		claims := CustomClaims{
-			room,
-			jwt.StandardClaims{
-				ExpiresAt: time.Now().Add(time.Hour * 120).Unix(),
-				IssuedAt:  jwt.TimeFunc().Unix(),
-			},
-		}
-		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-		return token.SignedString([]byte(os.Getenv("JWT_KEY")))
+		return makeToken(room)
 	}
 }
 
