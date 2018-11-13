@@ -40,7 +40,7 @@ func (s token) Execute(ctx context.Context, update tgbotapi.Update) {
 	}
 	s.SendMessage(ctx, update.Message.Chat.ID, fmt.Sprintf("*JWT Token*\n"+
 		"To use the token, add it to the HTTP Request header as \n"+
-		"Authorization: Bearer <token>\n\n"+
+		"Authorization: bearer <token>\n\n"+
 		"%v", token), update.Message.MessageID)
 }
 
