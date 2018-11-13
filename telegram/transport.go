@@ -27,7 +27,53 @@ func MakeHandler(service Service, logger kitlog.Logger, ml machineLearning.Servi
 
 	r := mux.NewRouter()
 
+	// swagger:operation POST /api/telegram/auth auth RequestToken
+	//
+	// Initialises a reuqest for a token for a telegram room.
+	//
+	// someone in the room will need to approve the request.
+	// ---
+	// produces:
+	// - application/json
+	// parameters:
+	// - name: message
+	//   in: body
+	//   description: request
+	//   required: true
+	//   schema:
+	//     "$ref": "#/definitions/authRequestObject"
+	// responses:
+	//   '200':
+	//     description: Message deleted successfully
+	//     schema:
+	//       "$ref": "#/definitions/authResponse"
+	//   default:
+	//     description: unexpected error
+	//     schema:
+	//       "$ref": "#/definitions/errorResponse"
 	r.Handle("/api/telegram/auth", requestAuth).Methods("POST")
+
+	// swagger:operation GET /api/telegram/auth/{id} auth PollToken
+	//
+	// Polls to see if the access request has been approved in the telegram group.
+	//
+	// Token will be in the AUTHORIZATION header
+	// ---
+	// produces:
+	// - application/json
+	// parameters:
+	// - name: id
+	//   in: path
+	//   description: Key
+	//   required: true
+	//   type: string
+	// responses:
+	//   '200':
+	//     description: Message deleted successfully
+	//   default:
+	//     description: unexpected error
+	//     schema:
+	//       "$ref": "#/definitions/errorResponse"
 	r.Handle("/api/telegram/auth/{id}", authpoll).Methods("GET")
 
 	return r

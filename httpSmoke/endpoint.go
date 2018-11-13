@@ -9,7 +9,7 @@ import (
 
 func addHTTPEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
-		req := request.(addHttpRequest)
+		req := request.(AddHttpRequest)
 		claim := ctx.Value(jwt.JWTClaimsContextKey).(*telegram.CustomClaims)
 
 		var v []parameters
@@ -37,7 +37,8 @@ func deleteHTTPEndpoint(s Service) endpoint.Endpoint {
 	}
 }
 
-type addHttpRequest struct {
+// swagger:model
+type AddHttpRequest struct {
 	Name       string
 	Method     string
 	URL        string
