@@ -16,7 +16,7 @@ phases:
   build:
     commands:
     - go get github.com/weAutomateEverything/go2hal
-    - CGO_ENABLED=0 GOOS=linux -ldflags '-linkmode=external' go build -o ./go2hal github.com/weAutomateEverything/go2hal
+    - GOOS=linux go build -ldflags '-linkmode=external' -o ./go2hal github.com/weAutomateEverything/go2hal
     - go get -u github.com/go-swagger/go-swagger/cmd/swagger
     - swagger generate spec -m -o ./swagger.json
   post_build:
