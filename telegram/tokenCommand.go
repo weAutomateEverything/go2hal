@@ -12,7 +12,7 @@ type token struct {
 }
 
 func (token) CommandIdentifier() string {
-	return "token"
+	return "jwt"
 }
 
 func (token) CommandDescription() string {
