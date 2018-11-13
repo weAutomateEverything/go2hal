@@ -11,7 +11,7 @@ The admin services require a JWT Token. There are 2 ways to obtain the token
 
 ## Telegram Commands
 
-execute command `/token` and a JWT token will be returned that can be used to admin the group functions. The token is 
+execute command `/jwt` and a JWT token will be returned that can be used to admin the group functions. The token is 
 only valid for the group in which is was created.  
 
 ## API

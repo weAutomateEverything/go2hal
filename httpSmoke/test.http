@@ -1,0 +1,4 @@
+GET http://localhopst:8000/api/httpEndpoints
+Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb29tVG9rZW4iOjE0NzczMTcxNiwiZXhwIjoxNTQyNTMyNTk2LCJpYXQiOjE1NDIxMDA1OTZ9.oL-K8clnlK-ymyZ4fhy4LohbbO-MYeJx1omDfKxnnCA
+
+###
