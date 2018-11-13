@@ -5,7 +5,9 @@ ARG DT_API_TOKEN="5WUwr7a7TtOG4hSe_BC70"
 ARG DT_ONEAGENT_OPTIONS="flavor=default&include=all"
 ENV DT_HOME="/opt/dynatrace/oneagent"
 
-RUN mkdir -p "$DT_HOME" && \
+RUN apt-get update &&\
+    apt-get install -y wget openssh-client unzip \
+    mkdir -p "$DT_HOME" && \
     wget -O "$DT_HOME/oneagent.zip" "$DT_API_URL/v1/deployment/installer/agent/unix/paas/latest?Api-Token=$DT_API_TOKEN&$DT_ONEAGENT_OPTIONS" && \
     unzip -d "$DT_HOME" "$DT_HOME/oneagent.zip" && \
     rm "$DT_HOME/oneagent.zip"
