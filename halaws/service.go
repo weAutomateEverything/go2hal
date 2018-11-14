@@ -17,12 +17,17 @@ import (
 
 type Service interface {
 	SendAlert(ctx context.Context, chatId uint32, destination string, name string, variables map[string]string) error
+	ResetLastCall(chat uint32)
 }
 
 type service struct {
 	alert alert.Service
 
 	lastcall map[uint32]time.Time
+}
+
+func (s *service) ResetLastCall(chat uint32) {
+	delete(s.lastcall, chat)
 }
 
 func NewService(alert alert.Service) Service {
@@ -33,7 +38,7 @@ func NewService(alert alert.Service) Service {
 
 func (s *service) SendAlert(ctx context.Context, chatId uint32, destination string, name string, variables map[string]string) error {
 	if !s.checkCallout(ctx, chatId) {
-		return nil
+		return fmt.Errorf("not invoking callout")
 	}
 
 	c := credentials.NewEnvCredentials()

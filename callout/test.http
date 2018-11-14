@@ -5,11 +5,12 @@
 # * 'ptr' and 'ptrp' create a POST request with a simple or parameter-like body;
 # * 'mptr' and 'fptr' create a POST request to submit a form with a text or file field (multipart/form-data);
 
-POST localhost:8000/api/callout/72893782
+POST localhost:8000/api/callout/532350981
 
 {
   "message": "HAL loves you all...",
-  "title": "N/A"
+  "title": "N/A",
+  "require_acknowledge": true
 }
 
 ###

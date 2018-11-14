@@ -34,13 +34,13 @@ func (m *MockService) EXPECT() *MockServiceMockRecorder {
 }
 
 // InvokeCallout mocks base method
-func (m *MockService) InvokeCallout(ctx context.Context, chat uint32, title, message string) error {
-	ret := m.ctrl.Call(m, "InvokeCallout", ctx, chat, title, message)
+func (m *MockService) InvokeCallout(ctx context.Context, chat uint32, title, message string, ack bool) error {
+	ret := m.ctrl.Call(m, "InvokeCallout", ctx, chat, title, message, ack)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // InvokeCallout indicates an expected call of InvokeCallout
-func (mr *MockServiceMockRecorder) InvokeCallout(ctx, chat, title, message interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InvokeCallout", reflect.TypeOf((*MockService)(nil).InvokeCallout), ctx, chat, title, message)
+func (mr *MockServiceMockRecorder) InvokeCallout(ctx, chat, title, message, ack interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InvokeCallout", reflect.TypeOf((*MockService)(nil).InvokeCallout), ctx, chat, title, message, ack)
 }
