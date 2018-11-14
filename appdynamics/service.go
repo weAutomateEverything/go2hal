@@ -47,7 +47,7 @@ func (s *service) sendAppdynamicsAlert(ctx context.Context, chatId uint32, messa
 
 		if m.InvokeCallout {
 			if "ERROR" == strings.ToUpper(event.Severity) {
-				s.calloutService.InvokeCallout(ctx, chatId, "Appdynamics Critical Issue", event.EventMessage)
+				s.calloutService.InvokeCallout(ctx, chatId, "Appdynamics Critical Issue", event.EventMessage, true)
 			}
 		}
 

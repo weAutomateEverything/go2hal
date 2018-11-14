@@ -14,7 +14,7 @@ func makeCalloutEndpoint(service Service) endpoint.Endpoint {
 			return nil, fmt.Errorf("request type not a SendCalloutRequest, received %v", request)
 		}
 
-		return nil, service.InvokeCallout(ctx, gokit.GetChatId(ctx), req.Title, req.Message)
+		return nil, service.InvokeCallout(ctx, gokit.GetChatId(ctx), req.Title, req.Message, req.RequireAcknowledge)
 	}
 }
 
@@ -31,4 +31,7 @@ type SendCalloutRequest struct {
 	//
 	// required: true
 	Message string `json:"message"`
+
+	// RequireAcknowledge when set to true, will require the user to /ack the call on telegram.
+	RequireAcknowledge bool `json:"require_acknowledge"`
 }

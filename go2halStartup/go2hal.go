@@ -63,6 +63,7 @@ type Go2Hal struct {
 	HTTPStore             httpSmoke.Store
 	MachineLearningStore  machineLearning.Store
 	DefaultFirstcallStore firstCall.Store
+	calloutStore          callout.Store
 
 	AuthService             auth.Service
 	MachineLearningService  machineLearning.Service
@@ -142,6 +143,7 @@ func NewGo2Hal() Go2Hal {
 	go2hal.HTTPStore = httpSmoke.NewMongoStore(go2hal.DB)
 	go2hal.MachineLearningStore = machineLearning.NewMongoStore(go2hal.DB)
 	go2hal.DefaultFirstcallStore = firstCall.NewMongoStore(go2hal.DB)
+	go2hal.calloutStore = callout.NewStore(go2hal.DB)
 
 	fieldKeys := []string{"method"}
 
@@ -296,7 +298,8 @@ func NewGo2Hal() Go2Hal {
 	go2hal.FirstCallService = firstCall.NewCalloutService()
 	go2hal.FirstCallService.AddCalloutFunc(go2hal.DefaultFirstcallService)
 
-	go2hal.CalloutService = callout.NewService(go2hal.AlertService, go2hal.FirstCallService, go2hal.SNMPService, go2hal.JiraService, go2hal.AWSService)
+	go2hal.CalloutService = callout.NewService(go2hal.AlertService, go2hal.FirstCallService, go2hal.SNMPService,
+		go2hal.JiraService, go2hal.AWSService, go2hal.calloutStore)
 	go2hal.CalloutService = callout.NewLoggingService(log.With(go2hal.Logger, "component", "callout"), go2hal.CalloutService)
 	go2hal.CalloutService = callout.NewInstrumentService(kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
 		Namespace: "api",
@@ -458,6 +461,7 @@ func NewGo2Hal() Go2Hal {
 	go2hal.TelegramService.RegisterCommand(httpSmoke.NewQuietHttpAlertCommand(go2hal.TelegramService, go2hal.HTTPService))
 	go2hal.TelegramService.RegisterCommand(telegram.NewIDCommand(go2hal.TelegramService, go2hal.TelegramStore))
 	go2hal.TelegramService.RegisterCommand(telegram.NewTokenCommand(go2hal.TelegramService, go2hal.TelegramStore))
+	go2hal.TelegramService.RegisterCommand(callout.NewAckCommand(go2hal.AlertService, go2hal.TelegramStore, go2hal.calloutStore))
 
 	go2hal.TelegramService.RegisterCommandLet(telegram.NewTelegramAuthApprovalCommand(go2hal.TelegramService, go2hal.TelegramStore))
 

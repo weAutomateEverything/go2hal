@@ -19,14 +19,17 @@ func TestService_FirstCall(t *testing.T) {
 	jira := jira.NewMockService(ctrl)
 	aws := halaws.NewMockService(ctrl)
 	firstCallService := firstCall.NewMockService(ctrl)
+	store := NewMockStore(ctrl)
 
 	alert.EXPECT().SendAlert(context.TODO(), uint32(12345), "invoking callout for: Test, Sample")
+	alert.EXPECT().SendAlert(context.TODO(), uint32(12345), "Please acknowledge the callout with /ack.")
 	snmp.EXPECT().SendSNMPMessage(context.TODO(), uint32(12345))
 	jira.EXPECT().CreateJira(context.TODO(), uint32(12345), "Test", "Sample", "BOB1")
 	aws.EXPECT().SendAlert(context.TODO(), uint32(12345), "+27841231234", "BOB1", map[string]string{"Message": "Sample"})
 	firstCallService.EXPECT().GetFirstCall(context.TODO(), uint32(12345)).Return("BOB1", "+27841231234", nil)
+	store.EXPECT().AddAck(map[string]string{"Message": "Sample"}, uint32(12345), "+27841231234", "BOB1")
 
-	svc := NewService(alert, firstCallService, snmp, jira, aws)
-	svc.InvokeCallout(context.TODO(), uint32(12345), "Test", "Sample")
+	svc := NewService(alert, firstCallService, snmp, jira, aws, store)
+	svc.InvokeCallout(context.TODO(), uint32(12345), "Test", "Sample", true)
 
 }

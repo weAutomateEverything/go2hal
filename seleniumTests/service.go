@@ -88,7 +88,7 @@ func (s service) handleError(ctx context.Context, test Selenium, image []byte, e
 	if test.Threshold > 0 {
 		if test.Threshold == test.ErrorCount {
 			for _, chat := range test.Chats {
-				s.calloutService.InvokeCallout(ctx, chat, fmt.Sprintf("halSelenium Error with  test %s", test.Name), err.Error())
+				s.calloutService.InvokeCallout(ctx, chat, fmt.Sprintf("halSelenium Error with  test %s", test.Name), err.Error(), false)
 			}
 
 		}
