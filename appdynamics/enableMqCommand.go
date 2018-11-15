@@ -8,7 +8,7 @@ import (
 )
 
 func NewEnableMqCommand(store Store, telegram telegram.Store, alert alert.Service) telegram.Command {
-	return disableMq{
+	return enableMq{
 		store:    store,
 		telegram: telegram,
 		alert:    alert,
