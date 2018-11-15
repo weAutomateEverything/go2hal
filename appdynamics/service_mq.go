@@ -50,7 +50,9 @@ func monitorAppdynamicsQueue(s Store, a alert.Service) {
 		} else {
 			for _, endpoint := range endpoints {
 				for _, queue := range endpoint.MqEndpoints {
-					checkQueues(*queue, a, s, endpoint.ChatId)
+					if queue.Disabled == false {
+						checkQueues(*queue, a, s, endpoint.ChatId)
+					}
 				}
 			}
 		}

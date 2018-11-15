@@ -462,6 +462,8 @@ func NewGo2Hal() Go2Hal {
 	go2hal.TelegramService.RegisterCommand(telegram.NewIDCommand(go2hal.TelegramService, go2hal.TelegramStore))
 	go2hal.TelegramService.RegisterCommand(telegram.NewTokenCommand(go2hal.TelegramService, go2hal.TelegramStore))
 	go2hal.TelegramService.RegisterCommand(callout.NewAckCommand(go2hal.AlertService, go2hal.TelegramStore, go2hal.calloutStore))
+	go2hal.TelegramService.RegisterCommand(appdynamics.NewDisableMqCommand(go2hal.AppdynamicsStore, go2hal.TelegramStore, go2hal.AlertService))
+	go2hal.TelegramService.RegisterCommand(appdynamics.NewEnableMqCommand(go2hal.AppdynamicsStore, go2hal.TelegramStore, go2hal.AlertService))
 
 	go2hal.TelegramService.RegisterCommandLet(telegram.NewTelegramAuthApprovalCommand(go2hal.TelegramService, go2hal.TelegramStore))
 
