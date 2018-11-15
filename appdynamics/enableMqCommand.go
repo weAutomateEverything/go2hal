@@ -26,7 +26,7 @@ func (enableMq) CommandIdentifier() string {
 }
 
 func (enableMq) CommandDescription() string {
-	return "Disabled MQ Monitoring and alerting"
+	return "Enable MQ Monitoring and alerting"
 }
 
 func (enableMq) RestrictToAuthorised() bool {
