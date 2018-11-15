@@ -15,7 +15,7 @@ func makeGetDefaultCalloutEndpoint(s CalloutFunction) endpoint.Endpoint {
 		if err != nil {
 			return
 		}
-		response = defaultCalloutRequest{
+		response = DefaultCalloutRequest{
 			PhoneNumber: number,
 		}
 		return
@@ -26,7 +26,7 @@ func makeSetDefaultCalloutEndpoint(s DefaultCalloutService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 
 		claim := ctx.Value(jwt.JWTClaimsContextKey).(*telegram.CustomClaims)
-		req, ok := request.(defaultCalloutRequest)
+		req, ok := request.(DefaultCalloutRequest)
 		if !ok {
 			err = errors.New("request is not oa Default Callout Request")
 			return
@@ -37,6 +37,7 @@ func makeSetDefaultCalloutEndpoint(s DefaultCalloutService) endpoint.Endpoint {
 	}
 }
 
-type defaultCalloutRequest struct {
+// swagger:model
+type DefaultCalloutRequest struct {
 	PhoneNumber string
 }

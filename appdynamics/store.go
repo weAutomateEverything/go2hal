@@ -12,6 +12,7 @@ type Store interface {
 	GetAppDynamics(chat uint32) (*AppDynamics, error)
 	addAppDynamicsEndpoint(chat uint32, endpoint string) error
 	addMqEndpoint(name, application string, metricPath string, chat uint32, ignorePrefix []string) error
+	updateAppDynamics(appd AppDynamics) error
 
 	getAllEndpoints() ([]AppDynamics, error)
 }
@@ -31,6 +32,7 @@ type MqEndpoint struct {
 	Chat          uint32
 	MaxMessageAge float64  `json:"max_message_age" bson:"max_message_age"`
 	IgnorePrefix  []string `json:"ignore_prefix"`
+	Disabled      bool
 }
 
 func NewMongoStore(mongo *mgo.Database) Store {
@@ -40,6 +42,10 @@ func NewMongoStore(mongo *mgo.Database) Store {
 
 type mongoStore struct {
 	mongo *mgo.Database
+}
+
+func (s *mongoStore) updateAppDynamics(appd AppDynamics) error {
+	return s.mongo.C("appDynamics").UpdateId(appd.ChatId, &appd)
 }
 
 func (s *mongoStore) getAllEndpoints() ([]AppDynamics, error) {

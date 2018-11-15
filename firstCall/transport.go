@@ -33,7 +33,53 @@ func MakeHandler(service CalloutFunction, logger kitlog.Logger, ml machineLearni
 
 	r := mux.NewRouter()
 
+	// swagger:operation POST /api/firstcall/defaultCallout callout UpdateDefaultCallout
+	//
+	// Updated the default callout value.
+	//
+	//
+	// ---
+	// consumes:
+	// - application/json
+	// produces:
+	// - application/json
+	// security:
+	// - Bearer: []
+	// parameters:
+	// - name: message
+	//   in: body
+	//   description: callout details
+	//   required: true
+	//   schema:
+	//     "$ref": "#/definitions/DefaultCalloutRequest"
+	// responses:
+	//   '200':
+	//     description: Message Sent successfully
+	//   default:
+	//     description: unexpected error
+	//     schema:
+	//       "$ref": "#/definitions/errorResponse"
 	r.Handle("/api/firstcall/defaultCallout", setEndpoints).Methods("POST")
+
+	// swagger:operation GET /api/firstcall/defaultCallout callout GetDefaultCallout
+	//
+	// returns the current callout value.
+	//
+	//
+	// ---
+	// produces:
+	// - application/json
+	// security:
+	// - Bearer: []
+	// responses:
+	//   '200':
+	//     description: Message Sent successfully
+	//     schema:
+	//       "$ref": "#/definitions/DefaultCalloutRequest"
+	//   default:
+	//     description: unexpected error
+	//     schema:
+	//       "$ref": "#/definitions/errorResponse"
 	r.Handle("/api/firstcall/defaultCallout", getEndpoints).Methods("GET")
 
 	return r
@@ -41,7 +87,7 @@ func MakeHandler(service CalloutFunction, logger kitlog.Logger, ml machineLearni
 }
 
 func decodeAddEndpointRequest(ctx context.Context, r *http.Request) (resp interface{}, err error) {
-	req := defaultCalloutRequest{}
+	req := DefaultCalloutRequest{}
 	b, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		return

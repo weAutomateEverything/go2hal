@@ -5,7 +5,7 @@
 # * 'ptr' and 'ptrp' create a POST request with a simple or parameter-like body;
 # * 'mptr' and 'fptr' create a POST request to submit a form with a text or file field (multipart/form-data);
 
-POST localhost:8000/api/callout/532350981
+POST go2hal.legion.sbsa.local/api/callout/<group>
 
 {
   "message": "HAL loves you all...",
