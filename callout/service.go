@@ -55,9 +55,10 @@ func checkAcks(s *service) {
 			continue
 		}
 		for _, ack := range acks {
-			if time.Since(ack.LastSent) > (2 * time.Minute) {
-				if ack.Count == 3 {
-					s.alert.SendAlert(context.Background(), ack.Chat, "I have tried callout 3 times and have not received an acknowledgement... For now, I am giving up and going home.")
+			if time.Since(ack.LastSent) > (1 * time.Minute) {
+				name, number, err := s.firstcall.Escalate(context.Background(), ack.Chat, ack.Count)
+				if err != nil {
+					s.alert.SendAlert(context.Background(), ack.Chat, "Unable to escalate any further. Giving up.")
 					err = s.store.DeleteAck(ack.Chat)
 					if err != nil {
 						s.alert.SendError(context.Background(), err)
@@ -65,9 +66,9 @@ func checkAcks(s *service) {
 
 					continue
 				}
-				s.alert.SendAlert(context.Background(), ack.Chat, "Callout has not been acknowledged. I am going to phone again.")
+				s.alert.SendAlert(context.Background(), ack.Chat, fmt.Sprintf("Callout has not been acknowledged. I am going to phone %v on %v.", name, number))
 				s.alexa.ResetLastCall(ack.Chat)
-				err = s.alexa.SendAlert(context.Background(), ack.Chat, ack.Phone, ack.Name, ack.Fields)
+				err = s.alexa.SendAlert(context.Background(), ack.Chat, number, name, ack.Fields)
 				err = s.store.Bump(ack.Chat)
 			}
 		}

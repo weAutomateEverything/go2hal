@@ -2,6 +2,7 @@ package firstCall
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/weAutomateEverything/go2hal/alert"
 )
@@ -10,10 +11,12 @@ type Service interface {
 	GetFirstCall(ctx context.Context, chat uint32) (name string, number string, err error)
 	AddCalloutFunc(function CalloutFunction)
 	IsConfigured(chat uint32) bool
+	Escalate(ctx context.Context, chat uint32, count int) (name string, number string, err error)
 }
 
 type CalloutFunction interface {
 	GetFirstCallDetails(ctx context.Context, chat uint32) (name string, number string, err error)
+	Escalate(ctx context.Context, count int, chat uint32) (name string, number string, err error)
 	Configured(chat uint32) bool
 }
 
@@ -25,6 +28,16 @@ func NewCalloutService() Service {
 
 type calloutService struct {
 	services []CalloutFunction
+}
+
+func (s *calloutService) Escalate(ctx context.Context, chat uint32, count int) (name string, number string, err error) {
+	for _, callout := range s.services {
+		name, number, err = callout.Escalate(ctx, count, chat)
+		if err == nil {
+			return
+		}
+	}
+	return
 }
 
 func (s *calloutService) IsConfigured(chat uint32) bool {
@@ -59,6 +72,15 @@ type DefaultCalloutService interface {
 type defaultFirstCallService struct {
 	store Store
 	alert alert.Service
+}
+
+func (s *defaultFirstCallService) Escalate(ctx context.Context, count int, chat uint32) (name string, number string, err error) {
+	if count > 3 {
+		err = errors.New("No escalation defined for default callout. Giving up. ")
+		return
+	}
+	return s.GetFirstCallDetails(ctx, chat)
+
 }
 
 func (s *defaultFirstCallService) Configured(chat uint32) bool {
