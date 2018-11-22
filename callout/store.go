@@ -42,8 +42,6 @@ func (s store) AddAck(fields map[string]string, chat uint32, phone string, name 
 	v := ackRecord{
 		Fields:   fields,
 		Chat:     chat,
-		Phone:    phone,
-		Name:     name,
 		LastSent: time.Now(),
 	}
 	if c == 0 {
@@ -65,8 +63,6 @@ func (s store) DeleteAck(chat uint32) error {
 type ackRecord struct {
 	Chat     uint32 `json:"id" bson:"_id,omitempty"`
 	Fields   map[string]string
-	Phone    string
-	Name     string
 	Count    int
 	LastSent time.Time
 }
