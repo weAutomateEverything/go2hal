@@ -88,7 +88,7 @@ func checkQueues(endpoint MqEndpoint, a alert.Service, s Store, chat uint32) (er
 
 	}
 	if !success {
-		a.SendError(ctx, fmt.Errorf("%v, no queues had any data. please check the machine agents are sending the data", endpoint.Name))
+		return a.SendAlert(ctx, chat, fmt.Sprintf("%v, no queues had any data. please check the machine agents are sending the data", endpoint.Name))
 	}
 	return nil
 }
