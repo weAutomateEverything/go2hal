@@ -25,6 +25,7 @@ type Service interface {
 	ExecuteRemoteCommand(ctx context.Context, chatId uint32, commandName, address string) error
 	addCommand(chatId uint32, name, command string) error
 	addKey(chatId uint32, userName, base64Key string) error
+	addServer(chatId uint32, address, description string) error
 }
 
 func NewService(alert alert.Service, store Store) Service {
@@ -34,6 +35,10 @@ func NewService(alert alert.Service, store Store) Service {
 type service struct {
 	alert alert.Service
 	store Store
+}
+
+func (s *service) addServer(chatId uint32, address, description string) error {
+	return s.store.addServer(chatId, address, description)
 }
 
 /*
@@ -59,14 +64,16 @@ func (s *service) ExecuteRemoteCommand(ctx context.Context, chatId uint32, comma
 		s.alert.SendError(ctx, err)
 		return err
 	}
+	d := make([]byte, base64.StdEncoding.DecodedLen(len(key.EncryptedBase64Key)))
+	base64.StdEncoding.Decode(d, []byte(key.EncryptedBase64Key))
 
-	base64Key, err := decrypt([]byte(key.EncryptedBase64Key), os.Getenv("ENCRYPTION_KEY"))
+	base64Key, err := decrypt(d, os.Getenv("ENCRYPTION_KEY"))
 	if err != nil {
 		err = fmt.Errorf("unable to decrypt data. %v", err.Error())
 		return
 	}
 
-	var decryptedKey []byte
+	decryptedKey := make([]byte, len(base64Key))
 	_, err = base64.StdEncoding.Decode(decryptedKey, base64Key)
 
 	if err != nil {
@@ -123,7 +130,14 @@ func (s *service) addCommand(chatId uint32, name, command string) error {
 }
 
 func (s *service) addKey(chatId uint32, userName, base64Key string) error {
-	return s.store.addKey(chatId, userName, base64Key)
+	key, err := encrypt([]byte(base64Key), os.Getenv("ENCRYPTION_KEY"))
+	if err != nil {
+		return err
+	}
+
+	v := base64.StdEncoding.EncodeToString(key)
+
+	return s.store.addKey(chatId, userName, v)
 }
 
 func encrypt(data []byte, passphrase string) ([]byte, error) {
