@@ -1,6 +1,7 @@
 package ssh
 
 import (
+	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/md5"
@@ -10,15 +11,13 @@ import (
 	"errors"
 	"fmt"
 	"github.com/weAutomateEverything/go2hal/alert"
+	"golang.org/x/crypto/ssh"
 	"golang.org/x/net/context"
 	"gopkg.in/kyokomi/emoji.v1"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
-	"os/exec"
 	"runtime/debug"
-	"time"
 )
 
 type Service interface {
@@ -81,47 +80,17 @@ func (s *service) ExecuteRemoteCommand(ctx context.Context, chatId uint32, comma
 		return
 	}
 
-	err = ioutil.WriteFile("/tmp/key", []byte(decryptedKey), 0600)
-	if err != nil {
-		s.alert.SendError(ctx, err)
-		return err
-	}
-
 	s.alert.SendAlert(ctx, chatId, emoji.Sprintf(":ghost: Executing Remote Command %s on machine %s", command, address))
-	cmd := exec.Command("sh", "-c", fmt.Sprintf("ssh -i /tmp/key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no %s@%s \"%s\" > /tmp/ssh.log", key.Username, address, command))
-	log.Println(cmd.Args)
-	stdout, err := cmd.StdoutPipe()
+	resp, err := remoteRun(key.Username, address, string(decryptedKey), command)
 
-	go func() {
-		err = cmd.Run()
-		if err != nil {
-			log.Println(err.Error())
-			s.alert.SendError(ctx, err)
-		}
-	}()
-
-	count := 0
-
-	for cmd.ProcessState == nil || !cmd.ProcessState.Exited() {
-		time.Sleep(time.Second * 1)
-		count++
-		if count%60 == 0 {
-			s.alert.SendAlert(ctx, chatId, fmt.Sprintf("Still waiting for command %s to complete on %s", command, address))
-		}
-		if count > 600 {
-			s.alert.SendAlert(ctx, chatId, emoji.Sprintf(":bangbang: Timed Out waiting for command %s to complete on %s", command, address))
-			return fmt.Errorf("timed out waiting for %s to complete on %s", command, address)
-		}
-	}
-	b, _ := ioutil.ReadAll(stdout)
-
-	if !cmd.ProcessState.Success() {
-		s.alert.SendAlert(ctx, chatId, emoji.Sprintf(":bangbang:  command %s did not complete successfully on %s. %v", command, address, string(b)))
+	if err != nil {
+		log.Println(err)
+		s.alert.SendAlert(ctx, chatId, emoji.Sprintf(":bangbang:  command %s did not complete successfully on %s. %v", command, address, resp))
 	} else {
-		s.alert.SendAlert(ctx, chatId, emoji.Sprintf(":white_check_mark: command %s complete successfully on %s. %v", command, address, string(b)))
+		s.alert.SendAlert(ctx, chatId, emoji.Sprintf(":white_check_mark: command %s complete successfully on %s. %v", command, address, resp))
 	}
 	log.Println("output")
-	log.Println(string(b))
+	log.Println(string(resp))
 
 	return nil
 }
@@ -178,4 +147,46 @@ func createHash(key string) string {
 	hasher := md5.New()
 	hasher.Write([]byte(key))
 	return hex.EncodeToString(hasher.Sum(nil))
+}
+
+func remoteRun(user string, addr string, privateKey string, cmd string) (string, error) {
+	// privateKey could be read from a file, or retrieved from another storage
+	// source, such as the Secret Service / GNOME Keyring
+	key, err := ssh.ParsePrivateKey([]byte(privateKey))
+	if err != nil {
+		return "", err
+	}
+	// Authentication
+	config := &ssh.ClientConfig{
+		User: user,
+		Auth: []ssh.AuthMethod{
+			ssh.PublicKeys(key),
+		},
+		//alternatively, you could use a password
+		/*
+			Auth: []ssh.AuthMethod{
+				ssh.Password("PASSWORD"),
+			},
+		*/
+	}
+	// Connect
+	client, err := ssh.Dial("tcp", addr+":22", config)
+	if err != nil {
+		return "", err
+	}
+	// Create a session. It is one session per command.
+	session, err := client.NewSession()
+	if err != nil {
+		return "", err
+	}
+	defer session.Close()
+	var b bytes.Buffer  // import "bytes"
+	session.Stdout = &b // get output
+	// you can also pass what gets input to the stdin, allowing you to pipe
+	// content from client to server
+	//      session.Stdin = bytes.NewBufferString("My input")
+
+	// Finally, run the command
+	err = session.Run(cmd)
+	return b.String(), err
 }
