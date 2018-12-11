@@ -11,11 +11,13 @@ import (
 	"errors"
 	"fmt"
 	"github.com/weAutomateEverything/go2hal/alert"
+	"github.com/weAutomateEverything/go2hal/telegram"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/net/context"
 	"gopkg.in/kyokomi/emoji.v1"
 	"io"
 	"log"
+	"net"
 	"os"
 	"runtime/debug"
 )
@@ -85,9 +87,9 @@ func (s *service) ExecuteRemoteCommand(ctx context.Context, chatId uint32, comma
 
 	if err != nil {
 		log.Println(err)
-		s.alert.SendAlert(ctx, chatId, emoji.Sprintf(":bangbang:  command %s did not complete successfully on %s. %v", command, address, resp))
+		s.alert.SendAlert(ctx, chatId, emoji.Sprintf(":bangbang:  command %s did not complete successfully on %s. %v. %v", command, address, telegram.Escape(resp), err))
 	} else {
-		s.alert.SendAlert(ctx, chatId, emoji.Sprintf(":white_check_mark: command %s complete successfully on %s. %v", command, address, resp))
+		s.alert.SendAlert(ctx, chatId, emoji.Sprintf(":white_check_mark: command %s complete successfully on %s. %v", command, address, telegram.Escape(resp)))
 	}
 	log.Println("output")
 	log.Println(string(resp))
@@ -137,9 +139,6 @@ func decrypt(data []byte, passphrase string) ([]byte, error) {
 	nonceSize := gcm.NonceSize()
 	nonce, ciphertext := data[:nonceSize], data[nonceSize:]
 	plaintext, err := gcm.Open(nil, nonce, ciphertext, nil)
-	if err != nil {
-		panic(err.Error())
-	}
 	return plaintext, err
 }
 
@@ -161,6 +160,9 @@ func remoteRun(user string, addr string, privateKey string, cmd string) (string,
 		User: user,
 		Auth: []ssh.AuthMethod{
 			ssh.PublicKeys(key),
+		},
+		HostKeyCallback: func(hostname string, remote net.Addr, key ssh.PublicKey) error {
+			return nil
 		},
 		//alternatively, you could use a password
 		/*
