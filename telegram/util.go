@@ -3,6 +3,7 @@ package telegram
 import (
 	"github.com/dgrijalva/jwt-go"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -16,4 +17,10 @@ func makeToken(roomid uint32) (string, error) {
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString([]byte(os.Getenv("JWT_KEY")))
+}
+
+func Escape(request string) string {
+	request = strings.Replace(request, "*", "\\*", -1)
+	request = strings.Replace(request, "_", "\\_", -1)
+	return request
 }
