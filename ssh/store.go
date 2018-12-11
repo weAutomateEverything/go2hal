@@ -10,16 +10,41 @@ import (
 type Store interface {
 	addCommand(chat uint32, name, commandString string) error
 	findCommand(chat uint32, name string) (string, error)
+	getCommands(chat uint32) (result []command, err error)
 	addKey(chat uint32, username, key string) error
 	getKey(chat uint32) (*key, error)
+	addServer(chat uint32, address string, description string) error
+	getServers(chat uint32) (result []server, err error)
 }
-
 type mongoStore struct {
 	mongo *mgo.Database
 }
 
+func (s *mongoStore) addServer(chat uint32, address string, description string) error {
+	c := s.mongo.C("servers")
+	r := server{
+		Address:     address,
+		ChatId:      chat,
+		Description: description,
+	}
+
+	return c.Insert(&r)
+
+}
+
+func (s *mongoStore) getServers(chat uint32) (result []server, err error) {
+	err = s.mongo.C("servers").Find(bson.M{"chatid": chat}).All(&result)
+	return
+}
+
 func NewMongoStore(db *mgo.Database) Store {
 	return &mongoStore{db}
+}
+
+func (s *mongoStore) getCommands(chat uint32) (result []command, err error) {
+	c := s.mongo.C("commands")
+	err = c.Find(bson.M{"chatid": chat}).All(&result)
+	return
 }
 
 type command struct {
@@ -27,6 +52,13 @@ type command struct {
 	ChatId  uint32        `json:"chat_id"`
 	Name    string        `json:"name"`
 	Command string        `json:"command"`
+}
+
+type server struct {
+	ID          bson.ObjectId `bson:"_id,omitempty"`
+	ChatId      uint32        `json:"chat_id"`
+	Address     string        `json:"address"`
+	Description string        `json:"description"`
 }
 
 type key struct {
@@ -50,7 +82,7 @@ func (s *mongoStore) addCommand(chat uint32, name, commandString string) error {
 func (s *mongoStore) findCommand(chat uint32, name string) (string, error) {
 	c := s.mongo.C("commands")
 	result := command{}
-	err := c.Find(bson.M{"name": strings.ToUpper(name), "chat_id": chat}).One(&result)
+	err := c.Find(bson.M{"name": strings.ToUpper(name), "chatid": chat}).One(&result)
 	if err != nil {
 		return "", err
 	}
@@ -59,7 +91,7 @@ func (s *mongoStore) findCommand(chat uint32, name string) (string, error) {
 
 func (s *mongoStore) addKey(chat uint32, username, baseEncrypted64Key string) error {
 	c := s.mongo.C("keys")
-	q := c.Find(bson.M{"chat_id": chat})
+	q := c.Find(bson.M{"chatid": chat})
 	count, err := q.Count()
 	if err != nil {
 		return err
@@ -84,7 +116,7 @@ func (s *mongoStore) addKey(chat uint32, username, baseEncrypted64Key string) er
 
 func (s *mongoStore) getKey(chat uint32) (*key, error) {
 	c := s.mongo.C("keys")
-	q := c.Find(bson.M{"chat_id": chat})
+	q := c.Find(bson.M{"chatid": chat})
 	count, err := q.Count()
 	if err != nil {
 		return nil, err

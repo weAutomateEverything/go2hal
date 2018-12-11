@@ -464,8 +464,11 @@ func NewGo2Hal() Go2Hal {
 	go2hal.TelegramService.RegisterCommand(callout.NewAckCommand(go2hal.AlertService, go2hal.TelegramStore, go2hal.calloutStore))
 	go2hal.TelegramService.RegisterCommand(appdynamics.NewDisableMqCommand(go2hal.AppdynamicsStore, go2hal.TelegramStore, go2hal.AlertService))
 	go2hal.TelegramService.RegisterCommand(appdynamics.NewEnableMqCommand(go2hal.AppdynamicsStore, go2hal.TelegramStore, go2hal.AlertService))
+	go2hal.TelegramService.RegisterCommand(ssh.NewCommand(go2hal.SSHStore, go2hal.TelegramStore, go2hal.TelegramService))
 
 	go2hal.TelegramService.RegisterCommandLet(telegram.NewTelegramAuthApprovalCommand(go2hal.TelegramService, go2hal.TelegramStore))
+	go2hal.TelegramService.RegisterCommandLet(ssh.NewSSHExecute(go2hal.SSHService, go2hal.SSHStore, go2hal.TelegramStore, go2hal.TelegramService))
+	go2hal.TelegramService.RegisterCommandLet(ssh.NewSshSelectCommand(go2hal.SSHStore, go2hal.TelegramStore, go2hal.TelegramService))
 
 	go2hal.HTTPLogger = log.With(go2hal.Logger, "component", "http")
 
@@ -487,6 +490,7 @@ func NewGo2Hal() Go2Hal {
 	go2hal.Mux.Handle("/api/grafana/", grafana.MakeHandler(go2hal.grafanaService, go2hal.HTTPLogger, go2hal.MachineLearningService))
 	go2hal.Mux.Handle("/api/prometheus/", prometheus.MakeHandler(go2hal.prometheusService, go2hal.HTTPLogger, go2hal.MachineLearningService))
 	go2hal.Mux.Handle("/api/metrics", promhttp.Handler())
+	go2hal.Mux.Handle("/api/ssh/", ssh.MakeHandler(go2hal.SSHService, go2hal.HTTPLogger, go2hal.MachineLearningService))
 	go2hal.Mux.Handle("/api/swagger.json", swagger{})
 
 	return go2hal
