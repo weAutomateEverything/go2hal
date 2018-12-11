@@ -120,7 +120,8 @@ func (s *service) ExecuteRemoteCommand(ctx context.Context, chatId uint32, comma
 		s.alert.SendAlert(ctx, chatId, emoji.Sprintf(":white_check_mark: command %s complete successfully on %s", command, address))
 	}
 	log.Println("output")
-	log.Println(stdout)
+	b, err := ioutil.ReadAll(stdout)
+	log.Println(string(b))
 
 	return nil
 }
