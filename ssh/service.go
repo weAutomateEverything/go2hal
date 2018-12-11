@@ -113,14 +113,14 @@ func (s *service) ExecuteRemoteCommand(ctx context.Context, chatId uint32, comma
 			return fmt.Errorf("timed out waiting for %s to complete on %s", command, address)
 		}
 	}
+	b, _ := ioutil.ReadAll(stdout)
 
 	if !cmd.ProcessState.Success() {
-		s.alert.SendAlert(ctx, chatId, emoji.Sprintf(":bangbang:  command %s did not complete successfully on %s", command, address))
+		s.alert.SendAlert(ctx, chatId, emoji.Sprintf(":bangbang:  command %s did not complete successfully on %s. %v", command, address, string(b)))
 	} else {
-		s.alert.SendAlert(ctx, chatId, emoji.Sprintf(":white_check_mark: command %s complete successfully on %s", command, address))
+		s.alert.SendAlert(ctx, chatId, emoji.Sprintf(":white_check_mark: command %s complete successfully on %s. %v", command, address, string(b)))
 	}
 	log.Println("output")
-	b, err := ioutil.ReadAll(stdout)
 	log.Println(string(b))
 
 	return nil
