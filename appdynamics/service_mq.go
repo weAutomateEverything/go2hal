@@ -130,12 +130,6 @@ func checkQueue(ctx context.Context, endpoint MqEndpoint, name string, a alert.S
 		return nil
 	}
 
-	if strings.HasSuffix(strings.ToUpper(name), "BK") && currDepth > 0 {
-		a.SendAlert(ctx, chat, emoji.Sprintf(":baggage_claim: :warning: %s - Backout Queue %s contains data. The queue should be empty.\nPlease investigate why messages are being placed on this queue.\nCurrent "+
-			"Depth %.0f, Max Depth %.0f", endpoint.Name, name, currDepth, maxDepth))
-		return nil
-	}
-
 	messageAge, err := getAppdValue(ctx, buildQueryStringOldestMessageAge(endpoint, name), s, a, chat)
 
 	if messageAge > endpoint.MaxMessageAge {
