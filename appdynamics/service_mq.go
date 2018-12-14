@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/weAutomateEverything/go2hal/alert"
+	"github.com/weAutomateEverything/go2hal/telegram"
 	"gopkg.in/kyokomi/emoji.v1"
 	"io/ioutil"
 	"log"
@@ -88,7 +89,7 @@ func checkQueues(endpoint MqEndpoint, a alert.Service, s Store, chat uint32) (er
 
 	}
 	if !success {
-		return a.SendAlert(ctx, chat, fmt.Sprintf("%v, no queues had any data. please check the machine agents are sending the data", endpoint.Name))
+		return a.SendAlert(ctx, chat, telegram.Escape(fmt.Sprintf("%v, no queues had any data. please check the machine agents are sending the data", endpoint.Name)))
 	}
 	return nil
 }
@@ -117,15 +118,15 @@ func checkQueue(ctx context.Context, endpoint MqEndpoint, name string, a alert.S
 	full := currDepth / maxDepth * 100
 	if full > 90 {
 
-		a.SendAlert(ctx, chat, emoji.Sprintf(":baggage_claim: :interrobang: %s - Queue %s, is more than 90 percent full. "+
-			"Current Depth %.0f, Max Depth %.0f", endpoint.Name, name, currDepth, maxDepth))
+		a.SendAlert(ctx, chat, telegram.Escape(emoji.Sprintf(":baggage_claim: :interrobang: %s - Queue %s, is more than 90 percent full. "+
+			"Current Depth %.0f, Max Depth %.0f", endpoint.Name, name, currDepth, maxDepth)))
 
 		return nil
 	}
 
 	if full > 75 {
-		a.SendAlert(ctx, chat, emoji.Sprintf(":baggage_claim: :warning: %s - Queue %s, is more than 75 percent full. Current "+
-			"Depth %.0f, Max Depth %.0f", endpoint.Name, name, currDepth, maxDepth))
+		a.SendAlert(ctx, chat, telegram.Escape(emoji.Sprintf(":baggage_claim: :warning: %s - Queue %s, is more than 75 percent full. Current "+
+			"Depth %.0f, Max Depth %.0f", endpoint.Name, name, currDepth, maxDepth)))
 
 		return nil
 	}
@@ -136,11 +137,11 @@ func checkQueue(ctx context.Context, endpoint MqEndpoint, name string, a alert.S
 		t := time.Now().Add(time.Second * time.Duration(messageAge) * -1)
 		d := time.Since(t).Truncate(time.Second)
 		if currDepth == 0 {
-			a.SendAlert(ctx, chat, emoji.Sprintf(":baggage_claim: :warning: %s - Queue %s contains messages that are %v old. Queue depth is 0, so it looks like there are uncommitted messages stuck in the application. Please investigate why messages are not being processed on the queue.", endpoint.Name, name, d.String()))
+			a.SendAlert(ctx, chat, telegram.Escape(emoji.Sprintf(":baggage_claim: :warning: %s - Queue %s contains messages that are %v old. Queue depth is 0, so it looks like there are uncommitted messages stuck in the application. Please investigate why messages are not being processed on the queue.", endpoint.Name, name, d.String())))
 			return nil
 		}
-		a.SendAlert(ctx, chat, emoji.Sprintf(":baggage_claim: :warning: %s - Queue %s contains messages that are %v old. Please investigate why messages are not being processed on the queue.\nCurrent "+
-			"Depth %.0f, Max Depth %.0f", endpoint.Name, name, d.String(), currDepth, maxDepth))
+		a.SendAlert(ctx, chat, telegram.Escape(emoji.Sprintf(":baggage_claim: :warning: %s - Queue %s contains messages that are %v old. Please investigate why messages are not being processed on the queue.\nCurrent "+
+			"Depth %.0f, Max Depth %.0f", endpoint.Name, name, d.String(), currDepth, maxDepth)))
 		return nil
 
 	}
