@@ -6,17 +6,16 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/kyokomi/emoji"
 	"github.com/weAutomateEverything/go2hal/alert"
 	"github.com/weAutomateEverything/go2hal/callout"
 	"github.com/weAutomateEverything/go2hal/ssh"
-	"github.com/weAutomateEverything/go2hal/util"
-	"gopkg.in/kyokomi/emoji.v1"
 	"log"
 	"strings"
 )
 
 type Service interface {
-	sendAppdynamicsAlert(ctx context.Context, chatId uint32, message string) error
+	sendAppdynamicsAlert(ctx context.Context, chatId uint32, message AppdynamicsMessage) error
 	addAppdynamicsEndpoint(chat uint32, endpoint string) error
 	executeCommandFromAppd(ctx context.Context, chatId uint32, commandName, applicationID, nodeID string) error
 }
@@ -32,20 +31,11 @@ func NewService(alertService alert.Service, sshservice ssh.Service, store Store,
 	return &service{alert: alertService, ssh: sshservice, store: store, calloutService: callout}
 }
 
-func (s *service) sendAppdynamicsAlert(ctx context.Context, chatId uint32, message string) error {
-	var m appdynamicsMessage
+func (s *service) sendAppdynamicsAlert(ctx context.Context, chatId uint32, message AppdynamicsMessage) (err error) {
 
-	message = util.EscapeInput(message)
-	err := json.Unmarshal([]byte(message), &m)
+	for _, event := range message.Events {
 
-	if err != nil {
-		s.alert.SendError(ctx, fmt.Errorf("error unmarshalling App Dynamics Message: %s. error: %v", message, err))
-		return err
-	}
-
-	for _, event := range m.Events {
-
-		if m.InvokeCallout {
+		if message.InvokeCallout {
 			if "ERROR" == strings.ToUpper(event.Severity) {
 				s.calloutService.InvokeCallout(ctx, chatId, "Appdynamics Critical Issue", event.EventMessage, true)
 			}
@@ -138,4 +128,28 @@ func (s *service) getIPAddressForNode(ctx context.Context, application, node str
 		}
 	}
 	return "", errors.New("no up address found")
+}
+
+// swagger:model
+type AppdynamicsMessage struct {
+	Environment string `json:"environment"`
+	Policy      struct {
+		TriggerTime string `json:"triggerTime"`
+		Name        string `json:"name"`
+	}
+	Events        []Event `json:"events"`
+	InvokeCallout bool    `json:"invoke_callout"`
+}
+
+type Event struct {
+	Severity     string `json:"severity"`
+	Application  Name
+	Tier         Name
+	Node         Name
+	DisplayName  string `json:"displayName"`
+	EventMessage string `json:"eventMessage"`
+}
+
+type Name struct {
+	Name string `json:"name"`
 }

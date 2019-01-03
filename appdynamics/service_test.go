@@ -23,7 +23,26 @@ func TestServiceWithQuotes(t *testing.T) {
 	store.EXPECT().getAllEndpoints().AnyTimes().Return(nil, nil)
 	alertService.EXPECT().SendAlert(context.TODO(), uint32(12345), "🔴  [Error]  - ServletException: java.lang.NumberFormatException: For input string: \"\"\n*Application:* TESTAPP\n*Tier:* TESTTIER\n*Node:* test\n")
 
-	err := service.sendAppdynamicsAlert(context.TODO(), uint32(12345), "{\"events\": [{\"severity\": \"ERROR\",\"application\": {\"name\": \"TESTAPP\"},\"tier\": {\"name\": \"TESTTIER\"},\"node\": {\"name\": \"test\"},\"displayName\": \"Business Transaction Error\",\"eventMessage\": \"[Error]  - ServletException: java.lang.NumberFormatException: For input string: \"\"\"}]}")
+	d := AppdynamicsMessage{
+		Events: []Event{
+			{
+				Severity: "ERROR",
+				Application: Name{
+					Name: "TESTAPP",
+				},
+				Tier: Name{
+					Name: "TESTTIER",
+				},
+				Node: Name{
+					Name: "test",
+				},
+				DisplayName:  "Business Transaction Error",
+				EventMessage: "[Error]  - ServletException: java.lang.NumberFormatException: For input string: \"\"",
+			},
+		},
+	}
+
+	err := service.sendAppdynamicsAlert(context.TODO(), uint32(12345), d)
 
 	if err != nil {
 		t.Error(err)

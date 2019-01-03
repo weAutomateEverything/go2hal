@@ -20,7 +20,7 @@ func NewInstrumentService(counter metrics.Counter, latency metrics.Histogram, s 
 	}
 }
 
-func (s instrumentingService) sendAppdynamicsAlert(ctx context.Context, chatId uint32, message string) error {
+func (s instrumentingService) sendAppdynamicsAlert(ctx context.Context, chatId uint32, message AppdynamicsMessage) error {
 	defer func(begin time.Time) {
 		s.requestCount.With("method", "sendAppdynamicsAlert").Add(1)
 		s.requestLatency.With("method", "sendAppdynamicsAlert").Observe(time.Since(begin).Seconds())

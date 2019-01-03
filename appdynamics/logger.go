@@ -15,7 +15,7 @@ func NewLoggingService(logger log.Logger, s Service) Service {
 	return &loggingService{logger, s}
 }
 
-func (s *loggingService) sendAppdynamicsAlert(ctx context.Context, chatId uint32, message string) (err error) {
+func (s *loggingService) sendAppdynamicsAlert(ctx context.Context, chatId uint32, message AppdynamicsMessage) (err error) {
 	defer func(begin time.Time) {
 		s.logger.Log(
 			"method", "send appdynamics alert",

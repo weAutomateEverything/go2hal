@@ -16,7 +16,7 @@ import (
 func MakeHandler(service Service, logger kitlog.Logger, ml machineLearning.Service) http.Handler {
 	opts := gokit.GetServerOpts(logger, ml)
 
-	appDynamicsAlertEndoint := kithttp.NewServer(makeAppDynamicsAlertEndpoint(service), gokit.DecodeString, gokit.EncodeResponse, opts...)
+	appDynamicsAlertEndoint := kithttp.NewServer(makeAppDynamicsAlertEndpoint(service), decodeSendAlertRequest, gokit.EncodeResponse, opts...)
 	addAppdynamicsEndpoint := kithttp.NewServer(makeAddAppdynamicsEndpoint(service), decodeAddEndpointRequest, gokit.EncodeResponse, opts...)
 	executeCommandFromAppdynamics := kithttp.NewServer(makExecuteCommandFromAppdynamics(service), decodeExecuteRequest, gokit.EncodeResponse, opts...)
 
@@ -172,6 +172,12 @@ func decodeExecuteRequest(_ context.Context, r *http.Request) (interface{}, erro
 
 func decodeAddEndpointRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	request := AddAppdynamicsEndpointRequest{}
+	err := json.NewDecoder(r.Body).Decode(&request)
+	return request, err
+}
+
+func decodeSendAlertRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	request := AppdynamicsMessage{}
 	err := json.NewDecoder(r.Body).Decode(&request)
 	return request, err
 }
