@@ -35,16 +35,16 @@ func (s *service) sendAppdynamicsAlert(ctx context.Context, chatId uint32, messa
 
 	for _, event := range message.Events {
 
+		msg := event.EventMessage
+		msg = strings.Replace(msg, "<b>", "*", -1)
+		msg = strings.Replace(msg, "</b>", "*", -1)
+		msg = strings.Replace(msg, "<br>", "\n", -1)
+
 		if message.InvokeCallout {
 			if "ERROR" == strings.ToUpper(event.Severity) {
-				s.calloutService.InvokeCallout(ctx, chatId, "Appdynamics Critical Issue", event.EventMessage, true)
+				s.calloutService.InvokeCallout(ctx, chatId, "Appdynamics Critical Issue", msg, true)
 			}
 		}
-
-		message := event.EventMessage
-		message = strings.Replace(message, "<b>", "*", -1)
-		message = strings.Replace(message, "</b>", "*", -1)
-		message = strings.Replace(message, "<br>", "\n", -1)
 
 		var buffer bytes.Buffer
 		switch strings.ToUpper(event.Severity) {
@@ -57,7 +57,7 @@ func (s *service) sendAppdynamicsAlert(ctx context.Context, chatId uint32, messa
 		}
 
 		buffer.WriteString(" ")
-		buffer.WriteString(message)
+		buffer.WriteString(msg)
 		buffer.WriteString("\n")
 
 		if event.Application.Name != "" {
