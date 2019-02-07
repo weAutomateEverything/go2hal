@@ -17,9 +17,9 @@
 //     - application/json
 //     SecurityDefinitions:
 //     ApiKeyAuth:
-//    	  type: apiKey
+//        type: apiKey
 //        in: header
-//    	  name: Authorization
+//        name: Authorization
 //
 // swagger:meta
 package main
