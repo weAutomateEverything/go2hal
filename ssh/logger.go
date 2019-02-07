@@ -18,7 +18,7 @@ func NewLoggingService(logger log.Logger, s Service) Service {
 func (s *loggingService) ExecuteRemoteCommand(ctx context.Context, chatId uint32, commandName, address string) error {
 	defer func(begin time.Time) {
 		s.logger.Log(
-			"method", "SendSNMPMessage",
+			"method", "ExecuteRemoteCommand",
 			"commandName", commandName,
 			"address", address,
 			"chat", chatId,

@@ -6,6 +6,7 @@ import (
 	"golang.org/x/net/context"
 	"gopkg.in/kyokomi/emoji.v1"
 	"gopkg.in/mgo.v2/bson"
+	"log"
 	"os"
 	"strconv"
 )
@@ -94,6 +95,7 @@ func (s *service) SendDocumentToAlertGroup(ctx context.Context, chatid uint32, d
 }
 
 func (s *service) SendError(ctx context.Context, err error) error {
+	log.Printf("Sending Error Error: %v", err)
 	g := os.Getenv("ERROR_GROUP")
 	group, errs := strconv.ParseInt(g, 10, 64)
 	if errs != nil {

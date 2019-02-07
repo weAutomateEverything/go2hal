@@ -2,6 +2,7 @@ package ssh
 
 import (
 	"context"
+	"fmt"
 	"github.com/weAutomateEverything/go2hal/telegram"
 	"gopkg.in/telegram-bot-api.v4"
 	"log"
@@ -34,20 +35,22 @@ func (s sshExecute) Execute(ctx context.Context, update tgbotapi.Update, state t
 	id, err := s.telegramStore.GetUUID(update.Message.Chat.ID, update.Message.Chat.Description)
 	if err != nil {
 		log.Println(err)
-		s.telegramService.SendMessage(ctx, update.Message.Chat.ID, "Technical Error - please let the devs know", update.Message.MessageID)
+		s.telegramService.SendMessage(ctx, update.Message.Chat.ID, fmt.Sprintf("Technical Error getting group id. - please let the devs know. %v", err), update.Message.MessageID)
 		return
 	}
 
 	servers, err := s.store.getServers(id)
 	if err != nil {
 		log.Println(err)
-		s.telegramService.SendMessage(ctx, update.Message.Chat.ID, "Technical Error - please let the devs know", update.Message.MessageID)
+		s.telegramService.SendMessage(ctx, update.Message.Chat.ID, fmt.Sprintf("Technical Error fetching servers - please let the devs know. %v", err), update.Message.MessageID)
 		return
 	}
 
 	for _, server := range servers {
 		if server.Description == update.Message.Text {
 			err = s.service.ExecuteRemoteCommand(ctx, id, state.Field[0], server.Address)
+			log.Println(err)
+			s.telegramService.SendMessage(ctx, update.Message.Chat.ID, fmt.Sprintf("Technical Error executing commands - please let the devs know. %v", err), update.Message.MessageID)
 
 		}
 	}
