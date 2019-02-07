@@ -15,11 +15,11 @@
 //
 //     Produces:
 //     - application/json
-//     securityDefinitions:
-//       Bearer:
-//         type: apiKey
-//         name: Authorization
-//         in: header
+//     SecurityDefinitions:
+//     ApiKeyAuth:
+//    	  type: apiKey
+//        in: header
+//    	  name: Authorization
 //
 // swagger:meta
 package main

@@ -41,6 +41,8 @@ func MakeHandler(service Service, logger kitlog.Logger, ml machineLearning.Servi
 	//
 	//
 	// ---
+	// security:
+	// - api_key: []
 	// consumes:
 	// - application/json
 	// produces:
@@ -68,6 +70,8 @@ func MakeHandler(service Service, logger kitlog.Logger, ml machineLearning.Servi
 	//
 	//
 	// ---
+	// security:
+	// - api_key: []
 	// consumes:
 	// - application/json
 	// produces:
@@ -93,6 +97,8 @@ func MakeHandler(service Service, logger kitlog.Logger, ml machineLearning.Servi
 	// Executes a predefined SSH Command using the key added to your gropup
 	//
 	// ---
+	// security:
+	// - api_key: []
 	// consumes:
 	// - application/json
 	// produces:
@@ -119,6 +125,8 @@ func MakeHandler(service Service, logger kitlog.Logger, ml machineLearning.Servi
 	//
 	//
 	// ---
+	// security:
+	// - api_key: []
 	// consumes:
 	// - application/json
 	// produces:

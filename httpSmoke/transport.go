@@ -41,7 +41,7 @@ func MakeHandler(service Service, logger kitlog.Logger, ml machineLearning.Servi
 	// produces:
 	// - application/json
 	// security:
-	// - Bearer: []
+	// - api_key: []
 	// parameters:
 	// - name: message
 	//   in: body
@@ -66,7 +66,7 @@ func MakeHandler(service Service, logger kitlog.Logger, ml machineLearning.Servi
 	// produces:
 	// - application/json
 	// security:
-	// - Bearer: []
+	// - api_key: []
 	// responses:
 	//   '200':
 	//     description: success
