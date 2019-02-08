@@ -44,7 +44,7 @@ func MakeHandler(service CalloutFunction, logger kitlog.Logger, ml machineLearni
 	// produces:
 	// - application/json
 	// security:
-	// - Bearer: []
+	// - api_key: []
 	// parameters:
 	// - name: message
 	//   in: body
@@ -70,7 +70,7 @@ func MakeHandler(service CalloutFunction, logger kitlog.Logger, ml machineLearni
 	// produces:
 	// - application/json
 	// security:
-	// - Bearer: []
+	// - api_key: []
 	// responses:
 	//   '200':
 	//     description: Message Sent successfully

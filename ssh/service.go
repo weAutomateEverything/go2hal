@@ -65,8 +65,12 @@ func (s *service) ExecuteRemoteCommand(ctx context.Context, chatId uint32, comma
 		s.alert.SendError(ctx, err)
 		return err
 	}
-	d := make([]byte, base64.StdEncoding.DecodedLen(len(key.EncryptedBase64Key)))
-	base64.StdEncoding.Decode(d, []byte(key.EncryptedBase64Key))
+	d := make([]byte, base64.RawStdEncoding.DecodedLen(len(key.EncryptedBase64Key)))
+	_, err = base64.RawStdEncoding.Decode(d, []byte(key.EncryptedBase64Key))
+	if err != nil {
+		err = fmt.Errorf("unable to base64 decode encrypted value. %v", err.Error())
+		return
+	}
 
 	base64Key, err := decrypt(d, os.Getenv("ENCRYPTION_KEY"))
 	if err != nil {
@@ -75,7 +79,7 @@ func (s *service) ExecuteRemoteCommand(ctx context.Context, chatId uint32, comma
 	}
 
 	decryptedKey := make([]byte, len(base64Key))
-	_, err = base64.StdEncoding.Decode(decryptedKey, base64Key)
+	_, err = base64.RawStdEncoding.Decode(decryptedKey, base64Key)
 
 	if err != nil {
 		err = fmt.Errorf("unable to base64 decode your key. %v", err.Error())
@@ -107,7 +111,7 @@ func (s *service) addKey(chatId uint32, userName, base64Key string) error {
 		return err
 	}
 
-	v := base64.StdEncoding.EncodeToString(key)
+	v := base64.RawStdEncoding.EncodeToString(key)
 
 	return s.store.addKey(chatId, userName, v)
 }
@@ -130,10 +134,12 @@ func decrypt(data []byte, passphrase string) ([]byte, error) {
 	key := []byte(createHash(passphrase))
 	block, err := aes.NewCipher(key)
 	if err != nil {
+		log.Printf("Bad Key %v", err)
 		return nil, err
 	}
 	gcm, err := cipher.NewGCM(block)
 	if err != nil {
+		log.Printf("Bad GCM %v", err)
 		return nil, err
 	}
 	nonceSize := gcm.NonceSize()
