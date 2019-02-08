@@ -78,7 +78,7 @@ func (s *service) ExecuteRemoteCommand(ctx context.Context, chatId uint32, comma
 		return
 	}
 
-	decryptedKey := make([]byte, len(base64Key))
+	decryptedKey := make([]byte, base64.RawStdEncoding.DecodedLen(len(base64Key)))
 	_, err = base64.RawStdEncoding.Decode(decryptedKey, base64Key)
 
 	if err != nil {
