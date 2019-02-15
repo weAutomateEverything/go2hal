@@ -49,8 +49,9 @@ func (s sshExecute) Execute(ctx context.Context, update tgbotapi.Update, state t
 	for _, server := range servers {
 		if server.Description == update.Message.Text {
 			err = s.service.ExecuteRemoteCommand(ctx, id, state.Field[0], server.Address)
-			log.Println(err)
-			s.telegramService.SendMessage(ctx, update.Message.Chat.ID, fmt.Sprintf("Technical Error executing commands - please let the devs know. %v", err), update.Message.MessageID)
+			if err != nil {
+				s.telegramService.SendMessage(ctx, update.Message.Chat.ID, fmt.Sprintf("Technical Error executing commands - please let the devs know. %v", err), update.Message.MessageID)
+			}
 
 		}
 	}
