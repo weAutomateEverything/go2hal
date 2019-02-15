@@ -49,7 +49,7 @@ func MakeHandler(service Service, logger kitlog.Logger, ml machineLearning.Servi
 	// - application/json
 	// parameters:
 	// - name: body
-	//   description: add ssh key request
+	//   description: add ssh key request. Ensure that the key value is base64 encoded!
 	//   required: true
 	//   in: body
 	//   schema:
