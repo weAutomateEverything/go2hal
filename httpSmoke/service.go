@@ -26,6 +26,7 @@ func NewService(alertService alert.Service, store Store, callout callout.Service
 		callout:    callout,
 		checkCount: checkCount,
 		errorCount: ErrorCount,
+		notifySSLExpiryTimeout: time.Now(),
 	}
 	go func() {
 		s.monitorEndpoints()
@@ -38,6 +39,7 @@ type Service interface {
 	getEndpoints(group uint32) ([]httpEndpoint, error)
 	addHttpEndpoint(ctx context.Context, name, url, method string, parameters []parameters, threshold int, chat uint32) error
 	deleteEndpoint(id string, chat uint32)
+	sendSSLExpiryAlert(alertFrequency int, expiryStatus string, ctx context.Context, endpoint httpEndpoint)
 }
 
 type service struct {
@@ -49,6 +51,8 @@ type service struct {
 
 	checkCount metrics.Counter
 	errorCount metrics.Counter
+
+	notifySSLExpiryTimeout time.Time
 }
 
 func (s *service) getEndpoints(group uint32) ([]httpEndpoint, error) {
@@ -141,11 +145,10 @@ func (s *service) checkHTTP(endpoint httpEndpoint) {
 	if response.TLS != nil && len(response.TLS.PeerCertificates) != 0 {
 		certExpiry := response.TLS.PeerCertificates[0].NotAfter
 		daysTillExpiry := s.daysToExpiry(certExpiry)
-		expiryStatus := s.confirmCertExpiry(certExpiry, endpoint.Endpoint, daysTillExpiry)
+		expiryStatus, alertFrequency := s.confirmCertExpiry(certExpiry, endpoint.Endpoint, daysTillExpiry)
 
 		if expiryStatus != "" {
-			err := errors.New(expiryStatus)
-			s.alert.SendError(ctx, err)
+			s.sendSSLExpiryAlert(alertFrequency, expiryStatus, ctx, endpoint)
 		}
 	}
 }
@@ -228,27 +231,40 @@ func (s *service) daysToExpiry(expiryDate time.Time) float64 {
 	return math.Floor(duration.Hours() / 24)
 }
 
-func (s *service) confirmCertExpiry(expiryDate time.Time, endpoint string, expiryDays float64) string {
+func (s *service) confirmCertExpiry(expiryDate time.Time, endpoint string, expiryDays float64) (string, int) {
 
 	if expiryDays <= 54 {
-		return emoji.Sprintf(":rotating_light: SSL certificate for %v expires withing 54 days!\nExpiry date: %v", endpoint, expiryDate)
+		return emoji.Sprintf(":rotating_light: SSL certificate for %v expires withing %v days!\nExpiry date: %v", endpoint, expiryDays, expiryDate), 1
 	}
 	if expiryDays <= 60 {
-		return emoji.Sprintf(":rotating_light: SSL certificate for %v expires withing 60 days!\nExpiry date: %v", endpoint, expiryDate)
+		return emoji.Sprintf(":rotating_light: SSL certificate for %v expires withing %v days!\nExpiry date: %v", endpoint, expiryDays, expiryDate), 1
 	}
 	if expiryDays <= 70 {
-		return emoji.Sprintf(":rotating_light: SSL certificate for %v expires withing 70 days!\nExpiry date: %v", endpoint, expiryDate)
+		return emoji.Sprintf(":rotating_light: SSL certificate for %v expires withing %v days!\nExpiry date: %v", endpoint, expiryDays, expiryDate), 2
 	}
 	if expiryDays <= 85 {
-		return emoji.Sprintf(":rotating_light: SSL certificate for %v expires withing 85 days!\nExpiry date: %v", endpoint, expiryDate)
+		return emoji.Sprintf(":rotating_light: SSL certificate for %v expires withing %v days!\nExpiry date: %v", endpoint, expiryDays, expiryDate), 2
 	}
 	if expiryDays <= 100 {
-		return emoji.Sprintf(":rotating_light: SSL certificate for %v expires withing 100 days!\nExpiry date: %v", endpoint, expiryDate)
+		return emoji.Sprintf(":rotating_light: SSL certificate for %v expires withing %v days!\nExpiry date: %v", endpoint, expiryDays, expiryDate), 3
 	}
 	if expiryDays <= 120 {
-		return emoji.Sprintf(":rotating_light: SSL certificate for %v expires withing 120 days!\nExpiry date: %v", endpoint, expiryDate)
+		return emoji.Sprintf(":rotating_light: SSL certificate for %v expires withing %v days!\nExpiry date: %v", endpoint, expiryDays, expiryDate), 3
 	}
-	return ""
+	return "", 0
+}
+
+func (s *service) sendSSLExpiryAlert(alertFrequency int, expiryStatus string, ctx context.Context, endpoint httpEndpoint) {
+	if alertFrequency == 3 && time.Now().After(s.notifySSLExpiryTimeout.Add(3 * time.Hour)){
+		s.alert.SendAlert(ctx, endpoint.Chat, expiryStatus)
+		s.notifySSLExpiryTimeout = time.Now()
+	}else if alertFrequency == 2 && time.Now().After(s.notifySSLExpiryTimeout.Add(2 * time.Hour)){
+		s.alert.SendAlert(ctx, endpoint.Chat, expiryStatus)
+		s.notifySSLExpiryTimeout = time.Now()
+	}else if alertFrequency == 1 && time.Now().After(s.notifySSLExpiryTimeout.Add(1 * time.Hour)){
+		s.alert.SendAlert(ctx, endpoint.Chat, expiryStatus)
+		s.notifySSLExpiryTimeout = time.Now()
+	}
 }
 
 var defaultTransport http.RoundTripper = &http.Transport{
