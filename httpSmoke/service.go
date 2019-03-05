@@ -148,7 +148,7 @@ func (s *service) checkHTTP(endpoint httpEndpoint) {
 		expiryStatus, alertFrequency := s.confirmCertExpiry(certExpiry, endpoint.Endpoint, daysTillExpiry)
 
 		if expiryStatus != "" {
-			s.sendSSLExpiryAlert(alertFrequency, expiryStatus, ctx, endpoint)
+			s.sendSSLExpiryAlert(ctx, alertFrequency, expiryStatus, endpoint)
 		}
 	}
 }
@@ -254,7 +254,7 @@ func (s *service) confirmCertExpiry(expiryDate time.Time, endpoint string, expir
 	return "", 0
 }
 
-func (s *service) sendSSLExpiryAlert(alertFrequency int, expiryStatus string, ctx context.Context, endpoint httpEndpoint) {
+func (s *service) sendSSLExpiryAlert(ctx context.Context, alertFrequency int, expiryStatus string, endpoint httpEndpoint) {
 	if alertFrequency == 3 && time.Now().After(s.notifySSLExpiryTimeout.Add(3 * time.Hour)){
 		s.alert.SendAlert(ctx, endpoint.Chat, expiryStatus)
 		s.notifySSLExpiryTimeout = time.Now()
