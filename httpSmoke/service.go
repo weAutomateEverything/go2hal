@@ -39,7 +39,7 @@ type Service interface {
 	getEndpoints(group uint32) ([]httpEndpoint, error)
 	addHttpEndpoint(ctx context.Context, name, url, method string, parameters []parameters, threshold int, chat uint32) error
 	deleteEndpoint(id string, chat uint32)
-	sendSSLExpiryAlert(alertFrequency int, expiryStatus string, ctx context.Context, endpoint httpEndpoint)
+	sendSSLExpiryAlert(ctx context.Context, alertFrequency int, expiryStatus string, endpoint httpEndpoint)
 }
 
 type service struct {
